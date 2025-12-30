@@ -13,7 +13,7 @@
  */
 export async function generateQRCodeDataURL(
   basketCode: string,
-  size: number = 256
+  _size: number = 256 // Reserved for future use
 ): Promise<string> {
   // QR code rendering is handled directly in SaveBasketModal component
   // using react-qr-code library. This function is kept for API compatibility.

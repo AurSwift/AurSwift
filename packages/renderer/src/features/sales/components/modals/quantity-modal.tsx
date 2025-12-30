@@ -1,6 +1,6 @@
 /**
  * Quantity Modal
- * 
+ *
  * Allows users to modify the quantity or weight of a cart item.
  * For unit items: modify quantity
  * For weighted items: modify weight
@@ -19,7 +19,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { CartItemWithProduct } from "@/types/features/cart";
-import { isWeightedProduct } from "../../utils/product-helpers";
 import { getEffectiveSalesUnit } from "@/shared/hooks/use-sales-unit-settings";
 import { useSalesUnitSettings } from "@/shared/hooks/use-sales-unit-settings";
 
@@ -107,9 +106,7 @@ export function QuantityModal({
         <div className="py-4 space-y-4">
           {isWeighted ? (
             <div className="space-y-2">
-              <Label htmlFor="weight">
-                Weight ({effectiveUnit})
-              </Label>
+              <Label htmlFor="weight">Weight ({effectiveUnit})</Label>
               <Input
                 id="weight"
                 type="number"
@@ -166,4 +163,3 @@ export function QuantityModal({
     </Dialog>
   );
 }
-

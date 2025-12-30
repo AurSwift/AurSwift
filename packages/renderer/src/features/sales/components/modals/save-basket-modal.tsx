@@ -60,11 +60,15 @@ export function SaveBasketModal({
   cartSessionId,
   businessId,
   userId,
-  shiftId, // eslint-disable-line @typescript-eslint/no-unused-vars
+  shiftId,
   onSave,
   onClose,
-  onClearCart, // eslint-disable-line @typescript-eslint/no-unused-vars
+  onClearCart,
 }: SaveBasketModalProps) {
+  // Reserved for future use
+  void shiftId;
+  void onClearCart;
+
   const [step, setStep] = useState<ModalStep>("name");
   const [basketName, setBasketName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");

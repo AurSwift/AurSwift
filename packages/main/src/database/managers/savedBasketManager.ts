@@ -297,7 +297,7 @@ export class SavedBasketManager {
           }
 
           // Check if product is still active
-          if (product.status !== "active") {
+          if (!product.isActive) {
             warnings.push(`${product.name} is no longer available`);
             continue;
           }

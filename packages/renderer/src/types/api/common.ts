@@ -9,10 +9,10 @@
 import type { User } from '../domain/user';
 import type { Business } from '../domain/business';
 
-export interface APIResponse {
+export interface APIResponse<T = unknown> {
   success: boolean;
   message: string;
-  data?: unknown;
+  data?: T;
   token?: string;
   user?: User;
   users?: User[];

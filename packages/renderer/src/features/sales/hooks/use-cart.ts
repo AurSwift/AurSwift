@@ -661,7 +661,7 @@ export function useCart({
           return null;
         }
 
-        const { basket, cartSession: savedCartSession } = getResponse.data;
+        const { basket, cartSession: _savedCartSession } = getResponse.data; // Reserved for future use
 
         // Check if basket is valid
         if (basket.status !== "active") {
@@ -707,7 +707,7 @@ export function useCart({
         });
 
         if (retrieveResponse.success && retrieveResponse.data) {
-          const { items, warnings } = retrieveResponse.data;
+          const { items: _items, warnings } = retrieveResponse.data; // items reloaded from API below
 
           // Reload cart items
           const itemsResponse = await window.cartAPI.getItems(targetSession.id);

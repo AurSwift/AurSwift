@@ -19,7 +19,7 @@ import {
   useSalesUnitSettings,
   getEffectiveSalesUnit,
 } from "@/shared/hooks/use-sales-unit-settings";
-import { extractBasketCode, isValidBasketCode } from "../utils/qr-code";
+import { extractBasketCode } from "../utils/qr-code";
 
 interface UseBarcodeScannerProps {
   products: Product[];

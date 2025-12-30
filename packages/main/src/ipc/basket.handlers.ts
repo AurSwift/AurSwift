@@ -343,9 +343,9 @@ export function registerBasketHandlers() {
             ? new Date(basketWithItems.basket.expiresAt)
             : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
           businessName: business?.businessName,
-          businessAddress: business?.address,
-          businessPhone: business?.phone,
-          businessEmail: business?.email,
+          businessAddress: business?.address ?? undefined,
+          businessPhone: business?.phone ?? undefined,
+          businessEmail: business?.email ?? undefined,
         });
 
         if (!emailSent) {
