@@ -8,12 +8,14 @@
 import { ShoppingCart } from "lucide-react";
 import { SALES_PERMISSIONS } from "./permissions";
 import { SALES_ROUTES } from "./navigation";
+import { PERMISSIONS } from "@app/shared/constants/permissions";
 import type { FeatureConfig } from "@/features/dashboard/types/feature-config";
 import type { ViewConfig } from "@/navigation/types";
 
 // Import views from new location
 import NewTransactionView from "../views/new-transaction-view";
 import CashierDashboardView from "@/features/dashboard/views/cashier-dashboard-view";
+import SalesReportsView from "../views/sales-reports-view";
 
 /**
  * Sales Feature Configuration for Dashboard
@@ -66,5 +68,17 @@ export const salesViews: Record<string, ViewConfig> = {
     },
     permissions: [SALES_PERMISSIONS.READ],
     requiresAuth: true,
+  },
+  [SALES_ROUTES.SALES_REPORTS]: {
+    id: SALES_ROUTES.SALES_REPORTS,
+    level: "root",
+    component: SalesReportsView,
+    metadata: {
+      title: "Sales Reports",
+      description: "Comprehensive sales analytics and reports",
+    },
+    permissions: [PERMISSIONS.REPORTS_READ],
+    requiresAuth: true,
+    defaultParams: { embeddedInDashboard: true },
   },
 };

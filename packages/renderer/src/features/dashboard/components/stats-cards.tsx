@@ -7,6 +7,7 @@
  */
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   DollarSign,
   AlertTriangle,
@@ -21,6 +22,7 @@ import { PERMISSIONS } from "@app/shared/constants/permissions";
 
 interface StatsCardsProps {
   className?: string;
+  onActionClick?: (featureId: string, actionId: string) => void;
 }
 
 /**
@@ -43,11 +45,19 @@ function formatPercentageChange(changePercent: number): string {
   return `${sign}${changePercent.toFixed(1)}%`;
 }
 
-export function StatsCards({ className = "" }: StatsCardsProps) {
+export function StatsCards({ className = "", onActionClick }: StatsCardsProps) {
   const { hasPermission, isLoading: permissionsLoading } = useUserPermissions();
   const { statistics, isLoading: statisticsLoading } = useDashboardStatistics();
 
   const isLoading = permissionsLoading || statisticsLoading;
+
+  // Handle Go To Sales button click
+  const handleGoToSales = () => {
+    if (onActionClick) {
+      // Use the same pattern as other actions - map to management-actions/new-sale for navigation
+      onActionClick("management-actions", "new-sale");
+    }
+  };
 
   // Build stats array with dynamic data
   const stats = [
@@ -88,15 +98,6 @@ export function StatsCards({ className = "" }: StatsCardsProps) {
       permission: PERMISSIONS.REPORTS_READ,
       isLoading: statisticsLoading,
     },
-    {
-      id: "alerts",
-      title: "Alerts",
-      value: "2", // TODO: Make this dynamic when alerts system is available
-      change: "Require attention",
-      icon: AlertTriangle,
-      permission: PERMISSIONS.REPORTS_READ,
-      isLoading: false,
-    },
   ];
 
   if (isLoading) {
@@ -125,6 +126,9 @@ export function StatsCards({ className = "" }: StatsCardsProps) {
   if (visibleStats.length === 0) {
     return null;
   }
+
+  // Check if user has permission to view sales (for Go To Sales button)
+  const canGoToSales = hasPermission(PERMISSIONS.SALES_WRITE);
 
   return (
     <div
@@ -162,6 +166,27 @@ export function StatsCards({ className = "" }: StatsCardsProps) {
           </Card>
         );
       })}
+      {/* Go To Sales Button Card */}
+      {canGoToSales && (
+        <Card className="shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Quick Action
+            </CardTitle>
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <Button
+              onClick={handleGoToSales}
+              className="w-full h-auto py-3 text-base font-semibold"
+              variant="default"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              Go To Sales
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
@@ -171,8 +196,16 @@ export function StatsCards({ className = "" }: StatsCardsProps) {
  *
  * Specialized stats cards for manager dashboard.
  */
-export const ManagerStatsCards = ({ className = "" }: StatsCardsProps) => {
+export const ManagerStatsCards = ({ className = "", onActionClick }: StatsCardsProps) => {
   const { hasPermission, isLoading } = useUserPermissions();
+
+  // Handle Go To Sales button click
+  const handleGoToSales = () => {
+    if (onActionClick) {
+      // Use the same pattern as other actions - map to management-actions/new-sale for navigation
+      onActionClick("management-actions", "new-sale");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -232,7 +265,10 @@ export const ManagerStatsCards = ({ className = "" }: StatsCardsProps) => {
 
   const visibleStats = stats.filter((stat) => hasPermission(stat.permission));
 
-  if (visibleStats.length === 0) {
+  // Check if user has permission to view sales (for Go To Sales button)
+  const canGoToSales = hasPermission(PERMISSIONS.SALES_WRITE);
+
+  if (visibleStats.length === 0 && !canGoToSales) {
     return null;
   }
 
@@ -259,6 +295,27 @@ export const ManagerStatsCards = ({ className = "" }: StatsCardsProps) => {
           </Card>
         );
       })}
+      {/* Go To Sales Button Card */}
+      {canGoToSales && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
+              Quick Action
+            </CardTitle>
+            <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
+          </CardHeader>
+          <CardContent>
+            <Button
+              onClick={handleGoToSales}
+              className="w-full h-auto py-2 sm:py-3 text-sm sm:text-base font-semibold"
+              variant="default"
+            >
+              <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" />
+              Go To Sales
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

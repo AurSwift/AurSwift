@@ -323,7 +323,7 @@ const AdminDashboardView = ({
         </AlertDialog>
 
         {/* Admin Stats */}
-        <StatsCards />
+        <StatsCards onActionClick={handleActionClick} />
 
         {/* Admin Features - Permission-based rendering */}
         <DashboardGrid

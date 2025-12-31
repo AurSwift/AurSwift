@@ -20,7 +20,6 @@ import {
   Download,
   Trash2,
   Calendar,
-  FileText,
 } from "lucide-react";
 import { PERMISSIONS } from "@app/shared/constants/permissions";
 import type { FeatureConfig } from "../types/feature-config";
@@ -93,14 +92,6 @@ export const FEATURE_REGISTRY: FeatureConfig[] = [
     order: 2,
     actions: [
       {
-        id: "new-sale",
-        label: "New Sale",
-        icon: ShoppingCart,
-        onClick: () => {},
-        permissions: [PERMISSIONS.SALES_WRITE],
-        variant: "default",
-      },
-      {
         id: "apply-discount",
         label: "Apply Discount",
         icon: TrendingUp,
@@ -114,82 +105,10 @@ export const FEATURE_REGISTRY: FeatureConfig[] = [
         onClick: () => {},
         permissions: [PERMISSIONS.INVENTORY_MANAGE],
       },
-    ],
-  },
-
-  // ============================================================================
-  // Reports & Analytics
-  // ============================================================================
-  {
-    id: "reports-analytics",
-    title: "Reports & Analytics",
-    description: "Comprehensive business insights",
-    icon: BarChart3,
-    permissions: [PERMISSIONS.REPORTS_READ, PERMISSIONS.ANALYTICS_VIEW],
-    category: "reports",
-    order: 3,
-    actions: [
       {
         id: "sales-reports",
         label: "Sales Reports",
         icon: BarChart3,
-        onClick: () => {},
-        permissions: [PERMISSIONS.REPORTS_READ],
-      },
-      {
-        id: "performance-analytics",
-        label: "Performance Analytics",
-        icon: TrendingUp,
-        onClick: () => {},
-        permissions: [PERMISSIONS.ANALYTICS_VIEW],
-      },
-      {
-        id: "inventory-reports",
-        label: "Inventory Reports",
-        icon: Package,
-        onClick: () => {},
-        permissions: [PERMISSIONS.REPORTS_READ],
-      },
-      {
-        id: "staff-reports",
-        label: "Staff Reports",
-        icon: Users,
-        onClick: () => {},
-        permissions: [PERMISSIONS.REPORTS_READ],
-      },
-    ],
-  },
-
-  // ============================================================================
-  // Advanced Reports (Admin-specific)
-  // ============================================================================
-  {
-    id: "advanced-reports",
-    title: "Advanced Reports",
-    description: "Comprehensive analytics",
-    icon: FileText,
-    permissions: [PERMISSIONS.REPORTS_READ, PERMISSIONS.ANALYTICS_VIEW],
-    category: "reports",
-    order: 4,
-    actions: [
-      {
-        id: "financial-reports",
-        label: "Financial Reports",
-        icon: BarChart3,
-        onClick: () => {},
-        permissions: [PERMISSIONS.REPORTS_READ],
-      },
-      {
-        id: "business-intelligence",
-        label: "Business Intelligence",
-        icon: TrendingUp,
-        onClick: () => {},
-        permissions: [PERMISSIONS.ANALYTICS_VIEW],
-      },
-      {
-        id: "user-activity-logs",
-        label: "User Activity Logs",
-        icon: Users,
         onClick: () => {},
         permissions: [PERMISSIONS.REPORTS_READ],
       },
@@ -206,7 +125,7 @@ export const FEATURE_REGISTRY: FeatureConfig[] = [
     icon: Settings,
     permissions: [PERMISSIONS.SETTINGS_MANAGE],
     category: "settings",
-    order: 5,
+    order: 3,
     actions: [
       {
         id: "general-settings",
@@ -242,7 +161,7 @@ export const FEATURE_REGISTRY: FeatureConfig[] = [
     icon: Download,
     permissions: [PERMISSIONS.SETTINGS_MANAGE], // Only admins typically have this
     category: "settings",
-    order: 6,
+    order: 4,
     actions: [
       {
         id: "import-database",
@@ -279,7 +198,7 @@ export const FEATURE_REGISTRY: FeatureConfig[] = [
     icon: ShoppingCart,
     permissions: [PERMISSIONS.SALES_WRITE, PERMISSIONS.USERS_MANAGE],
     category: "actions",
-    order: 7,
+    order: 5,
     actions: [
       {
         id: "quick-new-sale",

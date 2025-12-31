@@ -11,6 +11,9 @@ export const SALES_ROUTES = {
 
   /** Cashier dashboard view */
   CASHIER_DASHBOARD: "sales:cashier-dashboard",
+
+  /** Sales reports view */
+  SALES_REPORTS: "sales:sales-reports",
 } as const;
 
 export type SalesRoute =

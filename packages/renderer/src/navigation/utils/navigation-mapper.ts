@@ -35,6 +35,7 @@ export function mapActionToView(
     "management-actions": {
       "new-sale": SALES_ROUTES.NEW_TRANSACTION,
       "manage-inventory": "productManagement", // Legacy route - automatically mapped by route mapper
+      "sales-reports": SALES_ROUTES.SALES_REPORTS,
       "manage-users": USERS_ROUTES.MANAGEMENT,
       "staff-schedules": STAFF_ROUTES.SCHEDULES,
     },

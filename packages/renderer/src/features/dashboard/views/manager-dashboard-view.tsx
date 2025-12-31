@@ -34,7 +34,7 @@ const ManagerDashboardView = ({
   return (
     <div className="grid gap-4 sm:gap-6">
       {/* Manager Stats */}
-      <ManagerStatsCards />
+      <ManagerStatsCards onActionClick={handleActionClick} />
 
       {/* Manager Features - Permission-based rendering */}
       <DashboardGrid
