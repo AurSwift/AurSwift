@@ -3,31 +3,48 @@
  *
  * Handles all license-related IPC communication between main and renderer processes.
  * Manages license activation, validation, heartbeat, and local storage.
+ *
+ * Real-time sync with SSE (Server-Sent Events) for instant subscription notifications.
+ * Falls back to polling every 15 minutes as backup.
  */
 
-import { ipcMain } from "electron";
+import { ipcMain, BrowserWindow } from "electron";
 import { eq } from "drizzle-orm";
 import { getDrizzle } from "../database/drizzle.js";
 import { licenseActivation, licenseValidationLog } from "../database/schema.js";
 import { getLogger } from "../utils/logger.js";
-import { generateMachineFingerprint, getMachineInfo } from "../utils/machineFingerprint.js";
+import {
+  generateMachineFingerprint,
+  getMachineInfo,
+} from "../utils/machineFingerprint.js";
 import {
   activateLicense,
   validateLicense,
   sendHeartbeat,
   deactivateLicense,
 } from "../services/licenseService.js";
+import {
+  initializeSSEClient,
+  disconnectSSEClient,
+  getSSEClient,
+  type SubscriptionEvent,
+} from "../services/subscriptionEventClient.js";
 
 const logger = getLogger("licenseHandlers");
 
 // Grace period for offline operation (7 days in milliseconds)
 const OFFLINE_GRACE_PERIOD_MS = 7 * 24 * 60 * 60 * 1000;
 
-// Heartbeat interval (24 hours in milliseconds)
-const HEARTBEAT_INTERVAL_MS = 24 * 60 * 60 * 1000;
+// Heartbeat interval - REDUCED from 24 hours to 15 minutes for backup sync
+// SSE provides real-time updates, but polling ensures we catch any missed events
+const HEARTBEAT_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
 
 // Track heartbeat timer
 let heartbeatTimer: NodeJS.Timeout | null = null;
+
+// Track consecutive heartbeat failures for error recovery
+let consecutiveHeartbeatFailures = 0;
+const MAX_CONSECUTIVE_FAILURES = 5;
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -166,12 +183,15 @@ async function deactivateLocalLicense(licenseId: number) {
 function isWithinGracePeriod(lastHeartbeat: Date | null): boolean {
   if (!lastHeartbeat) return false;
   const now = new Date();
-  const gracePeriodEnd = new Date(lastHeartbeat.getTime() + OFFLINE_GRACE_PERIOD_MS);
+  const gracePeriodEnd = new Date(
+    lastHeartbeat.getTime() + OFFLINE_GRACE_PERIOD_MS
+  );
   return now < gracePeriodEnd;
 }
 
 /**
  * Start periodic heartbeat
+ * Now runs every 15 minutes as backup to SSE real-time events
  */
 function startHeartbeatTimer(licenseKey: string) {
   // Clear existing timer
@@ -179,17 +199,55 @@ function startHeartbeatTimer(licenseKey: string) {
     clearInterval(heartbeatTimer);
   }
 
-  // Schedule heartbeat every 24 hours (with some randomization)
-  const interval = HEARTBEAT_INTERVAL_MS + Math.random() * 4 * 60 * 60 * 1000; // 24-28 hours
+  // Schedule heartbeat every 15 minutes (with some randomization to prevent thundering herd)
+  const interval = HEARTBEAT_INTERVAL_MS + Math.random() * 5 * 60 * 1000; // 15-20 minutes
 
   heartbeatTimer = setInterval(async () => {
     try {
       const result = await sendHeartbeat(licenseKey);
 
       if (result.success) {
+        consecutiveHeartbeatFailures = 0; // Reset failure counter
+        const previousStatus = (await getLocalActivation())?.subscriptionStatus;
         await updateHeartbeat(result.data?.subscriptionStatus);
         await logValidationAttempt("heartbeat", "success", licenseKey);
+
+        // 🔴 CRITICAL: Enforce shouldDisable flag
+        if (result.data?.shouldDisable) {
+          logger.warn("Server indicated license should be disabled");
+
+          // Stop timers
+          stopHeartbeatTimer();
+          disconnectSSEClient();
+
+          // Deactivate locally
+          const activation = await getLocalActivation();
+          if (activation) {
+            await deactivateLocalLicense(activation.id);
+          }
+
+          // Notify renderer process
+          emitLicenseEvent("license:disabled", {
+            reason: "Subscription expired or cancelled",
+            subscriptionStatus: result.data?.subscriptionStatus,
+            gracePeriodRemaining: result.data?.gracePeriodRemaining,
+          });
+          return;
+        }
+
+        // Notify UI if status changed
+        if (
+          previousStatus &&
+          previousStatus !== result.data?.subscriptionStatus
+        ) {
+          emitLicenseEvent("license:statusChanged", {
+            previousStatus,
+            newStatus: result.data?.subscriptionStatus,
+            shouldDisable: result.data?.shouldDisable || false,
+          });
+        }
       } else {
+        consecutiveHeartbeatFailures++;
         await logValidationAttempt(
           "heartbeat",
           "failed",
@@ -197,6 +255,15 @@ function startHeartbeatTimer(licenseKey: string) {
           undefined,
           result.message
         );
+
+        // Notify user after consecutive failures
+        if (consecutiveHeartbeatFailures >= MAX_CONSECUTIVE_FAILURES) {
+          emitLicenseEvent("license:connectionIssue", {
+            failureCount: consecutiveHeartbeatFailures,
+            message:
+              "Unable to verify license. Please check your internet connection.",
+          });
+        }
       }
     } catch (error) {
       logger.error("Heartbeat failed:", error);
@@ -210,7 +277,9 @@ function startHeartbeatTimer(licenseKey: string) {
     }
   }, interval);
 
-  logger.info(`Heartbeat timer started (interval: ${Math.round(interval / 1000 / 60 / 60)}h)`);
+  logger.info(
+    `Heartbeat timer started (interval: ${Math.round(interval / 1000 / 60)}min)`
+  );
 }
 
 /**
@@ -220,6 +289,280 @@ function stopHeartbeatTimer() {
   if (heartbeatTimer) {
     clearInterval(heartbeatTimer);
     heartbeatTimer = null;
+  }
+}
+
+// ============================================================================
+// UI NOTIFICATION HELPERS
+// ============================================================================
+
+/**
+ * Emit license event to all renderer windows
+ */
+function emitLicenseEvent(channel: string, data: object): void {
+  const windows = BrowserWindow.getAllWindows();
+  for (const win of windows) {
+    try {
+      win.webContents.send(channel, data);
+      logger.debug(`Emitted ${channel} to window ${win.id}`);
+    } catch (error) {
+      logger.error(`Failed to emit ${channel} to window:`, error);
+    }
+  }
+}
+
+// ============================================================================
+// SSE EVENT HANDLERS
+// ============================================================================
+
+/**
+ * Handle incoming SSE subscription events
+ */
+async function handleSSEEvent(event: SubscriptionEvent): Promise<void> {
+  logger.info(`SSE event received: ${event.type}`, { eventId: event.id });
+
+  const activation = await getLocalActivation();
+  if (!activation) {
+    logger.warn("SSE event received but no local activation");
+    return;
+  }
+
+  switch (event.type) {
+    case "subscription_cancelled": {
+      const data = event.data as {
+        cancelledAt: string;
+        cancelImmediately: boolean;
+        gracePeriodEnd: string | null;
+        reason?: string;
+      };
+
+      logger.warn("Subscription cancelled via SSE", {
+        immediate: data.cancelImmediately,
+      });
+
+      if (data.cancelImmediately) {
+        // Immediate cancellation - disable license
+        await deactivateLocalLicense(activation.id);
+        stopHeartbeatTimer();
+        disconnectSSEClient();
+
+        emitLicenseEvent("license:disabled", {
+          reason: data.reason || "Subscription cancelled",
+          gracePeriodEnd: data.gracePeriodEnd,
+        });
+      } else {
+        // Scheduled cancellation - update status and notify
+        await updateHeartbeat("cancelling");
+        emitLicenseEvent("license:cancelScheduled", {
+          cancelAt: data.gracePeriodEnd,
+          reason: data.reason,
+        });
+      }
+      break;
+    }
+
+    case "subscription_reactivated": {
+      const data = event.data as {
+        subscriptionStatus: string;
+        planId: string;
+      };
+
+      logger.info("Subscription reactivated via SSE");
+
+      // Update local status
+      await updateHeartbeat(data.subscriptionStatus);
+
+      emitLicenseEvent("license:reactivated", {
+        subscriptionStatus: data.subscriptionStatus,
+        planId: data.planId,
+      });
+      break;
+    }
+
+    case "subscription_updated": {
+      const data = event.data as {
+        previousStatus: string;
+        newStatus: string;
+        shouldDisable: boolean;
+        gracePeriodRemaining: number | null;
+      };
+
+      logger.info(
+        `Subscription status changed: ${data.previousStatus} -> ${data.newStatus}`
+      );
+
+      if (data.shouldDisable) {
+        // Grace period expired - disable
+        await deactivateLocalLicense(activation.id);
+        stopHeartbeatTimer();
+        disconnectSSEClient();
+
+        emitLicenseEvent("license:disabled", {
+          reason: `Subscription ${data.newStatus}`,
+          previousStatus: data.previousStatus,
+        });
+      } else {
+        // Update status
+        await updateHeartbeat(data.newStatus);
+
+        emitLicenseEvent("license:statusChanged", {
+          previousStatus: data.previousStatus,
+          newStatus: data.newStatus,
+          gracePeriodRemaining: data.gracePeriodRemaining,
+        });
+      }
+      break;
+    }
+
+    case "subscription_past_due": {
+      const data = event.data as {
+        gracePeriodEnd: string;
+        amountDue: number;
+        currency: string;
+      };
+
+      logger.warn("Subscription is past due");
+
+      await updateHeartbeat("past_due");
+
+      emitLicenseEvent("license:paymentRequired", {
+        gracePeriodEnd: data.gracePeriodEnd,
+        amountDue: data.amountDue,
+        currency: data.currency,
+        message:
+          "Your payment failed. Please update your payment method to continue using the software.",
+      });
+      break;
+    }
+
+    case "subscription_payment_succeeded": {
+      const data = event.data as {
+        subscriptionStatus: string;
+      };
+
+      logger.info("Payment succeeded - subscription restored");
+
+      await updateHeartbeat(data.subscriptionStatus);
+
+      emitLicenseEvent("license:paymentSucceeded", {
+        subscriptionStatus: data.subscriptionStatus,
+        message: "Your payment was successful. Thank you!",
+      });
+      break;
+    }
+
+    case "license_revoked": {
+      const data = event.data as {
+        reason: string;
+      };
+
+      logger.error("License revoked by server");
+
+      await deactivateLocalLicense(activation.id);
+      stopHeartbeatTimer();
+      disconnectSSEClient();
+
+      emitLicenseEvent("license:disabled", {
+        reason: data.reason,
+        revoked: true,
+      });
+      break;
+    }
+
+    case "license_reactivated": {
+      const data = event.data as {
+        planId: string;
+        features: string[];
+      };
+
+      logger.info("License reactivated by server");
+
+      // Update local activation with new features
+      const drizzle = getDrizzle();
+      await drizzle
+        .update(licenseActivation)
+        .set({
+          planId: data.planId,
+          features: data.features,
+          isActive: true,
+          subscriptionStatus: "active",
+        })
+        .where(eq(licenseActivation.id, activation.id));
+
+      emitLicenseEvent("license:reactivated", {
+        planId: data.planId,
+        features: data.features,
+      });
+      break;
+    }
+
+    case "plan_changed": {
+      const data = event.data as {
+        previousPlanId: string;
+        newPlanId: string;
+        newFeatures: string[];
+      };
+
+      logger.info(`Plan changed: ${data.previousPlanId} -> ${data.newPlanId}`);
+
+      // Update local activation with new plan
+      const drizzle = getDrizzle();
+      await drizzle
+        .update(licenseActivation)
+        .set({
+          planId: data.newPlanId,
+          planName:
+            data.newPlanId.charAt(0).toUpperCase() + data.newPlanId.slice(1),
+          features: data.newFeatures,
+        })
+        .where(eq(licenseActivation.id, activation.id));
+
+      emitLicenseEvent("license:planChanged", {
+        previousPlanId: data.previousPlanId,
+        newPlanId: data.newPlanId,
+        newFeatures: data.newFeatures,
+      });
+      break;
+    }
+
+    default:
+      logger.debug(`Unhandled SSE event type: ${event.type}`);
+  }
+}
+
+/**
+ * Initialize SSE connection for real-time subscription updates
+ */
+function initializeSSE(
+  licenseKey: string,
+  machineIdHash: string,
+  apiBaseUrl: string
+): void {
+  try {
+    const client = initializeSSEClient(licenseKey, machineIdHash, apiBaseUrl);
+
+    // Handle events
+    client.on("event", (event: SubscriptionEvent) => {
+      handleSSEEvent(event).catch((error) => {
+        logger.error("Error handling SSE event:", error);
+      });
+    });
+
+    // Handle connection state changes
+    client.on("connected", () => {
+      logger.info("SSE connected - real-time subscription sync enabled");
+      emitLicenseEvent("license:sseConnected", { connected: true });
+    });
+
+    client.on("disconnected", () => {
+      logger.warn("SSE disconnected - falling back to polling");
+      emitLicenseEvent("license:sseConnected", { connected: false });
+    });
+
+    // Start connection
+    client.connect();
+  } catch (error) {
+    logger.error("Failed to initialize SSE:", error);
   }
 }
 
@@ -277,7 +620,10 @@ export function registerLicenseHandlers() {
       logger.error("Failed to get license status:", error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to get license status",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to get license status",
       };
     }
   });
@@ -339,12 +685,23 @@ export function registerLicenseHandlers() {
           result.data
         );
 
-        // Start heartbeat timer
+        const apiBaseUrl =
+          process.env.LICENSE_API_URL || "http://localhost:3000";
+
+        // Initialize SSE for real-time subscription updates
+        initializeSSE(
+          licenseKey.toUpperCase().trim(),
+          machineIdHash,
+          apiBaseUrl
+        );
+
+        // Start backup heartbeat timer
         startHeartbeatTimer(licenseKey.toUpperCase().trim());
 
         logger.info("License activated successfully:", {
           planId: result.data.planId,
           businessName: result.data.businessName,
+          sseEnabled: true,
         });
 
         return {
@@ -382,7 +739,11 @@ export function registerLicenseHandlers() {
       if (result.success && result.data) {
         // Update local status
         await updateHeartbeat(result.data.subscriptionStatus);
-        await logValidationAttempt("validation", "success", activation.licenseKey);
+        await logValidationAttempt(
+          "validation",
+          "success",
+          activation.licenseKey
+        );
 
         return {
           success: true,
@@ -471,8 +832,9 @@ export function registerLicenseHandlers() {
       // Call deactivation API
       const result = await deactivateLicense(activation.licenseKey);
 
-      // Stop heartbeat timer
+      // Stop heartbeat timer and SSE connection
       stopHeartbeatTimer();
+      disconnectSSEClient();
 
       // Deactivate locally regardless of API result (allow offline deactivation)
       await deactivateLocalLicense(activation.id);
@@ -483,7 +845,7 @@ export function registerLicenseHandlers() {
         activation.licenseKey
       );
 
-      logger.info("License deactivated");
+      logger.info("License deactivated (SSE disconnected)");
 
       return {
         success: true,
@@ -519,7 +881,8 @@ export function registerLicenseHandlers() {
       logger.error("Failed to get machine info:", error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to get machine info",
+        message:
+          error instanceof Error ? error.message : "Failed to get machine info",
       };
     }
   });
@@ -551,7 +914,8 @@ export function registerLicenseHandlers() {
       return {
         success: false,
         hasFeature: false,
-        message: error instanceof Error ? error.message : "Feature check failed",
+        message:
+          error instanceof Error ? error.message : "Feature check failed",
       };
     }
   });
@@ -574,7 +938,11 @@ export function registerLicenseHandlers() {
 
       if (result.success) {
         await updateHeartbeat(result.data?.subscriptionStatus);
-        await logValidationAttempt("heartbeat", "success", activation.licenseKey);
+        await logValidationAttempt(
+          "heartbeat",
+          "success",
+          activation.licenseKey
+        );
       } else {
         await logValidationAttempt(
           "heartbeat",
@@ -597,6 +965,7 @@ export function registerLicenseHandlers() {
 
   /**
    * Initialize license system on app start
+   * NOW WITH: Startup validation (blocking), SSE real-time sync, backup polling
    */
   ipcMain.handle("license:initialize", async () => {
     try {
@@ -609,37 +978,154 @@ export function registerLicenseHandlers() {
         };
       }
 
-      // Start heartbeat timer for existing activation
+      const machineIdHash = generateMachineFingerprint();
+      const apiBaseUrl = process.env.LICENSE_API_URL || "http://localhost:3000";
+
+      // 🔴 CRITICAL: Startup validation (BLOCKING) - ensure subscription is still valid
+      logger.info("Performing startup license validation...");
+
+      try {
+        const validationResult = await validateLicense(
+          activation.licenseKey,
+          true
+        );
+
+        if (validationResult.success && validationResult.data) {
+          // Update local status from server
+          await updateHeartbeat(validationResult.data.subscriptionStatus);
+          await logValidationAttempt(
+            "startup_validation",
+            "success",
+            activation.licenseKey
+          );
+
+          // Check if subscription should be disabled
+          if (
+            ["cancelled", "past_due"].includes(
+              validationResult.data.subscriptionStatus
+            )
+          ) {
+            // Check grace period from server
+            const daysUntilExpiry = validationResult.data.daysUntilExpiry;
+            if (daysUntilExpiry !== null && daysUntilExpiry <= 0) {
+              // Grace period expired - disable license
+              logger.warn(
+                "Startup validation: License disabled - grace period expired"
+              );
+              await deactivateLocalLicense(activation.id);
+
+              return {
+                success: false,
+                isActivated: false,
+                message:
+                  "Your subscription has expired. Please reactivate or renew.",
+                subscriptionStatus: validationResult.data.subscriptionStatus,
+              };
+            }
+          }
+
+          logger.info("Startup validation successful:", {
+            subscriptionStatus: validationResult.data.subscriptionStatus,
+            planId: validationResult.data.planId,
+          });
+        } else {
+          // Online validation failed - check local grace period
+          const withinGracePeriod = isWithinGracePeriod(
+            activation.lastHeartbeat
+          );
+
+          if (!withinGracePeriod) {
+            // Grace period expired - disable license
+            logger.warn("Startup validation failed and grace period expired");
+            await deactivateLocalLicense(activation.id);
+
+            return {
+              success: false,
+              isActivated: false,
+              message: "Unable to verify license and grace period has expired.",
+            };
+          }
+
+          logger.warn("Startup validation failed, but within grace period");
+          await logValidationAttempt(
+            "startup_validation",
+            "failed_grace",
+            activation.licenseKey,
+            undefined,
+            validationResult.message
+          );
+        }
+      } catch (validationError) {
+        // Network error - check grace period
+        const withinGracePeriod = isWithinGracePeriod(activation.lastHeartbeat);
+
+        if (!withinGracePeriod) {
+          logger.error(
+            "Startup validation network error and grace period expired"
+          );
+          await deactivateLocalLicense(activation.id);
+
+          return {
+            success: false,
+            isActivated: false,
+            message:
+              "Unable to connect to license server and offline grace period has expired.",
+          };
+        }
+
+        logger.warn(
+          "Startup validation network error, but within grace period:",
+          validationError
+        );
+      }
+
+      // ✅ Initialize SSE for real-time subscription updates
+      initializeSSE(activation.licenseKey, machineIdHash, apiBaseUrl);
+
+      // ✅ Start backup heartbeat polling (every 15 minutes)
       startHeartbeatTimer(activation.licenseKey);
 
-      // Try to validate online (non-blocking)
-      validateLicense(activation.licenseKey, true)
-        .then(async (result) => {
-          if (result.success) {
-            await updateHeartbeat(result.data?.subscriptionStatus);
-          }
-        })
-        .catch((error) => {
-          logger.warn("Background validation failed:", error);
-        });
+      // Re-fetch activation in case it was updated
+      const currentActivation = await getLocalActivation();
+      if (!currentActivation) {
+        return {
+          success: false,
+          isActivated: false,
+          message: "License was deactivated during validation",
+        };
+      }
 
       return {
         success: true,
         isActivated: true,
         data: {
-          planId: activation.planId,
-          planName: activation.planName,
-          features: activation.features,
-          businessName: activation.businessName,
+          planId: currentActivation.planId,
+          planName: currentActivation.planName,
+          features: currentActivation.features,
+          businessName: currentActivation.businessName,
+          subscriptionStatus: currentActivation.subscriptionStatus,
+          sseEnabled: true,
         },
       };
     } catch (error) {
       logger.error("License initialization error:", error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Initialization failed",
+        message:
+          error instanceof Error ? error.message : "Initialization failed",
       };
     }
+  });
+
+  /**
+   * Get SSE connection status
+   */
+  ipcMain.handle("license:getSSEStatus", async () => {
+    const client = getSSEClient();
+    if (!client) {
+      return { connected: false, lastHeartbeat: null };
+    }
+    return client.getConnectionState();
   });
 
   logger.info("License handlers registered");

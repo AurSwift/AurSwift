@@ -7,6 +7,7 @@ import {
   validateSession,
   validateSessionAndPermission,
   hasAnyRole,
+  hasPermission,
 } from "../utils/authHelpers.js";
 
 const logger = getLogger("roleHandlers");
@@ -597,14 +598,32 @@ export function registerRoleHandlers() {
     async (event, sessionToken, userId) => {
       const db = await getDatabase();
 
-      const auth = await validateSessionAndPermission(
-        db,
-        sessionToken,
-        PERMISSIONS.USERS_MANAGE
-      );
+      // Validate session first
+      const sessionValidation = await validateSession(db, sessionToken);
+      if (!sessionValidation.success) {
+        return {
+          success: false,
+          message: sessionValidation.message,
+          code: sessionValidation.code,
+        };
+      }
 
-      if (!auth.success) {
-        return { success: false, message: auth.message, code: auth.code };
+      const currentUser = sessionValidation.user!;
+
+      // Allow users to fetch their own permissions OR require USERS_MANAGE for other users
+      if (currentUser.id !== userId) {
+        const permCheck = await hasPermission(
+          db,
+          currentUser,
+          PERMISSIONS.USERS_MANAGE
+        );
+        if (!permCheck.granted) {
+          return {
+            success: false,
+            message: "Unauthorized: Cannot view other users' permissions",
+            code: "PERMISSION_DENIED",
+          };
+        }
       }
 
       try {

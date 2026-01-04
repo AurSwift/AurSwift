@@ -310,32 +310,8 @@ const CashierDashboardView = ({
 
   return (
     <>
-      <div className="grid grid-cols-1 p-3 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-4 sm:mb-6">
-        {/* Today's Sales Total */}
-
-        <Card className="bg-white border-slate-200 shadow-sm h-full">
-          <CardHeader className="pb-2 sm:pb-3">
-            <CardTitle className="flex items-center justify-between text-sm sm:text-base font-semibold">
-              <span className="text-slate-700">Today's Sales</span>
-              <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 shrink-0" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-green-700">
-              £{(shiftStats.totalSales || 0).toFixed(2)}
-            </div>
-            <div className="flex items-center mt-2 text-xs sm:text-sm text-slate-600">
-              <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-green-500 shrink-0" />
-              <span>{shiftStats.totalTransactions || 0} transactions</span>
-            </div>
-            <div className="text-[10px] sm:text-xs text-slate-500 mt-1">
-              Average: £{averageTransaction.toFixed(2)}
-            </div>
-          </CardContent>
-        </Card>
-
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-4 sm:mb-6">
         {/* Transaction Count */}
-
         <Card className="bg-white border-slate-200 shadow-sm h-full">
           <CardHeader className="pb-2 sm:pb-3">
             <CardTitle className="flex items-center justify-between text-sm sm:text-base font-semibold">
@@ -358,7 +334,6 @@ const CashierDashboardView = ({
         </Card>
 
         {/* Cash Drawer Balance */}
-
         <Card className="bg-white border-slate-200 shadow-sm h-full">
           <CardHeader className="pb-2 sm:pb-3">
             <CardTitle className="flex items-center justify-between text-sm sm:text-base font-semibold">
@@ -413,8 +388,7 @@ const CashierDashboardView = ({
           </CardContent>
         </Card>
 
-        {/* Refunds & Voided */}
-
+        {/* Adjustments */}
         <Card className="bg-white border-slate-200 shadow-sm h-full">
           <CardHeader className="pb-2 sm:pb-3">
             <CardTitle className="flex items-center justify-between text-sm sm:text-base font-semibold">
@@ -442,9 +416,41 @@ const CashierDashboardView = ({
             </div>
           </CardContent>
         </Card>
+
+        {/* Quick Actions */}
+        <Card className="bg-white border-slate-200 shadow-sm h-full flex flex-col shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader>
+            <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+              <ShoppingCart className="w-5 h-5 shrink-0" />
+              Quick Actions
+            </CardTitle>
+            <p className="text-xs sm:text-sm text-slate-500">Common tasks</p>
+          </CardHeader>
+          <CardContent className="space-y-3 flex-1">
+            {!activeShift && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-2 sm:p-3">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 text-amber-600 shrink-0" />
+                  <span className="text-xs sm:text-sm text-amber-800 font-medium">
+                    Start your shift to access quick actions
+                  </span>
+                </div>
+              </div>
+            )}
+            <Button
+              onClick={onNewTransaction}
+              variant="default"
+              className="w-full justify-start text-sm sm:text-base h-9 sm:h-10 touch-manipulation"
+              disabled={!activeShift}
+            >
+              <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 shrink-0" />
+              New Sale
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Recent Transactions */}
         <Card className="bg-white border-slate-200 shadow-sm">
           <CardHeader>
@@ -547,97 +553,6 @@ const CashierDashboardView = ({
                   </div>
                 ))
               )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Quick Actions & Statistics */}
-        <Card className="bg-white border-slate-200 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-base sm:text-lg font-semibold text-slate-700">
-              Quick Actions
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3 sm:space-y-4">
-              {!activeShift && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-2 sm:p-3 mb-3 sm:mb-4">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 text-amber-600 shrink-0" />
-                    <span className="text-xs sm:text-sm text-amber-800 font-medium">
-                      Start your shift to access quick actions
-                    </span>
-                  </div>
-                </div>
-              )}
-              <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                <Button
-                  onClick={onNewTransaction}
-                  variant="outline"
-                  className={`h-14 sm:h-16 flex flex-col border-slate-300 touch-manipulation`}
-                >
-                  <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 mb-1 shrink-0" />
-                  <span className="text-[10px] sm:text-xs">
-                    New Transaction
-                  </span>
-                </Button>
-              </div>
-
-              <div className="pt-3 sm:pt-4 border-t border-slate-200">
-                <h3 className="font-medium mb-2 text-sm sm:text-base">
-                  Shift Performance
-                </h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs sm:text-sm">
-                    <span>Transactions per hour:</span>
-                    <span
-                      className={`font-medium ${
-                        !activeShift ? "text-slate-400" : ""
-                      }`}
-                    >
-                      {activeShift
-                        ? (() => {
-                            if (
-                              !activeShift.startTime ||
-                              shiftStats.totalTransactions === 0
-                            )
-                              return "0.0";
-                            const shiftStart = new Date(activeShift.startTime);
-                            const now = new Date();
-                            const hoursWorked =
-                              (now.getTime() - shiftStart.getTime()) /
-                              (1000 * 60 * 60);
-                            return hoursWorked > 0
-                              ? (
-                                  shiftStats.totalTransactions / hoursWorked
-                                ).toFixed(1)
-                              : "0.0";
-                          })()
-                        : "--"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-xs sm:text-sm">
-                    <span>Average basket size:</span>
-                    <span
-                      className={`font-medium ${
-                        !activeShift ? "text-slate-400" : ""
-                      }`}
-                    >
-                      {activeShift ? `£${averageTransaction.toFixed(2)}` : "--"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-xs sm:text-sm">
-                    <span>Cash vs Card ratio:</span>
-                    <span
-                      className={`font-medium ${
-                        !activeShift ? "text-slate-400" : ""
-                      }`}
-                    >
-                      {activeShift ? "-- / --" : "--"}
-                    </span>
-                  </div>
-                </div>
-              </div>
             </div>
           </CardContent>
         </Card>

@@ -871,7 +871,7 @@ export class UserManager {
         if (!user) {
           return {
             success: false,
-            message: "Invalid username or PIN",
+            message: "Invalid PIN",
           };
         }
       } else {

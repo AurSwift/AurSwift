@@ -175,11 +175,20 @@ export class TransactionManager {
 
   /**
    * Get recent transactions
+   * Now filters to only show transactions from today (current date)
    */
   async getRecentTransactions(
     businessId: string,
     limit: number = 50
   ): Promise<TransactionWithItems[]> {
+    // Get start of today (00:00:00)
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    // Get end of today (23:59:59.999)
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
+
     const transactions = await this.db
       .select({
         transaction: schema.transactions,
@@ -195,7 +204,9 @@ export class TransactionManager {
       .where(
         and(
           eq(schema.transactions.businessId, businessId),
-          eq(schema.transactions.status, "completed")
+          eq(schema.transactions.status, "completed"),
+          gte(schema.transactions.timestamp, startOfToday.toISOString()),
+          lte(schema.transactions.timestamp, endOfToday.toISOString())
         )
       )
       .orderBy(desc(schema.transactions.timestamp))
@@ -490,10 +501,11 @@ export class TransactionManager {
           })
           .run();
 
-        // 3. Update original item's refunded quantity
+        // 3. Update original item's refunded quantity and get batch info
         const [currentItem] = tx
           .select({
             refundedQuantity: schema.transactionItems.refundedQuantity,
+            batchId: schema.transactionItems.batchId,
           })
           .from(schema.transactionItems)
           .where(eq(schema.transactionItems.id, refundItem.originalItemId))
@@ -510,6 +522,7 @@ export class TransactionManager {
 
         // 4. Update inventory if item is restockable
         if (refundItem.restockable) {
+          // Update product stock level
           const [currentProduct] = tx
             .select({ stockLevel: schema.products.stockLevel })
             .from(schema.products)
@@ -524,6 +537,30 @@ export class TransactionManager {
             })
             .where(eq(schema.products.id, refundItem.productId))
             .run();
+
+          // 5. Update batch quantity if item was from a batch
+          if (currentItem?.batchId) {
+            const [currentBatch] = tx
+              .select({
+                currentQuantity: schema.productBatches.currentQuantity,
+              })
+              .from(schema.productBatches)
+              .where(eq(schema.productBatches.id, currentItem.batchId))
+              .limit(1)
+              .all();
+
+            if (currentBatch) {
+              tx.update(schema.productBatches)
+                .set({
+                  currentQuantity:
+                    (currentBatch.currentQuantity ?? 0) +
+                    refundItem.refundQuantity,
+                  updatedAt: new Date(),
+                })
+                .where(eq(schema.productBatches.id, currentItem.batchId))
+                .run();
+            }
+          }
         }
       }
     });

@@ -9,6 +9,7 @@
  * - Offline detection and graceful degradation
  * - Request/response logging for debugging
  * - Timeout handling
+ * - Secure API URL validation
  */
 
 import { getLogger } from "../utils/logger.js";
@@ -21,12 +22,115 @@ import { app } from "electron";
 const logger = getLogger("licenseService");
 
 // API Configuration
-// TODO: Move to environment config
 const DEFAULT_API_BASE_URL =
   process.env.LICENSE_API_URL || "http://localhost:3000";
 const API_TIMEOUT_MS = 90000; // 90 seconds (allows for Neon free tier cold start)
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000; // Base delay, will be multiplied exponentially
+
+// Allowed domains for API requests (security)
+const ALLOWED_API_DOMAINS = [
+  "localhost",
+  "127.0.0.1",
+  "auraswift.io",
+  "api.auraswift.io",
+  "www.auraswift.io",
+  // Add staging/dev domains as needed
+  "staging.auraswift.io",
+  "dev.auraswift.io",
+] as const;
+
+// ============================================================================
+// URL VALIDATION (SECURITY)
+// ============================================================================
+
+/**
+ * Validate that an API URL is from an allowed domain
+ * Prevents SSRF attacks and ensures requests only go to trusted servers
+ */
+function validateApiUrl(urlString: string): { valid: boolean; error?: string } {
+  try {
+    const url = new URL(urlString);
+
+    // Only allow http/https protocols
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return {
+        valid: false,
+        error: `Invalid protocol: ${url.protocol}. Only http/https allowed.`,
+      };
+    }
+
+    // Check if hostname is in allowed list
+    const hostname = url.hostname.toLowerCase();
+    const isAllowed = ALLOWED_API_DOMAINS.some((domain) => {
+      // Exact match
+      if (hostname === domain) return true;
+      // Subdomain match (e.g., api.auraswift.io matches *.auraswift.io)
+      if (domain.includes(".") && hostname.endsWith(`.${domain}`)) return true;
+      return false;
+    });
+
+    if (!isAllowed) {
+      return {
+        valid: false,
+        error: `Domain not allowed: ${hostname}. Contact support if this is unexpected.`,
+      };
+    }
+
+    // Block localhost in production
+    const isProduction =
+      app.isPackaged || process.env.NODE_ENV === "production";
+    if (
+      isProduction &&
+      (hostname === "localhost" || hostname === "127.0.0.1")
+    ) {
+      return {
+        valid: false,
+        error: "Localhost not allowed in production builds.",
+      };
+    }
+
+    // Block private IP ranges (SSRF protection)
+    const privateIpPatterns = [
+      /^10\./,
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./,
+      /^192\.168\./,
+      /^0\./,
+      /^169\.254\./,
+    ];
+
+    for (const pattern of privateIpPatterns) {
+      if (pattern.test(hostname) && hostname !== "127.0.0.1") {
+        return {
+          valid: false,
+          error: "Private IP addresses are not allowed.",
+        };
+      }
+    }
+
+    return { valid: true };
+  } catch {
+    return {
+      valid: false,
+      error: "Invalid URL format.",
+    };
+  }
+}
+
+/**
+ * Get validated API base URL
+ */
+function getValidatedApiBaseUrl(customUrl?: string): string {
+  const urlToUse = customUrl || DEFAULT_API_BASE_URL;
+  const validation = validateApiUrl(urlToUse);
+
+  if (!validation.valid) {
+    logger.error("API URL validation failed:", validation.error);
+    throw new Error(`Invalid API URL: ${validation.error}`);
+  }
+
+  return urlToUse;
+}
 
 // ============================================================================
 // TYPES
@@ -96,7 +200,7 @@ function sleep(ms: number): Promise<void> {
 }
 
 /**
- * Make HTTP request with retry logic
+ * Make HTTP request with retry logic and secure URL validation
  */
 async function makeRequest<T>(
   endpoint: string,
@@ -106,13 +210,27 @@ async function makeRequest<T>(
     apiBaseUrl?: string;
   }
 ): Promise<{ success: boolean; data?: T; error?: string; offline?: boolean }> {
-  const { method, body, apiBaseUrl = DEFAULT_API_BASE_URL } = options;
-  const url = `${apiBaseUrl}/api/license/${endpoint}`;
+  const { method, body, apiBaseUrl } = options;
+
+  // Validate and get API base URL (throws on invalid URL)
+  let validatedBaseUrl: string;
+  try {
+    validatedBaseUrl = getValidatedApiBaseUrl(apiBaseUrl);
+  } catch (error) {
+    logger.error("URL validation failed:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Invalid API URL",
+    };
+  }
+
+  const url = `${validatedBaseUrl}/api/license/${endpoint}`;
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
+      // Log without sensitive data
       logger.debug(`License API request (attempt ${attempt}/${MAX_RETRIES}):`, {
-        url,
+        endpoint,
         method,
       });
 

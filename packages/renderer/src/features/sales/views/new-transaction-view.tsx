@@ -1498,6 +1498,7 @@ export function NewTransactionView({
             setShowRefundModal(false);
             toast.success("Refund processed successfully!");
           }}
+          activeShiftId={salesMode.activeShift?.id || shift.activeShift?.id}
         />
       )}
 

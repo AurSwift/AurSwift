@@ -52,7 +52,6 @@ export const usersViews: Record<string, ViewConfig> = {
       description: "Manage staff users",
     },
     permissions: [USERS_PERMISSIONS.MANAGE],
-    roles: ["admin"],
     requiresAuth: true,
   },
 };

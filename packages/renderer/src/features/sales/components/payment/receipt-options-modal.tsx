@@ -36,7 +36,7 @@ export function ReceiptOptionsModal({
   transactionData,
   onPrint,
   onDownload,
-  onEmail,
+  onEmail: _onEmail,
   onClose,
   onCancel,
   printerStatus = { connected: true, error: null },
@@ -184,7 +184,7 @@ export function ReceiptOptionsModal({
                 <div className="p-1.5 sm:p-2 bg-sky-100 rounded-lg shrink-0">
                   <Download className="h-4 w-4 sm:h-5 sm:w-5 text-sky-600" />
                 </div>
-                <span className="text-slate-700">Download Receiept</span>
+                <span className="text-slate-700">Download Reciept</span>
               </div>
               <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-slate-400 shrink-0" />
             </Button>

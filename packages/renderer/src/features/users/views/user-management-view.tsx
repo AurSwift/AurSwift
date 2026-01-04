@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, Plus, Shield } from "lucide-react";
 import { useAuth } from "@/shared/hooks/use-auth";
 import { getUserRoleName } from "@/shared/utils/rbac-helpers";
+import { useUserPermissions } from "@/features/dashboard/hooks/use-user-permissions";
+import { PERMISSIONS } from "@app/shared/constants/permissions";
 
 import { getLogger } from "@/shared/utils/logger";
 const logger = getLogger("user-management-view");
@@ -25,6 +27,8 @@ import type { UserCreateFormData, UserUpdateFormData } from "../schemas";
 
 export default function UserManagementView({ onBack }: { onBack: () => void }) {
   const { user } = useAuth();
+  const { hasPermission, isLoading: isLoadingPermissions } =
+    useUserPermissions();
   const { staffUsers, isLoading: isLoadingUsers, refetch } = useStaffUsers();
   const {
     searchTerm,
@@ -52,10 +56,12 @@ export default function UserManagementView({ onBack }: { onBack: () => void }) {
   const { updateStaffUser, isLoading: isUpdating } = useUpdateUser();
   const { deleteStaffUser } = useDeleteUser();
 
-  const isAdmin = getUserRoleName(user) === "admin";
+  const userRole = getUserRoleName(user);
+  const isAdmin = userRole === "admin";
+  const canManageUsers = hasPermission(PERMISSIONS.USERS_MANAGE);
 
   // Handle loading state
-  if (!user) {
+  if (!user || isLoadingPermissions) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
@@ -69,7 +75,7 @@ export default function UserManagementView({ onBack }: { onBack: () => void }) {
   }
 
   // Handle access denied
-  if (!isAdmin) {
+  if (!canManageUsers) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">

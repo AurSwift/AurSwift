@@ -181,10 +181,9 @@ export function EditRoleDialog({
 
             <div className="border rounded-md p-3 max-h-48 overflow-y-auto space-y-2">
               {filteredPermissions.map((permission) => (
-                <div
+                <label
                   key={permission}
                   className="flex items-center space-x-2 cursor-pointer hover:bg-accent p-2 rounded"
-                  onClick={() => togglePermission(permission)}
                 >
                   <input
                     type="checkbox"
@@ -193,7 +192,7 @@ export function EditRoleDialog({
                     className="cursor-pointer"
                   />
                   <span className="text-sm">{permission}</span>
-                </div>
+                </label>
               ))}
             </div>
 

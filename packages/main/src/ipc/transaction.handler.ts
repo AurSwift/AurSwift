@@ -789,11 +789,11 @@ export function registerTransactionHandlers() {
     try {
       const db = await getDatabase();
 
-      // Validate session and check TRANSACTIONS_OVERRIDE permission
+      // Validate session and check SALES_WRITE permission (refunds are part of sales operations)
       const auth = await validateSessionAndPermission(
         db,
         sessionToken,
-        PERMISSIONS.TRANSACTIONS_OVERRIDE
+        PERMISSIONS.SALES_WRITE
       );
 
       if (!auth.success) {
@@ -1166,7 +1166,6 @@ export function registerTransactionHandlers() {
             unit: item.unitOfMeasure || undefined,
             unitPrice: item.unitPrice || 0,
             totalPrice: item.totalPrice || 0,
-            sku: item.sku || undefined,
           })),
           subtotal: transaction.subtotal || 0,
           tax: transaction.tax || 0,

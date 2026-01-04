@@ -102,7 +102,6 @@ export const inventoryViews: Record<string, ViewConfig> = {
       description: "Manage products and inventory",
     },
     permissions: [INVENTORY_PERMISSIONS.MANAGE],
-    roles: ["admin", "manager"],
     requiresAuth: true,
   },
 

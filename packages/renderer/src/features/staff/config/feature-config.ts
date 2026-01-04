@@ -60,7 +60,6 @@ export const staffViews: Record<string, ViewConfig> = {
       description: "Manage cashiers",
     },
     permissions: [STAFF_PERMISSIONS.MANAGE],
-    roles: ["admin", "manager"],
     requiresAuth: true,
   },
   [STAFF_ROUTES.SCHEDULES]: {
@@ -72,7 +71,6 @@ export const staffViews: Record<string, ViewConfig> = {
       description: "Manage staff schedules",
     },
     permissions: [STAFF_PERMISSIONS.MANAGE],
-    roles: ["admin", "manager"],
     requiresAuth: true,
   },
 };

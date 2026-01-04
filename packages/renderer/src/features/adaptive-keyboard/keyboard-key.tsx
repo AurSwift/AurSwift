@@ -1,5 +1,5 @@
 import { cn } from "@/shared/utils/cn";
-import type { ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 
 export type KeyVariant =
   | "default"
@@ -35,7 +35,7 @@ const variantStyles: Record<KeyVariant, string> = {
     "bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 active:bg-slate-400 dark:active:bg-slate-500 text-slate-900 dark:text-white col-span-4",
 };
 
-export function KeyboardKey({
+export const KeyboardKey = memo(function KeyboardKey({
   children,
   onClick,
   variant = "default",
@@ -59,10 +59,10 @@ export function KeyboardKey({
         "md:min-h-[48px] md:min-w-[36px] md:px-2 md:py-2.5 md:text-sm",
         // Large screens (lg: 1024px+)
         "lg:min-h-[52px] lg:min-w-[40px] lg:px-2 lg:py-3 lg:text-sm",
-        "font-medium transition-all duration-150 ease-out",
+        "font-medium",
         "select-none touch-manipulation",
-        "shadow-sm hover:shadow-md active:shadow-none active:scale-[0.97]",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900",
+        "shadow-sm active:shadow-none",
+        "focus:outline-none",
         "disabled:opacity-50 disabled:pointer-events-none",
         variantStyles[variant],
         className
@@ -71,4 +71,4 @@ export function KeyboardKey({
       {children}
     </button>
   );
-}
+});

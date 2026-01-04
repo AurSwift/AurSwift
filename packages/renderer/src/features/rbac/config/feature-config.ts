@@ -60,7 +60,6 @@ export const rbacViews: Record<string, ViewConfig> = {
       description: "Manage RBAC roles",
     },
     permissions: [RBAC_PERMISSIONS.MANAGE],
-    roles: ["admin"],
     requiresAuth: true,
   },
   [RBAC_ROUTES.USER_ROLE_ASSIGNMENT]: {
@@ -72,7 +71,6 @@ export const rbacViews: Record<string, ViewConfig> = {
       description: "Assign roles to users",
     },
     permissions: [RBAC_PERMISSIONS.MANAGE],
-    roles: ["admin"],
     requiresAuth: true,
   },
 };

@@ -26,12 +26,31 @@ interface FeatureCardProps {
 
 export function FeatureCard({ feature }: FeatureCardProps) {
   const isVisible = useFeatureVisibility(feature);
-  const { hasAnyPermission } = useUserPermissions();
+  const { hasAnyPermission, isLoading } = useUserPermissions();
 
-  // Don't render if feature is not visible
+  // Don't render if feature is not visible (also waits for permissions to load)
   if (!isVisible) return null;
 
   const Icon = feature.icon;
+
+  // Filter actions based on permissions
+  const visibleActions = feature.actions.filter((action) => {
+    // If still loading permissions, hide actions that require permissions
+    if (isLoading && action.permissions && action.permissions.length > 0) {
+      return false;
+    }
+
+    // Check if user has permission for this specific action
+    if (action.permissions && action.permissions.length > 0) {
+      return hasAnyPermission(action.permissions);
+    }
+
+    // No permissions required, show action
+    return true;
+  });
+
+  // Don't render card if no visible actions
+  if (visibleActions.length === 0) return null;
 
   return (
     <Card className="flex flex-col h-full shadow-sm hover:shadow-md transition-shadow">
@@ -45,16 +64,8 @@ export function FeatureCard({ feature }: FeatureCardProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 flex-1">
-        {feature.actions.map((action) => {
+        {visibleActions.map((action) => {
           const ActionIcon = action.icon;
-
-          // Check if user has permission for this specific action
-          const hasActionPermission = action.permissions
-            ? hasAnyPermission(action.permissions)
-            : true;
-
-          // Don't render action if user doesn't have permission
-          if (!hasActionPermission) return null;
 
           return (
             <Button
@@ -65,8 +76,6 @@ export function FeatureCard({ feature }: FeatureCardProps) {
                 e.preventDefault();
                 e.stopPropagation();
                 logger.debug(`Button clicked: ${feature.id} -> ${action.id}`);
-                // Call the action's onClick handler (injected by DashboardGrid with navigation)
-                // This handler calls onActionClick(featureId, actionId) which triggers navigation
                 if (action.onClick) {
                   action.onClick();
                 } else {

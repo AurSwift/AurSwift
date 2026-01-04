@@ -109,11 +109,11 @@ export function AdaptiveKeyboard({
       className={cn(
         "w-full bg-slate-100 dark:bg-slate-800 border-t-2 border-slate-300 dark:border-slate-600 rounded-t-xl shadow-2xl",
         // Small screens (default)
-        "p-2",
+        "p-1.5",
         // Medium screens
-        "md:p-2.5",
+        "md:p-2",
         // Large screens
-        "lg:p-3",
+        "lg:p-2.5",
         "transition-all duration-300 ease-out",
         className
       )}
@@ -123,25 +123,25 @@ export function AdaptiveKeyboard({
       {/* Header */}
       <div
         className={cn(
-          "flex items-center justify-between px-1",
+          "flex items-center justify-between px-0.5",
           // Small screens
-          "mb-2 gap-1.5",
+          "mb-1.5 gap-1",
           // Medium screens
-          "md:mb-2.5 md:gap-2",
+          "md:mb-2 md:gap-1.5",
           // Large screens
-          "lg:mb-3 lg:gap-2"
+          "lg:mb-2 lg:gap-1.5"
         )}
       >
-        <div className="flex items-center gap-1.5 md:gap-2">
+        <div className="flex items-center gap-1 md:gap-1.5">
           <div
             className={cn(
-              "flex items-center gap-1 bg-teal-100 dark:bg-teal-600/20 rounded-full",
+              "flex items-center gap-0.5 bg-teal-100 dark:bg-teal-600/20 rounded-full",
               // Small screens
-              "px-2 py-1",
+              "px-1.5 py-0.5",
               // Medium screens
-              "md:px-2.5 md:py-1.5",
+              "md:px-2 md:py-1",
               // Large screens
-              "lg:px-3 lg:py-1.5"
+              "lg:px-2.5 lg:py-1"
             )}
           >
             <span className="h-3 w-3 md:h-3.5 md:w-3.5 lg:h-4 lg:w-4">
@@ -164,13 +164,13 @@ export function AdaptiveKeyboard({
           {(isShifted || isCapsLock) && (
             <div
               className={cn(
-                "flex items-center gap-1 bg-amber-100 dark:bg-amber-500/20 rounded-full",
+                "flex items-center gap-0.5 bg-amber-100 dark:bg-amber-500/20 rounded-full",
                 // Small screens
-                "px-2 py-1",
+                "px-1.5 py-0.5",
                 // Medium screens
-                "md:px-2.5 md:py-1.5",
+                "md:px-2 md:py-1",
                 // Large screens
-                "lg:px-3 lg:py-1.5"
+                "lg:px-2.5 lg:py-1"
               )}
             >
               <span
@@ -190,7 +190,7 @@ export function AdaptiveKeyboard({
           )}
         </div>
 
-        <div className="flex items-center gap-1 md:gap-2">
+        <div className="flex items-center gap-0.5 md:gap-1">
           {/* Mode Quick Switch */}
           <div
             className={cn(
@@ -208,11 +208,11 @@ export function AdaptiveKeyboard({
               className={cn(
                 "rounded-md transition-colors text-slate-700 dark:text-white",
                 // Small screens
-                "p-1.5",
+                "p-1",
                 // Medium screens
-                "md:p-1.5",
+                "md:p-1",
                 // Large screens
-                "lg:p-2",
+                "lg:p-1.5",
                 mode === "qwerty"
                   ? "bg-teal-500 dark:bg-teal-600 text-white"
                   : "hover:bg-slate-300 dark:hover:bg-slate-600"
@@ -226,11 +226,11 @@ export function AdaptiveKeyboard({
               className={cn(
                 "rounded-md transition-colors text-slate-700 dark:text-white",
                 // Small screens
-                "p-1.5",
+                "p-1",
                 // Medium screens
-                "md:p-1.5",
+                "md:p-1",
                 // Large screens
-                "lg:p-2",
+                "lg:p-1.5",
                 mode === "numeric"
                   ? "bg-teal-500 dark:bg-teal-600 text-white"
                   : "hover:bg-slate-300 dark:hover:bg-slate-600"
@@ -244,11 +244,11 @@ export function AdaptiveKeyboard({
               className={cn(
                 "rounded-md transition-colors text-slate-700 dark:text-white",
                 // Small screens
-                "p-1.5",
+                "p-1",
                 // Medium screens
-                "md:p-1.5",
+                "md:p-1",
                 // Large screens
-                "lg:p-2",
+                "lg:p-1.5",
                 mode === "symbols"
                   ? "bg-teal-500 dark:bg-teal-600 text-white"
                   : "hover:bg-slate-300 dark:hover:bg-slate-600"
@@ -265,11 +265,11 @@ export function AdaptiveKeyboard({
               className={cn(
                 "rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors text-slate-700 dark:text-white",
                 // Small screens
-                "p-1.5",
+                "p-1",
                 // Medium screens
-                "md:p-1.5",
+                "md:p-1",
                 // Large screens
-                "lg:p-2"
+                "lg:p-1.5"
               )}
               aria-label="Close keyboard"
             >
@@ -283,11 +283,11 @@ export function AdaptiveKeyboard({
       <div
         className={cn(
           // Small screens
-          "space-y-1",
+          "space-y-0.5",
           // Medium screens
-          "md:space-y-1.5",
+          "md:space-y-1",
           // Large screens
-          "lg:space-y-2"
+          "lg:space-y-1.5"
         )}
       >
         {currentLayout.map((row, rowIndex) => (
@@ -296,11 +296,11 @@ export function AdaptiveKeyboard({
             className={cn(
               "flex justify-center",
               // Small screens
-              "gap-1",
+              "gap-0.5",
               // Medium screens
-              "md:gap-1.5",
+              "md:gap-1",
               // Large screens
-              "lg:gap-1.5",
+              "lg:gap-1",
               mode === "numeric" && "max-w-xs mx-auto"
             )}
           >

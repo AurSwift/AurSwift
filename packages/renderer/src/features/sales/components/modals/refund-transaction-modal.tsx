@@ -1,10 +1,12 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/shared/hooks/use-auth";
+import { getUserRoleName } from "@/shared/utils/rbac-helpers";
 import { toast } from "sonner";
+import { AdaptiveKeyboard } from "@/features/adaptive-keyboard/adaptive-keyboard";
 
-import { getLogger } from '@/shared/utils/logger';
-const logger = getLogger('refund-transaction-modal');
+import { getLogger } from "@/shared/utils/logger";
+const logger = getLogger("refund-transaction-modal");
 
 // Types
 interface Transaction {
@@ -55,12 +57,14 @@ interface RefundModalProps {
   isOpen: boolean;
   onClose: () => void;
   onRefundProcessed: () => void;
+  activeShiftId?: string | null; // Optional: pass active shift ID for cashier/manager filtering
 }
 
 const RefundTransactionModal: React.FC<RefundModalProps> = ({
   isOpen,
   onClose,
   onRefundProcessed,
+  activeShiftId,
 }) => {
   const [currentView, setCurrentView] = useState<"search" | "refund">("search");
   const [searchType, setSearchType] = useState<
@@ -103,10 +107,30 @@ const RefundTransactionModal: React.FC<RefundModalProps> = ({
 
     try {
       setIsSearching(true);
-      const response = await window.refundAPI.getRecentTransactions(
-        user.businessId,
-        10
-      );
+
+      // Get user role
+      const userRole = getUserRoleName(user);
+      let response;
+
+      // For cashier/manager: show transactions from their current shift only
+      // For admin: show all transactions from today
+      if ((userRole === "cashier" || userRole === "manager") && activeShiftId) {
+        // Get transactions for current shift
+        response = await window.refundAPI.getShiftTransactions(
+          activeShiftId,
+          10
+        );
+        logger.info(
+          `Loading transactions for ${userRole} shift: ${activeShiftId}`
+        );
+      } else {
+        // Admin or no active shift - get recent transactions (all from today)
+        response = await window.refundAPI.getRecentTransactions(
+          user.businessId,
+          10
+        );
+        logger.info(`Loading recent transactions for ${userRole}`);
+      }
 
       if (response.success && "transactions" in response) {
         const transactionsResponse = response as {
@@ -121,7 +145,7 @@ const RefundTransactionModal: React.FC<RefundModalProps> = ({
     } finally {
       setIsSearching(false);
     }
-  }, [user?.businessId]);
+  }, [user?.businessId, user, activeShiftId]);
 
   // Search for transaction
   const handleSearch = async () => {
@@ -296,14 +320,13 @@ const RefundTransactionModal: React.FC<RefundModalProps> = ({
           mightBeVivaWalletRefund &&
           (response as any).vivaWalletRefundTransactionId
         ) {
-          vivaWalletRefundTransactionId = (
-            response as any
-          ).vivaWalletRefundTransactionId;
-          
+          vivaWalletRefundTransactionId = (response as any)
+            .vivaWalletRefundTransactionId;
+
           // Poll for refund status if Viva Wallet refund was initiated
           if (window.vivaWalletAPI && vivaWalletRefundTransactionId) {
             toast.info("Processing Viva Wallet refund, please wait...");
-            
+
             // Poll for refund completion
             const pollRefundStatus = async (): Promise<boolean> => {
               const maxAttempts = 60; // Poll for up to 60 seconds (1 second intervals)
@@ -320,7 +343,9 @@ const RefundTransactionModal: React.FC<RefundModalProps> = ({
                     const status = statusResult.status.status;
 
                     if (status === "completed") {
-                      toast.success("Viva Wallet refund processed successfully");
+                      toast.success(
+                        "Viva Wallet refund processed successfully"
+                      );
                       return true;
                     } else if (status === "failed") {
                       toast.error(
@@ -419,7 +444,7 @@ const RefundTransactionModal: React.FC<RefundModalProps> = ({
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-y-auto">
             <AnimatePresence mode="wait">
               {currentView === "search" ? (
                 <SearchView
@@ -494,7 +519,9 @@ const RefundTransactionModal: React.FC<RefundModalProps> = ({
 
               <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
                 <div className="bg-slate-50 rounded-lg p-3 sm:p-4">
-                  <h4 className="font-medium mb-2 text-sm sm:text-base">Refund Summary:</h4>
+                  <h4 className="font-medium mb-2 text-sm sm:text-base">
+                    Refund Summary:
+                  </h4>
                   <div className="space-y-1.5 sm:space-y-2">
                     {Array.from(selectedItems.values()).map((item) => (
                       <div
@@ -504,7 +531,9 @@ const RefundTransactionModal: React.FC<RefundModalProps> = ({
                         <span className="line-clamp-1">
                           {item.productName} × {item.refundQuantity}
                         </span>
-                        <span className="ml-2 shrink-0">£{item.refundAmount.toFixed(2)}</span>
+                        <span className="ml-2 shrink-0">
+                          £{item.refundAmount.toFixed(2)}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -710,7 +739,9 @@ const SearchView: React.FC<{
                     d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
                   />
                 </svg>
-                <p className="text-xs sm:text-sm">No recent transactions found</p>
+                <p className="text-xs sm:text-sm">
+                  No recent transactions found
+                </p>
               </div>
             ) : (
               recentTransactions.map((transaction) => (
@@ -781,6 +812,28 @@ const RefundView: React.FC<{
   onBack,
   onProcess,
 }) => {
+  const [showKeyboard, setShowKeyboard] = useState(false);
+
+  // Keyboard handlers
+  const handleKeyboardInput = useCallback(
+    (char: string) => {
+      setRefundReason(refundReason + char);
+    },
+    [refundReason, setRefundReason]
+  );
+
+  const handleKeyboardBackspace = useCallback(() => {
+    setRefundReason(refundReason.slice(0, -1));
+  }, [refundReason, setRefundReason]);
+
+  const handleKeyboardClear = useCallback(() => {
+    setRefundReason("");
+  }, [setRefundReason]);
+
+  const handleKeyboardClose = useCallback(() => {
+    setShowKeyboard(false);
+  }, []);
+
   if (!originalTransaction) return null;
 
   return (
@@ -788,344 +841,369 @@ const RefundView: React.FC<{
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      className="h-full flex flex-col lg:flex-row"
+      className="h-full overflow-y-auto"
     >
-      {/* Left Panel - Transaction Details */}
-      <div className="lg:w-1/2 border-r border-slate-200 p-4 sm:p-6 overflow-y-auto">
-        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-          <button
-            onClick={onBack}
-            className="p-2 hover:bg-slate-100 rounded-lg transition-colors touch-manipulation"
-          >
-            <svg
-              className="w-4 w-4 sm:w-5 sm:h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+      {/* Single scrollable container */}
+      <div className="flex flex-col lg:flex-row lg:h-full">
+        {/* Left Panel - Transaction Details */}
+        <div className="lg:w-1/2 lg:border-r border-b lg:border-b-0 border-slate-200 p-3 sm:p-4 lg:p-6 lg:overflow-y-auto">
+          <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 lg:mb-6">
+            <button
+              onClick={onBack}
+              className="p-1.5 sm:p-2 hover:bg-slate-100 rounded-lg transition-colors touch-manipulation shrink-0"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </button>
-          <h3 className="text-base sm:text-lg font-semibold text-slate-900">
-            Transaction Details
-          </h3>
-        </div>
-
-        <div className="space-y-6">
-          {/* Transaction Info */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 p-3 sm:p-4 bg-slate-50 rounded-lg">
-            <div>
-              <label className="text-xs sm:text-sm font-medium text-slate-600">
-                Receipt Number
-              </label>
-              <div className="font-semibold mt-1 text-sm sm:text-base">
-                #{originalTransaction.receiptNumber}
-              </div>
-            </div>
-            <div>
-              <label className="text-xs sm:text-sm font-medium text-slate-600">
-                Date & Time
-              </label>
-              <div className="font-semibold mt-1 text-xs sm:text-sm">
-                {new Date(originalTransaction.timestamp).toLocaleString()}
-              </div>
-            </div>
-            <div>
-              <label className="text-xs sm:text-sm font-medium text-slate-600">
-                Total Amount
-              </label>
-              <div className="font-bold text-green-600 text-base sm:text-lg mt-1">
-                £{originalTransaction.total.toFixed(2)}
-              </div>
-            </div>
-            <div>
-              <label className="text-xs sm:text-sm font-medium text-slate-600">
-                Payment Method
-              </label>
-              <div className="font-semibold mt-1 capitalize text-sm sm:text-base">
-                {originalTransaction.paymentMethod}
-              </div>
-            </div>
+              <svg
+                className="w-4 h-4 sm:w-5 sm:h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+            </button>
+            <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-slate-900 truncate">
+              Transaction Details
+            </h3>
           </div>
 
-          {/* Items List */}
-          <div>
-            <h4 className="font-medium text-slate-900 mb-3">
-              Items ({originalTransaction.items.length})
-            </h4>
-            <div className="space-y-3">
-              {originalTransaction.items.map((item) => {
-                const availableQuantity =
-                  item.quantity - (item.refundedQuantity || 0);
-                const isSelected = selectedItems.has(item.id);
+          <div className="space-y-6">
+            {/* Transaction Info */}
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 p-2 sm:p-3 lg:p-4 bg-slate-50 rounded-lg">
+              <div className="min-w-0">
+                <label className="text-[10px] sm:text-xs lg:text-sm font-medium text-slate-600">
+                  Receipt Number
+                </label>
+                <div className="font-semibold mt-0.5 sm:mt-1 text-xs sm:text-sm lg:text-base truncate">
+                  #{originalTransaction.receiptNumber}
+                </div>
+              </div>
+              <div className="min-w-0">
+                <label className="text-[10px] sm:text-xs lg:text-sm font-medium text-slate-600">
+                  Date & Time
+                </label>
+                <div className="font-semibold mt-0.5 sm:mt-1 text-[10px] sm:text-xs lg:text-sm">
+                  {new Date(originalTransaction.timestamp).toLocaleString()}
+                </div>
+              </div>
+              <div className="min-w-0">
+                <label className="text-[10px] sm:text-xs lg:text-sm font-medium text-slate-600">
+                  Total Amount
+                </label>
+                <div className="font-bold text-green-600 text-sm sm:text-base lg:text-lg mt-0.5 sm:mt-1">
+                  £{originalTransaction.total.toFixed(2)}
+                </div>
+              </div>
+              <div className="min-w-0">
+                <label className="text-[10px] sm:text-xs lg:text-sm font-medium text-slate-600">
+                  Payment Method
+                </label>
+                <div className="font-semibold mt-0.5 sm:mt-1 capitalize text-xs sm:text-sm lg:text-base">
+                  {originalTransaction.paymentMethod}
+                </div>
+              </div>
+            </div>
 
-                return (
-                  <div
-                    key={item.id}
-                    className={`p-4 border rounded-lg transition-all ${
-                      isSelected
-                        ? "border-green-300 bg-green-50"
-                        : availableQuantity === 0
-                        ? "border-slate-200 bg-slate-50 opacity-60"
-                        : "border-slate-200 hover:border-slate-300"
-                    }`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="font-semibold text-slate-900">
-                          {item.productName}
+            {/* Items List */}
+            <div>
+              <h4 className="font-medium text-slate-900 mb-2 sm:mb-3 text-xs sm:text-sm lg:text-base">
+                Items ({originalTransaction.items.length})
+              </h4>
+              <div className="space-y-2 sm:space-y-3">
+                {originalTransaction.items.map((item) => {
+                  const availableQuantity =
+                    item.quantity - (item.refundedQuantity || 0);
+                  const isSelected = selectedItems.has(item.id);
+
+                  return (
+                    <div
+                      key={item.id}
+                      className={`p-2 sm:p-3 lg:p-4 border rounded-lg transition-all ${
+                        isSelected
+                          ? "border-green-300 bg-green-50"
+                          : availableQuantity === 0
+                          ? "border-slate-200 bg-slate-50 opacity-60"
+                          : "border-slate-200 hover:border-slate-300"
+                      }`}
+                    >
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-slate-900 text-xs sm:text-sm lg:text-base truncate">
+                            {item.productName}
+                          </div>
+                          <div className="text-[10px] sm:text-xs lg:text-sm text-slate-600 mt-0.5 sm:mt-1">
+                            Qty: {item.quantity} × £{item.unitPrice.toFixed(2)}
+                            {item.refundedQuantity ? (
+                              <span className="text-red-600 ml-1 sm:ml-2">
+                                ({item.refundedQuantity} refunded)
+                              </span>
+                            ) : null}
+                          </div>
+                          <div className="font-medium text-slate-900 mt-0.5 sm:mt-1 text-xs sm:text-sm lg:text-base">
+                            £{item.totalPrice.toFixed(2)}
+                          </div>
                         </div>
-                        <div className="text-sm text-slate-600 mt-1">
-                          Qty: {item.quantity} × £{item.unitPrice.toFixed(2)}
-                          {item.refundedQuantity && (
-                            <span className="text-red-600 ml-2">
-                              ({item.refundedQuantity} refunded)
+                        <div className="shrink-0">
+                          {availableQuantity > 0 && !isSelected && (
+                            <button
+                              onClick={() => onAddItem(item)}
+                              className="px-2 py-1 bg-green-600 text-white text-[10px] sm:text-xs lg:text-sm rounded hover:bg-green-700 touch-manipulation whitespace-nowrap"
+                            >
+                              Add to Refund
+                            </button>
+                          )}
+                          {isSelected && (
+                            <button
+                              onClick={() => onRemoveItem(item.id)}
+                              className="px-2 py-1 border border-red-300 text-red-600 text-[10px] sm:text-xs lg:text-sm rounded hover:bg-red-50 touch-manipulation"
+                            >
+                              Remove
+                            </button>
+                          )}
+                          {availableQuantity === 0 && (
+                            <span className="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-slate-200 text-slate-600 text-[9px] sm:text-[10px] lg:text-xs rounded whitespace-nowrap">
+                              Fully Refunded
                             </span>
                           )}
                         </div>
-                        <div className="font-medium text-slate-900 mt-1">
-                          £{item.totalPrice.toFixed(2)}
-                        </div>
-                      </div>
-                      <div>
-                        {availableQuantity > 0 && !isSelected && (
-                          <button
-                            onClick={() => onAddItem(item)}
-                            className="px-2 sm:px-3 py-1 bg-green-600 text-white text-xs sm:text-sm rounded hover:bg-green-700 touch-manipulation"
-                          >
-                            Add to Refund
-                          </button>
-                        )}
-                        {isSelected && (
-                          <button
-                            onClick={() => onRemoveItem(item.id)}
-                            className="px-2 sm:px-3 py-1 border border-red-300 text-red-600 text-xs sm:text-sm rounded hover:bg-red-50 touch-manipulation"
-                          >
-                            Remove
-                          </button>
-                        )}
-                        {availableQuantity === 0 && (
-                          <span className="px-2 py-1 bg-slate-200 text-slate-600 text-[10px] sm:text-xs rounded">
-                            Fully Refunded
-                          </span>
-                        )}
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Right Panel - Refund Configuration */}
-      <div className="lg:w-1/2 p-4 sm:p-6 overflow-y-auto">
-        <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-4 sm:mb-6">
-          Refund Configuration
-        </h3>
+        {/* Right Panel - Refund Configuration */}
+        <div className="lg:w-1/2 p-3 sm:p-4 lg:p-6 overflow-y-auto flex-1">
+          <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-slate-900 mb-3 sm:mb-4 lg:mb-6">
+            Refund Configuration
+          </h3>
 
-        {selectedItems.size > 0 ? (
-          <div className="space-y-6">
-            {/* Selected Items */}
-            <div>
-              <h4 className="font-medium text-slate-900 mb-3">
-                Selected Items ({selectedItems.size})
-              </h4>
-              <div className="space-y-4">
-                {Array.from(selectedItems.values()).map((item) => (
-                  <div
-                    key={item.originalItemId}
-                    className="p-4 border border-green-300 rounded-lg bg-green-50"
-                  >
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="font-semibold text-slate-900">
-                            {item.productName}
+          {selectedItems.size > 0 ? (
+            <div className="space-y-4 sm:space-y-6">
+              {/* Selected Items */}
+              <div>
+                <h4 className="font-medium text-slate-900 mb-2 sm:mb-3 text-xs sm:text-sm lg:text-base">
+                  Selected Items ({selectedItems.size})
+                </h4>
+                <div className="space-y-3 sm:space-y-4">
+                  {Array.from(selectedItems.values()).map((item) => (
+                    <div
+                      key={item.originalItemId}
+                      className="p-2 sm:p-3 lg:p-4 border border-green-300 rounded-lg bg-green-50"
+                    >
+                      <div className="space-y-3 sm:space-y-4">
+                        <div className="flex justify-between items-start gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="font-semibold text-slate-900 text-xs sm:text-sm lg:text-base truncate">
+                              {item.productName}
+                            </div>
+                            <div className="text-[10px] sm:text-xs lg:text-sm text-slate-600">
+                              £{item.unitPrice.toFixed(2)} each
+                            </div>
                           </div>
-                          <div className="text-sm text-slate-600">
-                            £{item.unitPrice.toFixed(2)} each
+                          <div className="font-bold text-green-600 text-sm sm:text-base lg:text-lg shrink-0">
+                            £{item.refundAmount.toFixed(2)}
                           </div>
                         </div>
-                        <div className="font-bold text-green-600 text-lg">
-                          £{item.refundAmount.toFixed(2)}
-                        </div>
-                      </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-sm font-medium block mb-1">
-                            Quantity
-                          </label>
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() =>
-                                onUpdateQuantity(
-                                  item.originalItemId,
-                                  item.refundQuantity - 1
-                                )
-                              }
-                              disabled={item.refundQuantity <= 1}
-                              className="w-8 h-8 border border-slate-300 rounded disabled:opacity-30 hover:bg-slate-50"
-                            >
-                              -
-                            </button>
-                            <input
-                              type="number"
-                              value={item.refundQuantity}
+                        <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
+                          <div>
+                            <label className="text-[10px] sm:text-xs lg:text-sm font-medium block mb-1">
+                              Quantity
+                            </label>
+                            <div className="flex items-center gap-1 sm:gap-2">
+                              <button
+                                onClick={() =>
+                                  onUpdateQuantity(
+                                    item.originalItemId,
+                                    item.refundQuantity - 1
+                                  )
+                                }
+                                disabled={item.refundQuantity <= 1}
+                                className="w-6 h-6 sm:w-8 sm:h-8 border border-slate-300 rounded disabled:opacity-30 hover:bg-slate-50 text-xs sm:text-sm"
+                              >
+                                -
+                              </button>
+                              <input
+                                type="number"
+                                value={item.refundQuantity}
+                                onChange={(e) =>
+                                  onUpdateQuantity(
+                                    item.originalItemId,
+                                    parseInt(e.target.value) || 1
+                                  )
+                                }
+                                className="w-10 sm:w-14 lg:w-16 h-6 sm:h-8 border border-slate-300 rounded text-center text-xs sm:text-sm"
+                                min="1"
+                                max={item.originalQuantity}
+                              />
+                              <button
+                                onClick={() =>
+                                  onUpdateQuantity(
+                                    item.originalItemId,
+                                    item.refundQuantity + 1
+                                  )
+                                }
+                                disabled={
+                                  item.refundQuantity >= item.originalQuantity
+                                }
+                                className="w-6 h-6 sm:w-8 sm:h-8 border border-slate-300 rounded disabled:opacity-30 hover:bg-slate-50 text-xs sm:text-sm"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] sm:text-xs lg:text-sm font-medium block mb-1">
+                              Reason
+                            </label>
+                            <select
+                              value={item.reason}
                               onChange={(e) =>
-                                onUpdateQuantity(
+                                onUpdateReason(
                                   item.originalItemId,
-                                  parseInt(e.target.value) || 1
+                                  e.target.value
                                 )
                               }
-                              className="w-16 h-8 border border-slate-300 rounded text-center"
-                              min="1"
-                              max={item.originalQuantity}
-                            />
-                            <button
-                              onClick={() =>
-                                onUpdateQuantity(
-                                  item.originalItemId,
-                                  item.refundQuantity + 1
-                                )
-                              }
-                              disabled={
-                                item.refundQuantity >= item.originalQuantity
-                              }
-                              className="w-8 h-8 border border-slate-300 rounded disabled:opacity-30 hover:bg-slate-50"
+                              className="w-full h-6 sm:h-8 border border-slate-300 rounded px-1 sm:px-2 text-[10px] sm:text-xs lg:text-sm"
                             >
-                              +
-                            </button>
+                              {REFUND_REASONS.map((reason) => (
+                                <option key={reason} value={reason}>
+                                  {reason}
+                                </option>
+                              ))}
+                            </select>
                           </div>
                         </div>
 
-                        <div>
-                          <label className="text-sm font-medium block mb-1">
-                            Reason
-                          </label>
-                          <select
-                            value={item.reason}
+                        <label className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs lg:text-sm">
+                          <input
+                            type="checkbox"
+                            checked={item.restockable}
                             onChange={(e) =>
-                              onUpdateReason(
+                              onUpdateRestockable(
                                 item.originalItemId,
-                                e.target.value
+                                e.target.checked
                               )
                             }
-                            className="w-full h-8 border border-slate-300 rounded px-2 text-sm"
-                          >
-                            {REFUND_REASONS.map((reason) => (
-                              <option key={reason} value={reason}>
-                                {reason}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+                            className="rounded border-slate-300 w-3 h-3 sm:w-4 sm:h-4"
+                          />
+                          Return to inventory
+                        </label>
                       </div>
-
-                      <label className="flex items-center gap-2 text-sm">
-                        <input
-                          type="checkbox"
-                          checked={item.restockable}
-                          onChange={(e) =>
-                            onUpdateRestockable(
-                              item.originalItemId,
-                              e.target.checked
-                            )
-                          }
-                          className="rounded border-slate-300"
-                        />
-                        Return to inventory
-                      </label>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Refund Method */}
-            <div>
-              <label className="text-sm font-medium text-slate-900 block mb-2">
-                Refund Method
-              </label>
-              <select
-                value={refundMethod}
-                onChange={(e) =>
-                  setRefundMethod(
-                    e.target.value as
-                      | "original"
-                      | "store_credit"
-                      | "cash"
-                      | "card"
-                  )
-                }
-                className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:border-green-500"
+              {/* Refund Method */}
+              <div>
+                <label className="text-[10px] sm:text-xs lg:text-sm font-medium text-slate-900 block mb-1 sm:mb-2">
+                  Refund Method
+                </label>
+                <select
+                  value={refundMethod}
+                  onChange={(e) =>
+                    setRefundMethod(
+                      e.target.value as
+                        | "original"
+                        | "store_credit"
+                        | "cash"
+                        | "card"
+                    )
+                  }
+                  className="w-full p-2 sm:p-3 border border-slate-300 rounded-lg focus:outline-none focus:border-green-500 text-xs sm:text-sm lg:text-base"
+                >
+                  <option value="original">Original Payment Method</option>
+                  <option value="cash">Cash Refund</option>
+                  <option value="card">Card Refund</option>
+                  <option value="store_credit">Store Credit</option>
+                </select>
+              </div>
+
+              {/* Refund Reason */}
+              <div>
+                <label className="text-[10px] sm:text-xs lg:text-sm font-medium text-slate-900 block mb-1 sm:mb-2">
+                  Overall Refund Reason
+                </label>
+                <textarea
+                  placeholder="Provide a detailed reason for this refund..."
+                  value={refundReason}
+                  readOnly
+                  onClick={() => setShowKeyboard(true)}
+                  className="w-full p-2 sm:p-3 border border-slate-300 rounded-lg focus:outline-none focus:border-green-500 min-h-16 sm:min-h-20 lg:min-h-24 resize-vertical text-xs sm:text-sm lg:text-base cursor-pointer"
+                />
+              </div>
+
+              {/* Refund Total */}
+              <div className="border-t border-slate-200 pt-3 sm:pt-4">
+                <div className="flex justify-between items-center text-base sm:text-lg lg:text-xl font-bold">
+                  <span>Refund Total:</span>
+                  <span className="text-red-600">
+                    £{refundTotal.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Process Button */}
+              <button
+                onClick={onProcess}
+                disabled={!refundReason.trim()}
+                className="w-full p-2.5 sm:p-3 lg:p-4 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 font-semibold text-xs sm:text-sm lg:text-base h-10 sm:h-12 lg:h-14 touch-manipulation"
               >
-                <option value="original">Original Payment Method</option>
-                <option value="cash">Cash Refund</option>
-                <option value="card">Card Refund</option>
-                <option value="store_credit">Store Credit</option>
-              </select>
+                Process Refund
+              </button>
             </div>
-
-            {/* Refund Reason */}
-            <div>
-              <label className="text-sm font-medium text-slate-900 block mb-2">
-                Overall Refund Reason
-              </label>
-              <textarea
-                placeholder="Provide a detailed reason for this refund..."
-                value={refundReason}
-                onChange={(e) => setRefundReason(e.target.value)}
-                className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:border-green-500 min-h-24 resize-vertical"
-              />
+          ) : (
+            <div className="text-center py-6 sm:py-8 lg:py-12 text-slate-500">
+              <svg
+                className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 mx-auto mb-2 sm:mb-3 opacity-50"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                />
+              </svg>
+              <h4 className="text-sm sm:text-base lg:text-lg font-medium text-slate-600 mb-1 sm:mb-2">
+                No Items Selected
+              </h4>
+              <p className="text-xs sm:text-sm">
+                Select items from the transaction to configure your refund
+              </p>
             </div>
-
-            {/* Refund Total */}
-            <div className="border-t border-slate-200 pt-4">
-              <div className="flex justify-between items-center text-xl font-bold">
-                <span>Refund Total:</span>
-                <span className="text-red-600">£{refundTotal.toFixed(2)}</span>
-              </div>
-            </div>
-
-            {/* Process Button */}
-            <button
-              onClick={onProcess}
-              disabled={!refundReason.trim()}
-              className="w-full p-3 sm:p-4 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 font-semibold text-sm sm:text-base lg:text-lg h-12 sm:h-14 touch-manipulation"
-            >
-              Process Refund
-            </button>
-          </div>
-        ) : (
-          <div className="text-center py-12 text-slate-500">
-            <svg
-              className="w-16 h-16 mx-auto mb-3 opacity-50"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-              />
-            </svg>
-            <h4 className="text-lg font-medium text-slate-600 mb-2">
-              No Items Selected
-            </h4>
-            <p>Select items from the transaction to configure your refund</p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
+
+      {/* Adaptive Keyboard - Fixed Overlay */}
+      {showKeyboard && (
+        <div className="fixed inset-0 z-[9999] flex items-end pointer-events-none">
+          <div className="w-full pointer-events-auto">
+            <AdaptiveKeyboard
+              visible={showKeyboard}
+              initialMode="qwerty"
+              onInput={handleKeyboardInput}
+              onBackspace={handleKeyboardBackspace}
+              onClear={handleKeyboardClear}
+              onEnter={handleKeyboardClose}
+              onClose={handleKeyboardClose}
+            />
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 };

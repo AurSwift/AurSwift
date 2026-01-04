@@ -5,6 +5,7 @@
  */
 
 import { useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +20,7 @@ import {
 import { Mail, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { getLogger } from "@/shared/utils/logger";
+import { AdaptiveKeyboard } from "@/features/adaptive-keyboard/adaptive-keyboard";
 
 const logger = getLogger("EmailReceiptModal");
 
@@ -41,7 +43,7 @@ export function EmailReceiptModal({
 }: EmailReceiptModalProps) {
   const [email, setEmail] = useState("");
   const [isSending, setIsSending] = useState(false);
-
+  const [showKeyboard, setShowKeyboard] = useState(false);
   /**
    * Validate email format
    */
@@ -111,9 +113,41 @@ export function EmailReceiptModal({
   const handleClose = useCallback(() => {
     if (!isSending) {
       setEmail("");
+      setShowKeyboard(false);
       onClose();
     }
   }, [isSending, onClose]);
+
+  /**
+   * Handle dialog open change - only close if keyboard is not showing
+   */
+  const handleDialogOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open && !showKeyboard) {
+        handleClose();
+      }
+    },
+    [showKeyboard, handleClose]
+  );
+
+  /**
+   * Handle adaptive keyboard input
+   */
+  const handleKeyboardInput = useCallback((key: string) => {
+    setEmail((prev) => prev + key);
+  }, []);
+
+  const handleKeyboardBackspace = useCallback(() => {
+    setEmail((prev) => prev.slice(0, -1));
+  }, []);
+
+  const handleKeyboardClear = useCallback(() => {
+    setEmail("");
+  }, []);
+
+  const handleKeyboardClose = useCallback(() => {
+    setShowKeyboard(false);
+  }, []);
 
   /**
    * Handle Enter key press
@@ -128,65 +162,89 @@ export function EmailReceiptModal({
   );
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Mail className="h-5 w-5 text-blue-600" />
-            Email Receipt
-          </DialogTitle>
-          <DialogDescription>
-            Enter the customer's email address to send receipt #{receiptNumber}
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog
+        open={isOpen}
+        onOpenChange={handleDialogOpenChange}
+        modal={!showKeyboard}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-blue-600" />
+              Email Receipt
+            </DialogTitle>
+            <DialogDescription>
+              Enter the customer's email address to send receipt #
+              {receiptNumber}
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="customer-email">Customer Email</Label>
-            <Input
-              id="customer-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="customer@example.com"
-              autoFocus
-              disabled={isSending}
-            />
-            <p className="text-xs text-muted-foreground">
-              A copy of the receipt will be sent to this email address
-            </p>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="customer-email">Customer Email</Label>
+              <Input
+                id="customer-email"
+                type="email"
+                value={email}
+                readOnly
+                onClick={() => !isSending && setShowKeyboard(true)}
+                placeholder="customer@example.com"
+                disabled={isSending}
+                className="cursor-pointer"
+              />
+              <p className="text-xs text-muted-foreground">
+                A copy of the receipt will be sent to this email address
+              </p>
+            </div>
           </div>
-        </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleClose}
-            disabled={isSending}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            onClick={handleSendEmail}
-            disabled={!email.trim() || isSending}
-          >
-            {isSending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Sending...
-              </>
-            ) : (
-              <>
-                <Mail className="mr-2 h-4 w-4" />
-                Send Email
-              </>
-            )}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={isSending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSendEmail}
+              disabled={!email.trim() || isSending}
+            >
+              {isSending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Mail className="mr-2 h-4 w-4" />
+                  Send Email
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {showKeyboard &&
+        createPortal(
+          <div className="fixed inset-0 z-[100] flex items-end pointer-events-none">
+            <div className="w-full pointer-events-auto">
+              <AdaptiveKeyboard
+                onInput={handleKeyboardInput}
+                onBackspace={handleKeyboardBackspace}
+                onClear={handleKeyboardClear}
+                onEnter={handleKeyboardClose}
+                onClose={handleKeyboardClose}
+                inputType="email"
+              />
+            </div>
+          </div>,
+          document.body
+        )}
+    </>
   );
 }

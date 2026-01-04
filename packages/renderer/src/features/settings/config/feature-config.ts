@@ -68,7 +68,6 @@ export const settingsViews: Record<string, ViewConfig> = {
       description: "System settings",
     },
     permissions: [SETTINGS_PERMISSIONS.MANAGE],
-    roles: ["admin"],
     requiresAuth: true,
   },
   [SETTINGS_ROUTES.STORE_CONFIGURATION]: {
@@ -80,7 +79,6 @@ export const settingsViews: Record<string, ViewConfig> = {
       description: "Terminal configuration",
     },
     permissions: [SETTINGS_PERMISSIONS.MANAGE],
-    roles: ["admin"],
     requiresAuth: true,
   },
   [SETTINGS_ROUTES.VIVA_WALLET]: {
@@ -92,7 +90,6 @@ export const settingsViews: Record<string, ViewConfig> = {
       description: "Configure Viva Wallet payment terminals",
     },
     permissions: [SETTINGS_PERMISSIONS.MANAGE],
-    roles: ["admin"],
     requiresAuth: true,
   },
 };
