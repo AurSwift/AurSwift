@@ -25,6 +25,11 @@ export interface TerminalUpdateData {
   settings?: any;
 }
 
+export interface NetworkInfo {
+  localIP: string;
+  macAddress: string;
+}
+
 export interface TerminalsAPI {
   getByBusiness: (
     sessionToken: string,
@@ -39,4 +44,5 @@ export interface TerminalsAPI {
     terminalId: string,
     updates: TerminalUpdateData
   ) => Promise<APIResponse & { terminal?: Terminal }>;
+  getNetworkInfo: () => Promise<APIResponse & { data?: NetworkInfo }>;
 }

@@ -10,6 +10,11 @@ export interface TerminalUpdateData {
   settings?: any;
 }
 
+export interface NetworkInfo {
+  localIP: string;
+  macAddress: string;
+}
+
 export const terminalsAPI = {
   getByBusiness: (sessionToken: string, businessId: string) =>
     ipcRenderer.invoke("terminals:getByBusiness", sessionToken, businessId),
@@ -23,4 +28,10 @@ export const terminalsAPI = {
     updates: TerminalUpdateData
   ) =>
     ipcRenderer.invoke("terminals:update", sessionToken, terminalId, updates),
+
+  getNetworkInfo: (): Promise<{
+    success: boolean;
+    data?: NetworkInfo;
+    message?: string;
+  }> => ipcRenderer.invoke("terminals:getNetworkInfo"),
 };

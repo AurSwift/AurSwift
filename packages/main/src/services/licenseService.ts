@@ -160,6 +160,8 @@ export interface ActivationResponse {
 export interface ValidationResponse {
   success: boolean;
   message: string;
+  code?: string; // e.g., "LICENSE_REVOKED" for revoked licenses
+  revocationReason?: string; // Reason for revocation
   data?: {
     isValid: boolean;
     planId: string;
@@ -412,11 +414,22 @@ export async function validateLicense(
       apiBaseUrl,
     });
 
+    // Log the full response for debugging
+    logger.debug("Validation result:", {
+      success: result.success,
+      code: (result.data as any)?.code,
+      message: result.error || (result.data as any)?.message,
+    });
+
     if (!result.success) {
+      // Pass through the full response including code and revocationReason
+      const responseData = result.data as any;
       return {
         success: false,
-        message: result.error || "Validation failed",
-      };
+        message: result.error || responseData?.message || "Validation failed",
+        code: responseData?.code,
+        revocationReason: responseData?.revocationReason,
+      } as ValidationResponse;
     }
 
     return result.data!;

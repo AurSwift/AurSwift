@@ -1023,6 +1023,55 @@ export function registerLicenseHandlers() {
           true
         );
 
+        // Check for license revocation first
+        if (!validationResult.success) {
+          // Check if license was explicitly revoked
+          if (validationResult.code === "LICENSE_REVOKED") {
+            logger.error("Startup validation: License has been revoked", {
+              reason: validationResult.revocationReason,
+            });
+            await deactivateLocalLicense(activation.id);
+            stopHeartbeatTimer();
+
+            return {
+              success: false,
+              isActivated: false,
+              licenseRevoked: true,
+              message:
+                validationResult.revocationReason ||
+                "Your license has been revoked. Please contact support or reactivate.",
+            };
+          }
+
+          // Other validation failures - check grace period
+          const withinGracePeriod = isWithinGracePeriod(
+            activation.lastHeartbeat
+          );
+
+          if (!withinGracePeriod) {
+            logger.warn("Startup validation failed and grace period expired");
+            await deactivateLocalLicense(activation.id);
+
+            return {
+              success: false,
+              isActivated: false,
+              message: "Unable to verify license and grace period has expired.",
+            };
+          }
+
+          logger.warn(
+            "Startup validation failed, but within grace period:",
+            validationResult.message
+          );
+          await logValidationAttempt(
+            "startup_validation",
+            "failed_grace",
+            activation.licenseKey,
+            undefined,
+            validationResult.message
+          );
+        }
+
         if (validationResult.success && validationResult.data) {
           // Update local status from server
           await updateHeartbeat(validationResult.data.subscriptionStatus);
@@ -1061,32 +1110,6 @@ export function registerLicenseHandlers() {
             subscriptionStatus: validationResult.data.subscriptionStatus,
             planId: validationResult.data.planId,
           });
-        } else {
-          // Online validation failed - check local grace period
-          const withinGracePeriod = isWithinGracePeriod(
-            activation.lastHeartbeat
-          );
-
-          if (!withinGracePeriod) {
-            // Grace period expired - disable license
-            logger.warn("Startup validation failed and grace period expired");
-            await deactivateLocalLicense(activation.id);
-
-            return {
-              success: false,
-              isActivated: false,
-              message: "Unable to verify license and grace period has expired.",
-            };
-          }
-
-          logger.warn("Startup validation failed, but within grace period");
-          await logValidationAttempt(
-            "startup_validation",
-            "failed_grace",
-            activation.licenseKey,
-            undefined,
-            validationResult.message
-          );
         }
       } catch (validationError) {
         // Network error - check grace period

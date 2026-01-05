@@ -47,7 +47,13 @@ interface ReceiptData {
   subtotal: number;
   tax: number;
   total: number;
-  paymentMethod: "cash" | "card" | "mobile" | "mixed";
+  paymentMethod:
+    | "cash"
+    | "card"
+    | "mobile"
+    | "voucher"
+    | "split"
+    | "viva_wallet";
   cashAmount?: number;
   cardAmount?: number;
   change?: number;
@@ -247,19 +253,17 @@ async function generatePDFReceipt(data: ReceiptData): Promise<Buffer> {
         const itemStartY = y;
 
         // Item description (with wrapping support)
-        doc.text(item.name, leftMargin, y, { 
+        doc.text(item.name, leftMargin, y, {
           width: 280,
-          continued: false 
+          continued: false,
         });
         const nameHeight = doc.heightOfString(item.name, { width: 280 });
 
         // Quantity (centered)
-        doc.text(
-          item.quantity.toString(),
-          leftMargin + 300,
-          itemStartY,
-          { width: 50, align: "center" }
-        );
+        doc.text(item.quantity.toString(), leftMargin + 300, itemStartY, {
+          width: 50,
+          align: "center",
+        });
 
         // Total Price (right aligned)
         doc.text(
@@ -308,7 +312,7 @@ async function generatePDFReceipt(data: ReceiptData): Promise<Buffer> {
       y += 15;
 
       doc.font("Helvetica").fontSize(10);
-      
+
       // Payment Method
       const paymentMethodDisplay =
         data.paymentMethod === "card"
@@ -319,7 +323,11 @@ async function generatePDFReceipt(data: ReceiptData): Promise<Buffer> {
           ? "Mobile Payment"
           : data.paymentMethod === "viva_wallet"
           ? "Viva Wallet"
-          : "Mixed Payment";
+          : data.paymentMethod === "split"
+          ? "Split Payment"
+          : data.paymentMethod === "voucher"
+          ? "Voucher"
+          : "Payment";
       doc.text(`Paid by: ${paymentMethodDisplay}`, leftMargin, y);
       y += 15;
 

@@ -5,7 +5,7 @@
  * Shown on first launch or when no valid license is found.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Card,
   CardContent,
@@ -24,11 +24,8 @@ import {
   Loader2,
   CheckCircle2,
   AlertCircle,
-  Globe,
-  Cpu,
-  HardDrive,
-  Info,
 } from "lucide-react";
+import { AdaptiveKeyboard } from "@/features/adaptive-keyboard/adaptive-keyboard";
 
 interface LicenseActivationScreenProps {
   onActivationSuccess: () => void;
@@ -45,6 +42,8 @@ export function LicenseActivationScreen({
   const [machineInfo, setMachineInfo] = useState<MachineInfo | null>(null);
   const [activationError, setActivationError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const licenseInputRef = useRef<HTMLInputElement>(null);
 
   // Load machine info on mount
   useEffect(() => {
@@ -77,6 +76,28 @@ export function LicenseActivationScreen({
     setLicenseKey(formatted);
     setActivationError(null);
     clearError();
+  };
+
+  // Adaptive keyboard handlers
+  const handleKeyboardInput = (value: string) => {
+    handleLicenseKeyChange(licenseKey + value);
+  };
+
+  const handleKeyboardBackspace = () => {
+    handleLicenseKeyChange(licenseKey.slice(0, -1));
+  };
+
+  const handleKeyboardClear = () => {
+    setLicenseKey("");
+    setActivationError(null);
+    clearError();
+  };
+
+  const handleKeyboardEnter = () => {
+    setKeyboardVisible(false);
+    if (licenseKey && licenseKey.length >= 28) {
+      handleActivate();
+    }
   };
 
   // Handle activation
@@ -159,12 +180,14 @@ export function LicenseActivationScreen({
             <div className="space-y-2">
               <Label htmlFor="license-key">License Key</Label>
               <Input
+                ref={licenseInputRef}
                 id="license-key"
                 type="text"
                 placeholder="AUR-XXX-V2-XXXXXXXX-XX"
                 value={licenseKey}
                 onChange={(e) => handleLicenseKeyChange(e.target.value)}
                 onKeyDown={handleKeyDown}
+                onFocus={() => setKeyboardVisible(true)}
                 className="font-mono text-lg tracking-wider"
                 disabled={isLoading || isSuccess}
                 autoFocus
@@ -224,49 +247,20 @@ export function LicenseActivationScreen({
           </CardContent>
         </Card>
 
-        {/* Machine Info Card */}
-        {machineInfo && (
-          <Card className="bg-slate-50/50 dark:bg-slate-800/50">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Info className="w-4 h-4" />
-                This Terminal
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <Monitor className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Name:</span>
-                  <span className="font-medium truncate">
-                    {machineInfo.hostname}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">OS:</span>
-                  <span className="font-medium capitalize">
-                    {machineInfo.platform}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Cpu className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Arch:</span>
-                  <span className="font-medium">{machineInfo.arch}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <HardDrive className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">RAM:</span>
-                  <span className="font-medium">
-                    {machineInfo.totalMemoryGB} GB
-                  </span>
-                </div>
-              </div>
-              <div className="mt-3 pt-3 border-t text-xs text-muted-foreground">
-                Machine ID: {machineInfo.fingerprintPreview}
-              </div>
-            </CardContent>
-          </Card>
+        {/* Adaptive Keyboard */}
+        {keyboardVisible && !isSuccess && (
+          <div className="rounded-lg overflow-hidden shadow-lg">
+            <AdaptiveKeyboard
+              onInput={handleKeyboardInput}
+              onBackspace={handleKeyboardBackspace}
+              onClear={handleKeyboardClear}
+              onEnter={handleKeyboardEnter}
+              initialMode="qwerty"
+              inputType="text"
+              visible={keyboardVisible}
+              onClose={() => setKeyboardVisible(false)}
+            />
+          </div>
         )}
 
         {/* Help Link */}

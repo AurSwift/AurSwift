@@ -105,9 +105,9 @@ export function TerminalConfigForm({
     const loadLicenseTerminalName = async () => {
       if (!terminal) {
         try {
-          const license = await window.licenseAPI.getLicense();
-          if (license?.terminalName) {
-            setDefaultTerminalName(license.terminalName);
+          const status = await window.licenseAPI.getStatus();
+          if (status?.isActivated && status.data?.terminalName) {
+            setDefaultTerminalName(status.data.terminalName);
           }
         } catch (error) {
           logger.error("Failed to load license terminal name:", error);

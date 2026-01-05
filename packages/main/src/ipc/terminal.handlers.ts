@@ -7,6 +7,10 @@ import {
   validateSession,
   validateBusinessAccess,
 } from "../utils/authHelpers.js";
+import {
+  getLocalIPAddress,
+  getPrimaryMacAddress,
+} from "../utils/networkInfo.js";
 
 const logger = getLogger("terminalHandlers");
 // let db: any = null; // Removed: Always get fresh DB reference
@@ -237,6 +241,31 @@ export function registerTerminalHandlers() {
       }
     }
   );
+
+  // ============================================================================
+  // NETWORK INFORMATION IPC HANDLERS
+  // ============================================================================
+
+  ipcMain.handle("terminals:getNetworkInfo", async () => {
+    try {
+      const localIP = getLocalIPAddress();
+      const macAddress = getPrimaryMacAddress();
+
+      return {
+        success: true,
+        data: {
+          localIP: localIP || "Not available",
+          macAddress: macAddress || "Not available",
+        },
+      };
+    } catch (error) {
+      logger.error("Get network info IPC error:", error);
+      return {
+        success: false,
+        message: "Failed to get network information",
+      };
+    }
+  });
 
   logger.info("Terminal handlers registered");
 }
