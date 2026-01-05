@@ -17,6 +17,7 @@ import {
   generateMachineFingerprint,
   getMachineInfo,
 } from "../utils/machineFingerprint.js";
+import { getLocalIPAddress } from "../utils/networkInfo.js";
 import { app } from "electron";
 
 const logger = getLogger("licenseService");
@@ -339,10 +340,19 @@ export async function activateLicense(
     const machineIdHash = generateMachineFingerprint();
     const machineInfo = getMachineInfo();
 
+    // Try to get local IP, but don't fail if unavailable
+    let localIP: string | null = null;
+    try {
+      localIP = getLocalIPAddress();
+    } catch (error) {
+      logger.warn("Failed to get local IP address:", error);
+    }
+
     logger.info("Activating license:", {
       licenseKey: request.licenseKey.substring(0, 15) + "...",
       terminalName: request.terminalName,
       machine: machineInfo.hostname,
+      ip: localIP || "unavailable",
     });
 
     const result = await makeRequest<ActivationResponse>("activate", {
@@ -353,6 +363,7 @@ export async function activateLicense(
         terminalName:
           request.terminalName || `${machineInfo.hostname} - Terminal`,
         appVersion: app.getVersion(),
+        ...(localIP && { ipAddress: localIP }),
         location: {
           platform: machineInfo.platform,
           arch: machineInfo.arch,
