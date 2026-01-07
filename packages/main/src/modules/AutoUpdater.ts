@@ -25,10 +25,19 @@ type PersistedDownloadState = {
   timestamp: number;
 };
 
+// Type for persisted update check error notification count
+type PersistedUpdateCheckErrorCount = {
+  count: number;
+  lastReset: number; // timestamp when counter was last reset
+};
+
 export class AutoUpdater implements AppModule {
   readonly #logger: Logger | null;
   readonly #notification: DownloadNotification;
-  readonly #store: Store<{ downloadState: PersistedDownloadState | null }>;
+  readonly #store: Store<{
+    downloadState: PersistedDownloadState | null;
+    updateCheckErrorCount: PersistedUpdateCheckErrorCount | null;
+  }>;
   #updateCheckInterval: NodeJS.Timeout | null = null;
   #postponedUpdateInfo: UpdateInfo | null = null;
   #remindLaterTimeout: NodeJS.Timeout | null = null;
@@ -52,6 +61,7 @@ export class AutoUpdater implements AppModule {
 
   readonly #REMIND_LATER_INTERVAL = 2 * 60 * 60 * 1000;
   readonly #MAX_POSTPONE_COUNT = 3;
+  readonly #MAX_UPDATE_CHECK_ERROR_NOTIFICATIONS = 3; // Max times to show update check failed notification
   readonly #GITHUB_REPO_URL = "https://github.com/Sam231221/aurswift";
   readonly #GITHUB_RELEASES_URL = `${this.#GITHUB_REPO_URL}/releases`;
   readonly #STARTUP_DELAY = 5 * 1000; // 5 seconds delay for startup check
@@ -115,6 +125,7 @@ export class AutoUpdater implements AppModule {
   #lastUserActivity: number = Date.now();
   #activityCheckInterval: NodeJS.Timeout | null = null;
   #downloadedUpdateInfo: UpdateInfo | null = null;
+  #isOnLatestVersion: boolean = false; // Track if we've successfully confirmed we're on latest version
 
   constructor({
     logger = null,
@@ -126,11 +137,15 @@ export class AutoUpdater implements AppModule {
     this.#logger = logger;
     this.#notification = downloadNotification;
 
-    // Initialize persistent store for download state
-    this.#store = new Store<{ downloadState: PersistedDownloadState | null }>({
+    // Initialize persistent store for download state and error notification count
+    this.#store = new Store<{
+      downloadState: PersistedDownloadState | null;
+      updateCheckErrorCount: PersistedUpdateCheckErrorCount | null;
+    }>({
       name: "autoupdater-state",
       defaults: {
         downloadState: null,
+        updateCheckErrorCount: null,
       },
     });
 
@@ -821,6 +836,82 @@ export class AutoUpdater implements AppModule {
   }
 
   /**
+   * Get the current update check error notification count
+   * @returns Current count (0 if not set)
+   */
+  private getUpdateCheckErrorNotificationCount(): number {
+    try {
+      const saved = this.#store.get("updateCheckErrorCount");
+      return saved?.count ?? 0;
+    } catch (error) {
+      if (this.#logger) {
+        this.#logger.error(
+          `Failed to get update check error notification count: ${error}`
+        );
+      }
+      return 0;
+    }
+  }
+
+  /**
+   * Increment the update check error notification count
+   * Persists to disk for cross-session persistence
+   */
+  private incrementUpdateCheckErrorNotificationCount(): void {
+    try {
+      const current = this.getUpdateCheckErrorNotificationCount();
+      const newCount = current + 1;
+
+      this.#store.set("updateCheckErrorCount", {
+        count: newCount,
+        lastReset: Date.now(),
+      });
+
+      if (this.#logger) {
+        this.#logger.info(
+          `Update check error notification count: ${newCount}/${
+            this.#MAX_UPDATE_CHECK_ERROR_NOTIFICATIONS
+          }`
+        );
+      }
+    } catch (error) {
+      if (this.#logger) {
+        this.#logger.error(
+          `Failed to increment update check error notification count: ${error}`
+        );
+      }
+    }
+  }
+
+  /**
+   * Reset the update check error notification count
+   * Called when a successful update check occurs (update found or no update available)
+   */
+  private resetUpdateCheckErrorNotificationCount(): void {
+    try {
+      const current = this.getUpdateCheckErrorNotificationCount();
+      if (current > 0) {
+        this.#store.set("updateCheckErrorCount", {
+          count: 0,
+          lastReset: Date.now(),
+        });
+
+        if (this.#logger) {
+          this.#logger.info(
+            "Reset update check error notification count (successful check occurred)"
+          );
+        }
+      }
+    } catch (error) {
+      if (this.#logger) {
+        this.#logger.error(
+          `Failed to reset update check error notification count: ${error}`
+        );
+      }
+    }
+  }
+
+  /**
    * Broadcast event to all windows with type safety
    */
   private broadcastToAllWindows<T = unknown>(channel: string, data: T): void {
@@ -1095,10 +1186,16 @@ export class AutoUpdater implements AppModule {
           // Track metrics (Phase 5.1)
           this.trackCheckMetrics(checkDuration, false);
 
+          // Reset error notification count on successful update check
+          this.resetUpdateCheckErrorNotificationCount();
+
           // Cache successful result (Performance: Phase 1.2)
           if (result?.updateInfo) {
             const currentVersion = app.getVersion();
             const newVersion = result.updateInfo.version;
+
+            // Update available - we're not on latest
+            this.#isOnLatestVersion = false;
 
             // Invalidate cache if version changed from last check
             if (
@@ -1132,6 +1229,8 @@ export class AutoUpdater implements AppModule {
               );
             }
           } else {
+            // No update available - we're on the latest version
+            this.#isOnLatestVersion = true;
             // Cache "no update" result too
             this.#lastCheckTime = Date.now();
             this.#lastCheckResult = {
@@ -1156,11 +1255,17 @@ export class AutoUpdater implements AppModule {
           }
 
           // Handle expected errors (don't retry)
+          // These are not actual errors - they mean no update is available
+          // This is a successful check confirming we're on the latest version
           if (
             errorMessage.includes("No published versions") ||
             errorMessage.includes("Cannot find latest") ||
             errorMessage.includes("No updates available")
           ) {
+            // Mark that we're on the latest version
+            this.#isOnLatestVersion = true;
+            // Reset error notification count on successful check (no update available)
+            this.resetUpdateCheckErrorNotificationCount();
             return null;
           }
 
@@ -1256,6 +1361,12 @@ export class AutoUpdater implements AppModule {
         return;
       }
 
+      // Reset error notification count on successful update check
+      this.resetUpdateCheckErrorNotificationCount();
+
+      // Update is available - user is NOT on latest version
+      this.#isOnLatestVersion = false;
+
       // Store the update info so it can be retrieved for postpone/download actions
       // If this is a different version than previously postponed, clear the postpone state
       if (
@@ -1323,6 +1434,10 @@ export class AutoUpdater implements AppModule {
       if (this.#logger) {
         this.#logger.info("No update available - app is up to date");
       }
+      // Mark that we're on the latest version - successful check
+      this.#isOnLatestVersion = true;
+      // Reset error notification count on successful check (even if no update)
+      this.resetUpdateCheckErrorNotificationCount();
       // Optionally broadcast to renderer if needed for UI feedback
       // this.broadcastToAllWindows("update:not-available");
     };
@@ -1553,6 +1668,8 @@ export class AutoUpdater implements AppModule {
       };
 
       // Broadcast error to renderer for toast notification
+      // For download errors, always broadcast. For check errors, only if under limit (already checked above)
+      // Note: The count check and latest version check happen above before we get here
       this.broadcastToAllWindows<{
         message: string;
         type: "download" | "check" | "install";
@@ -1569,12 +1686,80 @@ export class AutoUpdater implements AppModule {
         );
       }
 
-      const shouldSkipDialog =
+      // Determine if we should skip notifications/dialogs
+      // Skip if:
+      // 1. Error indicates no updates available (successful check, not a failure)
+      // 2. User is on latest version and it's just a network error (best practice: don't annoy users)
+      // 3. Development mode
+      const isNoUpdateAvailable =
         errorMessage.includes("No published versions") ||
         errorMessage.includes("Cannot find latest") ||
-        errorMessage.includes("No updates available") ||
+        errorMessage.includes("No updates available");
+      const isNetworkError =
+        errorMessage.includes("ENOTFOUND") ||
+        errorMessage.includes("ETIMEDOUT") ||
+        errorMessage.includes("ECONNREFUSED") ||
+        errorMessage.includes("Network Error") ||
         errorMessage.includes("net::ERR_INTERNET_DISCONNECTED") ||
+        errorMessage.includes("timeout");
+
+      // Best practice: If user is on latest version and it's just a network error,
+      // don't show notifications (they don't need updates anyway)
+      const shouldSkipDueToLatestVersion =
+        this.#isOnLatestVersion && isNetworkError && !isDownloadError;
+
+      const shouldSkipDialog =
+        isNoUpdateAvailable ||
+        shouldSkipDueToLatestVersion ||
         process.env.NODE_ENV !== "production";
+
+      // If this is "no update available", it's not actually an error - successful check
+      // Don't count it, don't broadcast, don't show UI
+      if (isNoUpdateAvailable) {
+        // Mark that we're on the latest version (successful check)
+        this.#isOnLatestVersion = true;
+        // Reset error notification count since this is a successful check
+        this.resetUpdateCheckErrorNotificationCount();
+        if (this.#logger) {
+          this.#logger.info(
+            "No update available - this is a successful check, not an error"
+          );
+        }
+        return;
+      }
+
+      // For check errors, check notification count limit and latest version status
+      if (!isDownloadError) {
+        // Best practice: If on latest version and network error, don't notify
+        // (user doesn't need updates, so check failure isn't critical)
+        if (shouldSkipDueToLatestVersion) {
+          if (this.#logger) {
+            this.#logger.info(
+              "Skipping update check error notification (user is on latest version, network error not critical)"
+            );
+          }
+          return;
+        }
+
+        const currentCount = this.getUpdateCheckErrorNotificationCount();
+
+        // Only show notification if we haven't exceeded the limit
+        if (currentCount >= this.#MAX_UPDATE_CHECK_ERROR_NOTIFICATIONS) {
+          if (this.#logger) {
+            this.#logger.info(
+              `Skipping update check error notification (limit reached: ${currentCount}/${
+                this.#MAX_UPDATE_CHECK_ERROR_NOTIFICATIONS
+              })`
+            );
+          }
+          // Don't broadcast to renderer, don't show UI - silently log the error
+          return;
+        }
+
+        // Increment counter after checking (before showing notification)
+        // This ensures we show exactly MAX_UPDATE_CHECK_ERROR_NOTIFICATIONS times
+        this.incrementUpdateCheckErrorNotificationCount();
+      }
 
       if (!shouldSkipDialog) {
         // Per-error-type cooldown for better error notification management
