@@ -1,3 +1,8 @@
+CREATE TABLE `_app_version` (
+	`version` text PRIMARY KEY NOT NULL,
+	`updated_at` integer NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE `age_verification_records` (
 	`id` text PRIMARY KEY NOT NULL,
 	`transaction_id` text,
@@ -359,6 +364,41 @@ CREATE TABLE `expiry_settings` (
 --> statement-breakpoint
 CREATE INDEX `expiry_settings_business_idx` ON `expiry_settings` (`business_id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `expiry_settings_business_unique` ON `expiry_settings` (`business_id`);--> statement-breakpoint
+CREATE TABLE `license_activation` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`license_key` text NOT NULL,
+	`machine_id_hash` text NOT NULL,
+	`terminal_name` text DEFAULT 'Terminal' NOT NULL,
+	`activation_id` text,
+	`plan_id` text NOT NULL,
+	`plan_name` text NOT NULL,
+	`max_terminals` integer DEFAULT 1 NOT NULL,
+	`features` text DEFAULT '[]' NOT NULL,
+	`business_name` text,
+	`is_active` integer DEFAULT true NOT NULL,
+	`subscription_status` text DEFAULT 'active' NOT NULL,
+	`expires_at` integer,
+	`activated_at` integer NOT NULL,
+	`last_heartbeat` integer NOT NULL,
+	`last_validated_at` integer NOT NULL,
+	`created_at` integer NOT NULL,
+	`updated_at` integer
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `license_activation_license_key_unique` ON `license_activation` (`license_key`);--> statement-breakpoint
+CREATE TABLE `license_validation_log` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`action` text NOT NULL,
+	`status` text NOT NULL,
+	`license_key` text,
+	`machine_id_hash` text,
+	`error_message` text,
+	`server_response` text,
+	`timestamp` integer NOT NULL
+);
+--> statement-breakpoint
+CREATE INDEX `idx_license_validation_log_action` ON `license_validation_log` (`action`);--> statement-breakpoint
+CREATE INDEX `idx_license_validation_log_timestamp` ON `license_validation_log` (`timestamp`);--> statement-breakpoint
 CREATE TABLE `print_job_retries` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`job_id` text NOT NULL,
@@ -503,6 +543,35 @@ CREATE TABLE `sales_unit_settings` (
 --> statement-breakpoint
 CREATE INDEX `sales_unit_settings_business_idx` ON `sales_unit_settings` (`business_id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `sales_unit_settings_business_unique` ON `sales_unit_settings` (`business_id`);--> statement-breakpoint
+CREATE TABLE `saved_baskets` (
+	`id` text PRIMARY KEY NOT NULL,
+	`basket_code` text NOT NULL,
+	`name` text NOT NULL,
+	`cart_session_id` text NOT NULL,
+	`business_id` text NOT NULL,
+	`saved_by` text NOT NULL,
+	`shift_id` text,
+	`customer_email` text,
+	`notes` text,
+	`status` text DEFAULT 'active' NOT NULL,
+	`saved_at` integer NOT NULL,
+	`expires_at` integer,
+	`retrieved_at` integer,
+	`retrieved_count` integer DEFAULT 0 NOT NULL,
+	`created_at` integer NOT NULL,
+	`updated_at` integer,
+	FOREIGN KEY (`cart_session_id`) REFERENCES `cart_sessions`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`business_id`) REFERENCES `businesses`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`saved_by`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`shift_id`) REFERENCES `shifts`(`id`) ON UPDATE no action ON DELETE set null
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `saved_baskets_basket_code_unique` ON `saved_baskets` (`basket_code`);--> statement-breakpoint
+CREATE INDEX `saved_baskets_code_idx` ON `saved_baskets` (`basket_code`);--> statement-breakpoint
+CREATE INDEX `saved_baskets_business_idx` ON `saved_baskets` (`business_id`);--> statement-breakpoint
+CREATE INDEX `saved_baskets_saved_by_idx` ON `saved_baskets` (`saved_by`);--> statement-breakpoint
+CREATE INDEX `saved_baskets_status_idx` ON `saved_baskets` (`status`);--> statement-breakpoint
+CREATE INDEX `saved_baskets_saved_at_idx` ON `saved_baskets` (`saved_at`);--> statement-breakpoint
 CREATE TABLE `schedules` (
 	`id` text PRIMARY KEY NOT NULL,
 	`staffId` text NOT NULL,

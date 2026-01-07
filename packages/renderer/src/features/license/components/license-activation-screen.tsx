@@ -24,8 +24,12 @@ import {
   Loader2,
   CheckCircle2,
   AlertCircle,
+  Power,
 } from "lucide-react";
 import { AdaptiveKeyboard } from "@/features/adaptive-keyboard/adaptive-keyboard";
+import { getLogger } from "@/shared/utils/logger";
+
+const logger = getLogger("license-activation");
 
 interface LicenseActivationScreenProps {
   onActivationSuccess: () => void;
@@ -131,8 +135,31 @@ export function LicenseActivationScreen({
     }
   };
 
+  const handleCloseApp = async () => {
+    try {
+      await window.appAPI.quit();
+    } catch (error) {
+      logger.error("Failed to close app:", error);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex flex-col">
+      {/* Power Button Header */}
+      <div className="w-full flex justify-end p-4 sm:p-6">
+        <Button
+          onClick={handleCloseApp}
+          variant="ghost"
+          size="lg"
+          className="hover:bg-destructive/10 hover:text-destructive h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16"
+          title="Close Application"
+        >
+          <Power className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8" />
+        </Button>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex items-center justify-center p-4">
       <div className="w-full max-w-lg space-y-6">
         {/* Logo/Header */}
         <div className="text-center space-y-2">
@@ -275,6 +302,7 @@ export function LicenseActivationScreen({
             Contact Support
           </a>
         </p>
+      </div>
       </div>
     </div>
   );
