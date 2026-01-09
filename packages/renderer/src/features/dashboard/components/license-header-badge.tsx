@@ -1,0 +1,108 @@
+/**
+ * License Header Badge
+ *
+ * Compact badge component for dashboard header showing current subscription plan.
+ * Displays plan name and status with appropriate visual indicators.
+ */
+
+import { Badge } from "@/components/ui/badge";
+import { useLicenseContext } from "@/features/license";
+import { Shield, AlertCircle, WifiOff, Clock } from "lucide-react";
+import { cn } from "@/shared/utils/cn";
+
+export function LicenseHeaderBadge() {
+  const { licenseStatus, isActivated, isLoading, planName } =
+    useLicenseContext();
+
+  // Don't show badge while loading or not activated
+  if (isLoading || !isActivated || !licenseStatus) {
+    return null;
+  }
+
+  const getPlanBadgeConfig = () => {
+    const { subscriptionStatus, expiresAt } = licenseStatus;
+
+    // Active subscription - show in green
+    if (subscriptionStatus === "active") {
+      return {
+        icon: Shield,
+        text: planName || "Licensed",
+        className:
+          "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800",
+      };
+    }
+
+    // Trial period - show in green with days remaining
+    if (subscriptionStatus === "trialing") {
+      let trialText = `${planName || "Licensed"} - Trial`;
+
+      // Calculate days remaining if expiresAt is available
+      if (expiresAt) {
+        const expiryDate = new Date(expiresAt);
+        const today = new Date();
+        const daysRemaining = Math.ceil(
+          (expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        if (daysRemaining > 0) {
+          trialText = `${planName || "Licensed"} - ${daysRemaining} day${
+            daysRemaining === 1 ? "" : "s"
+          } left`;
+        } else if (daysRemaining === 0) {
+          trialText = `${planName || "Licensed"} - Last day`;
+        }
+      }
+
+      return {
+        icon: Clock,
+        text: trialText,
+        className:
+          "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800",
+      };
+    }
+
+    // Payment overdue - show in amber
+    if (subscriptionStatus === "past_due") {
+      return {
+        icon: AlertCircle,
+        text: `${planName || "Licensed"} - Payment Due`,
+        className:
+          "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800",
+      };
+    }
+
+    // Cancelled but still has access
+    if (subscriptionStatus === "cancelled") {
+      return {
+        icon: AlertCircle,
+        text: `${planName || "Licensed"} - Cancelled`,
+        className:
+          "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800",
+      };
+    }
+
+    // Offline mode or other statuses
+    return {
+      icon: WifiOff,
+      text: "Offline Mode",
+      className:
+        "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800",
+    };
+  };
+
+  const config = getPlanBadgeConfig();
+  const Icon = config.icon;
+
+  return (
+    <Badge
+      variant="outline"
+      className={cn(
+        "text-xs flex items-center gap-1 px-2 py-1 font-medium",
+        config.className
+      )}
+    >
+      <Icon className="h-3 w-3" />
+      <span>{config.text}</span>
+    </Badge>
+  );
+}

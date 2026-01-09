@@ -101,7 +101,12 @@ export class SubscriptionEventClient extends EventEmitter {
   private isConnecting = false;
   private shouldReconnect = true;
   private lastHeartbeat: Date | null = null;
+  private lastEventTimestamp: Date | null = null; // Track last event for missed event fetching
   private connected = false;
+
+  // Terminal coordination (Phase 6)
+  private heartbeatIntervalId: NodeJS.Timeout | null = null;
+  private terminalSessionId: string | null = null;
 
   constructor(licenseKey: string, machineIdHash: string, apiBaseUrl: string) {
     super();
@@ -187,6 +192,9 @@ export class SubscriptionEventClient extends EventEmitter {
           logger.info("SSE connection established");
           this.emit("connected");
           this.startHeartbeatMonitor();
+
+          // Register terminal session (Phase 6)
+          this.registerTerminalSession();
 
           let buffer = "";
 
@@ -289,6 +297,9 @@ export class SubscriptionEventClient extends EventEmitter {
         data: parsedData,
       };
 
+      // Track last event timestamp for missed event fetching
+      this.lastEventTimestamp = new Date(event.timestamp);
+
       logger.info("SSE event received:", { type: eventType, id: eventId });
       this.emit("event", event);
     } catch (error) {
@@ -301,6 +312,10 @@ export class SubscriptionEventClient extends EventEmitter {
    */
   disconnect(): void {
     this.shouldReconnect = false;
+
+    // Disconnect terminal session (Phase 6)
+    this.disconnectTerminalSession();
+
     this.cleanup();
     logger.info("SSE client disconnected");
     this.emit("disconnected");
@@ -417,8 +432,12 @@ export class SubscriptionEventClient extends EventEmitter {
 
     logger.info(`Scheduling reconnect in ${this.reconnectDelay / 1000}s`);
 
-    this.reconnectTimeout = setTimeout(() => {
+    this.reconnectTimeout = setTimeout(async () => {
       this.reconnectAttempts++;
+
+      // Fetch missed events before resuming SSE connection
+      await this.fetchMissedEvents();
+
       this.connect();
     }, this.reconnectDelay);
 
@@ -427,6 +446,198 @@ export class SubscriptionEventClient extends EventEmitter {
       this.reconnectDelay * RECONNECT_BACKOFF_MULTIPLIER,
       MAX_RECONNECT_DELAY_MS
     );
+  }
+
+  /**
+   * Fetch events missed during disconnection
+   */
+  private async fetchMissedEvents(): Promise<void> {
+    // Only fetch if we have a last event timestamp
+    if (!this.lastEventTimestamp) {
+      logger.debug(
+        "No lastEventTimestamp recorded, skipping missed events fetch"
+      );
+      return;
+    }
+
+    try {
+      const url = `${this.apiBaseUrl}/api/events/${encodeURIComponent(
+        this.licenseKey
+      )}/missed?since=${encodeURIComponent(
+        this.lastEventTimestamp.toISOString()
+      )}`;
+
+      logger.info("Fetching missed events since:", {
+        timestamp: this.lastEventTimestamp.toISOString(),
+      });
+
+      // Parse URL to determine http or https
+      const parsedUrl = new URL(url);
+      const isHttps = parsedUrl.protocol === "https:";
+      const httpModule = isHttps ? https : http;
+
+      const options = {
+        hostname: parsedUrl.hostname,
+        port: parsedUrl.port || (isHttps ? 443 : 80),
+        path: parsedUrl.pathname + parsedUrl.search,
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+      };
+
+      const response = await new Promise<{
+        events: SubscriptionEvent[];
+        count: number;
+        hasMore: boolean;
+      }>((resolve, reject) => {
+        const request = httpModule.request(options, (res: IncomingMessage) => {
+          if (res.statusCode !== 200) {
+            reject(
+              new Error(
+                `HTTP ${res.statusCode}: ${
+                  res.statusMessage || "Unknown error"
+                }`
+              )
+            );
+            return;
+          }
+
+          let body = "";
+          res.on("data", (chunk: Buffer) => {
+            body += chunk.toString();
+          });
+          res.on("end", () => {
+            try {
+              const parsed = JSON.parse(body);
+              resolve(parsed);
+            } catch (error) {
+              reject(error);
+            }
+          });
+        });
+
+        request.on("error", reject);
+        request.end();
+      });
+
+      if (response.events.length > 0) {
+        logger.info(
+          `Fetched ${response.count} missed events (hasMore: ${response.hasMore})`
+        );
+
+        // Process missed events in chronological order (oldest first)
+        const sortedEvents = response.events.sort(
+          (a, b) =>
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        );
+
+        for (const event of sortedEvents) {
+          // Skip if already processed (deduplication)
+          if (this.processedEvents.has(event.id)) {
+            logger.debug(`Skipping already processed event: ${event.id}`);
+            continue;
+          }
+
+          this.processedEvents.set(event.id, Date.now());
+          this.lastEventTimestamp = new Date(event.timestamp);
+
+          logger.info("Processing missed event:", {
+            type: event.type,
+            id: event.id,
+          });
+          this.emit("event", event);
+        }
+
+        if (response.hasMore) {
+          logger.warn(
+            "More than 100 missed events detected. Some events may be lost. Consider reducing disconnection time."
+          );
+        }
+      } else {
+        logger.debug("No missed events");
+      }
+    } catch (error) {
+      logger.error("Failed to fetch missed events:", error);
+      // Don't fail reconnection if missed events fetch fails
+      // We'll continue with normal SSE connection
+    }
+  }
+
+  // =========================================================================
+  // EVENT ACKNOWLEDGMENT (Phase 4: Event Durability & Reliability)
+  // =========================================================================
+
+  /**
+   * Send acknowledgment to server after processing an event
+   * This enables the server to track successful event delivery and identify failures
+   */
+  async sendAcknowledgment(
+    eventId: string,
+    status: "success" | "failed" | "skipped",
+    errorMessage?: string,
+    processingTimeMs?: number
+  ): Promise<void> {
+    try {
+      const url = `${this.apiBaseUrl}/api/events/acknowledge`;
+      const parsedUrl = new URL(url);
+      const isHttps = parsedUrl.protocol === "https:";
+      const httpModule = isHttps ? https : http;
+
+      const payload = JSON.stringify({
+        eventId,
+        licenseKey: this.licenseKey,
+        machineIdHash: this.machineIdHash,
+        status,
+        errorMessage,
+        processingTimeMs,
+      });
+
+      const options = {
+        hostname: parsedUrl.hostname,
+        port: parsedUrl.port || (isHttps ? 443 : 80),
+        path: parsedUrl.pathname,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(payload),
+        },
+      };
+
+      await new Promise<void>((resolve, reject) => {
+        const request = httpModule.request(options, (res: IncomingMessage) => {
+          if (res.statusCode !== 200) {
+            logger.warn(
+              `Failed to send acknowledgment for ${eventId}: HTTP ${res.statusCode}`
+            );
+            // Don't reject - acknowledgment is best-effort
+            resolve();
+            return;
+          }
+
+          let body = "";
+          res.on("data", (chunk: Buffer) => {
+            body += chunk.toString();
+          });
+          res.on("end", () => {
+            logger.debug(`Acknowledgment sent for event ${eventId}`);
+            resolve();
+          });
+        });
+
+        request.on("error", (error) => {
+          logger.warn(`Failed to send acknowledgment for ${eventId}:`, error);
+          // Don't reject - acknowledgment is best-effort
+          resolve();
+        });
+
+        request.write(payload);
+        request.end();
+      });
+    } catch (error) {
+      logger.warn(`Failed to send acknowledgment for ${eventId}:`, error);
+      // Acknowledgment is best-effort - don't fail event processing
+    }
   }
 
   // =========================================================================
@@ -466,6 +677,160 @@ export class SubscriptionEventClient extends EventEmitter {
         this.processedEvents.delete(eventId);
       }
     }
+  }
+
+  // =========================================================================
+  // TERMINAL COORDINATION (Phase 6)
+  // =========================================================================
+
+  /**
+   * Register Terminal Session
+   * Called when terminal connects to track multi-terminal deployments
+   */
+  private async registerTerminalSession(): Promise<void> {
+    try {
+      const os = await import("os");
+
+      const terminalInfo = {
+        terminalName: os.hostname(),
+        hostname: os.hostname(),
+        appVersion: app.getVersion(),
+        metadata: {
+          platform: process.platform,
+          arch: process.arch,
+          osRelease: os.release(),
+        },
+      };
+
+      const response = await this.makeApiRequest(
+        "/api/terminal-sessions",
+        "POST",
+        {
+          action: "register",
+          licenseKey: this.licenseKey,
+          machineIdHash: this.machineIdHash,
+          terminalInfo,
+        }
+      );
+
+      if (response.success) {
+        this.terminalSessionId = response.sessionId;
+        logger.info("Terminal session registered", {
+          sessionId: response.sessionId,
+        });
+
+        // Start heartbeat updates (every 2 minutes)
+        this.startTerminalHeartbeat();
+      }
+    } catch (error) {
+      logger.error("Failed to register terminal session:", error);
+    }
+  }
+
+  /**
+   * Start Terminal Heartbeat
+   * Sends periodic heartbeat to keep terminal session alive
+   */
+  private startTerminalHeartbeat(): void {
+    if (this.heartbeatIntervalId) {
+      clearInterval(this.heartbeatIntervalId);
+    }
+
+    this.heartbeatIntervalId = setInterval(async () => {
+      try {
+        await this.makeApiRequest("/api/terminal-sessions", "POST", {
+          action: "heartbeat",
+          licenseKey: this.licenseKey,
+          machineIdHash: this.machineIdHash,
+        });
+        logger.debug("Terminal heartbeat sent");
+      } catch (error) {
+        logger.error("Failed to send terminal heartbeat:", error);
+      }
+    }, 2 * 60 * 1000); // Every 2 minutes
+  }
+
+  /**
+   * Disconnect Terminal Session
+   * Called when terminal disconnects or app closes
+   */
+  private async disconnectTerminalSession(): Promise<void> {
+    try {
+      if (this.heartbeatIntervalId) {
+        clearInterval(this.heartbeatIntervalId);
+        this.heartbeatIntervalId = null;
+      }
+
+      await this.makeApiRequest("/api/terminal-sessions", "POST", {
+        action: "disconnect",
+        licenseKey: this.licenseKey,
+        machineIdHash: this.machineIdHash,
+      });
+
+      logger.info("Terminal session disconnected");
+    } catch (error) {
+      logger.error("Failed to disconnect terminal session:", error);
+    }
+  }
+
+  /**
+   * Make API Request Helper
+   */
+  private async makeApiRequest(
+    path: string,
+    method: "GET" | "POST" | "PATCH" = "GET",
+    body?: unknown
+  ): Promise<any> {
+    const url = `${this.apiBaseUrl}${path}`;
+
+    const parsedUrl = new URL(url);
+    const isHttps = parsedUrl.protocol === "https:";
+    const httpModule = isHttps ? https : http;
+
+    return new Promise((resolve, reject) => {
+      const options = {
+        hostname: parsedUrl.hostname,
+        port: parsedUrl.port || (isHttps ? 443 : 80),
+        path: parsedUrl.pathname + parsedUrl.search,
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+
+      const req = httpModule.request(options, (res: IncomingMessage) => {
+        let data = "";
+        res.on("data", (chunk: Buffer) => {
+          data += chunk.toString();
+        });
+        res.on("end", () => {
+          try {
+            const json = JSON.parse(data);
+            if (
+              res.statusCode &&
+              res.statusCode >= 200 &&
+              res.statusCode < 300
+            ) {
+              resolve(json);
+            } else {
+              reject(new Error(json.error || `HTTP ${res.statusCode}`));
+            }
+          } catch (error) {
+            reject(error);
+          }
+        });
+      });
+
+      req.on("error", (error: Error) => {
+        reject(error);
+      });
+
+      if (body) {
+        req.write(JSON.stringify(body));
+      }
+
+      req.end();
+    });
   }
 }
 

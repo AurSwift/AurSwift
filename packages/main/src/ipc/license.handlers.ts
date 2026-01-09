@@ -317,6 +317,7 @@ function emitLicenseEvent(channel: string, data: object): void {
 
 /**
  * Handle incoming SSE subscription events
+ * (Phase 4: Added event acknowledgment tracking)
  */
 async function handleSSEEvent(event: SubscriptionEvent): Promise<void> {
   logger.info(`SSE event received: ${event.type}`, { eventId: event.id });
@@ -324,209 +325,290 @@ async function handleSSEEvent(event: SubscriptionEvent): Promise<void> {
   const activation = await getLocalActivation();
   if (!activation) {
     logger.warn("SSE event received but no local activation");
+
+    // Send acknowledgment as "skipped"
+    try {
+      const sseClient = getSSEClient();
+      if (sseClient) {
+        await sseClient.sendAcknowledgment(
+          event.id,
+          "skipped",
+          "No local activation found"
+        );
+      }
+    } catch (ackError) {
+      logger.warn("Failed to send skipped acknowledgment:", ackError);
+    }
     return;
   }
 
-  switch (event.type) {
-    case "subscription_cancelled": {
-      const data = event.data as {
-        cancelledAt: string;
-        cancelImmediately: boolean;
-        gracePeriodEnd: string | null;
-        reason?: string;
-      };
+  // Track processing time for acknowledgment
+  const startTime = Date.now();
+  let processingStatus: "success" | "failed" = "success";
+  let errorMessage: string | undefined;
 
-      logger.warn("Subscription cancelled via SSE", {
-        immediate: data.cancelImmediately,
-      });
+  try {
+    switch (event.type) {
+      case "subscription_cancelled": {
+        const data = event.data as {
+          cancelledAt: string;
+          cancelImmediately: boolean;
+          gracePeriodEnd: string | null;
+          reason?: string;
+        };
 
-      if (data.cancelImmediately) {
-        // Immediate cancellation - disable license
-        await deactivateLocalLicense(activation.id);
-        stopHeartbeatTimer();
-        disconnectSSEClient();
+        logger.warn("Subscription cancelled via SSE", {
+          immediate: data.cancelImmediately,
+        });
 
-        emitLicenseEvent("license:disabled", {
-          reason: data.reason || "Subscription cancelled",
+        if (data.cancelImmediately) {
+          // Immediate cancellation - disable license
+          await deactivateLocalLicense(activation.id);
+          stopHeartbeatTimer();
+          disconnectSSEClient();
+
+          emitLicenseEvent("license:disabled", {
+            reason: data.reason || "Subscription cancelled",
+            gracePeriodEnd: data.gracePeriodEnd,
+          });
+        } else {
+          // Scheduled cancellation - update status and notify
+          await updateHeartbeat("cancelling");
+          emitLicenseEvent("license:cancelScheduled", {
+            cancelAt: data.gracePeriodEnd,
+            reason: data.reason,
+          });
+        }
+        break;
+      }
+
+      case "subscription_reactivated": {
+        const data = event.data as {
+          subscriptionStatus: string;
+          planId: string;
+        };
+
+        logger.info("Subscription reactivated via SSE");
+
+        // Update local status
+        await updateHeartbeat(data.subscriptionStatus);
+
+        emitLicenseEvent("license:reactivated", {
+          subscriptionStatus: data.subscriptionStatus,
+          planId: data.planId,
+        });
+        break;
+      }
+
+      case "subscription_updated": {
+        const data = event.data as {
+          previousStatus: string;
+          newStatus: string;
+          shouldDisable: boolean;
+          gracePeriodRemaining: number | null;
+        };
+
+        logger.info(
+          `Subscription status changed: ${data.previousStatus} -> ${data.newStatus}`
+        );
+
+        if (data.shouldDisable) {
+          // Grace period expired - disable
+          await deactivateLocalLicense(activation.id);
+          stopHeartbeatTimer();
+          disconnectSSEClient();
+
+          emitLicenseEvent("license:disabled", {
+            reason: `Subscription ${data.newStatus}`,
+            previousStatus: data.previousStatus,
+          });
+        } else {
+          // Update status
+          await updateHeartbeat(data.newStatus);
+
+          emitLicenseEvent("license:statusChanged", {
+            previousStatus: data.previousStatus,
+            newStatus: data.newStatus,
+            gracePeriodRemaining: data.gracePeriodRemaining,
+          });
+        }
+        break;
+      }
+
+      case "subscription_past_due": {
+        const data = event.data as {
+          gracePeriodEnd: string;
+          amountDue: number;
+          currency: string;
+        };
+
+        logger.warn("Subscription is past due");
+
+        await updateHeartbeat("past_due");
+
+        emitLicenseEvent("license:paymentRequired", {
           gracePeriodEnd: data.gracePeriodEnd,
+          amountDue: data.amountDue,
+          currency: data.currency,
+          message:
+            "Your payment failed. Please update your payment method to continue using the software.",
         });
-      } else {
-        // Scheduled cancellation - update status and notify
-        await updateHeartbeat("cancelling");
-        emitLicenseEvent("license:cancelScheduled", {
-          cancelAt: data.gracePeriodEnd,
-          reason: data.reason,
-        });
+        break;
       }
-      break;
-    }
 
-    case "subscription_reactivated": {
-      const data = event.data as {
-        subscriptionStatus: string;
-        planId: string;
-      };
+      case "subscription_payment_succeeded": {
+        const data = event.data as {
+          subscriptionStatus: string;
+        };
 
-      logger.info("Subscription reactivated via SSE");
+        logger.info("Payment succeeded - subscription restored");
 
-      // Update local status
-      await updateHeartbeat(data.subscriptionStatus);
+        await updateHeartbeat(data.subscriptionStatus);
 
-      emitLicenseEvent("license:reactivated", {
-        subscriptionStatus: data.subscriptionStatus,
-        planId: data.planId,
-      });
-      break;
-    }
+        emitLicenseEvent("license:paymentSucceeded", {
+          subscriptionStatus: data.subscriptionStatus,
+          message: "Your payment was successful. Thank you!",
+        });
+        break;
+      }
 
-    case "subscription_updated": {
-      const data = event.data as {
-        previousStatus: string;
-        newStatus: string;
-        shouldDisable: boolean;
-        gracePeriodRemaining: number | null;
-      };
+      case "license_revoked": {
+        const data = event.data as {
+          reason: string;
+        };
 
-      logger.info(
-        `Subscription status changed: ${data.previousStatus} -> ${data.newStatus}`
-      );
+        logger.error("License revoked by server");
 
-      if (data.shouldDisable) {
-        // Grace period expired - disable
         await deactivateLocalLicense(activation.id);
         stopHeartbeatTimer();
         disconnectSSEClient();
 
         emitLicenseEvent("license:disabled", {
-          reason: `Subscription ${data.newStatus}`,
-          previousStatus: data.previousStatus,
+          reason: data.reason,
+          revoked: true,
         });
-      } else {
-        // Update status
-        await updateHeartbeat(data.newStatus);
-
-        emitLicenseEvent("license:statusChanged", {
-          previousStatus: data.previousStatus,
-          newStatus: data.newStatus,
-          gracePeriodRemaining: data.gracePeriodRemaining,
-        });
+        break;
       }
-      break;
-    }
 
-    case "subscription_past_due": {
-      const data = event.data as {
-        gracePeriodEnd: string;
-        amountDue: number;
-        currency: string;
-      };
+      case "license_reactivated": {
+        const data = event.data as {
+          planId: string;
+          features: string[];
+        };
 
-      logger.warn("Subscription is past due");
+        logger.info("License reactivated by server");
 
-      await updateHeartbeat("past_due");
+        // Update local activation with new features
+        const drizzle = getDrizzle();
+        await drizzle
+          .update(licenseActivation)
+          .set({
+            planId: data.planId,
+            features: data.features,
+            isActive: true,
+            subscriptionStatus: "active",
+          })
+          .where(eq(licenseActivation.id, activation.id));
 
-      emitLicenseEvent("license:paymentRequired", {
-        gracePeriodEnd: data.gracePeriodEnd,
-        amountDue: data.amountDue,
-        currency: data.currency,
-        message:
-          "Your payment failed. Please update your payment method to continue using the software.",
-      });
-      break;
-    }
-
-    case "subscription_payment_succeeded": {
-      const data = event.data as {
-        subscriptionStatus: string;
-      };
-
-      logger.info("Payment succeeded - subscription restored");
-
-      await updateHeartbeat(data.subscriptionStatus);
-
-      emitLicenseEvent("license:paymentSucceeded", {
-        subscriptionStatus: data.subscriptionStatus,
-        message: "Your payment was successful. Thank you!",
-      });
-      break;
-    }
-
-    case "license_revoked": {
-      const data = event.data as {
-        reason: string;
-      };
-
-      logger.error("License revoked by server");
-
-      await deactivateLocalLicense(activation.id);
-      stopHeartbeatTimer();
-      disconnectSSEClient();
-
-      emitLicenseEvent("license:disabled", {
-        reason: data.reason,
-        revoked: true,
-      });
-      break;
-    }
-
-    case "license_reactivated": {
-      const data = event.data as {
-        planId: string;
-        features: string[];
-      };
-
-      logger.info("License reactivated by server");
-
-      // Update local activation with new features
-      const drizzle = getDrizzle();
-      await drizzle
-        .update(licenseActivation)
-        .set({
+        emitLicenseEvent("license:reactivated", {
           planId: data.planId,
           features: data.features,
-          isActive: true,
-          subscriptionStatus: "active",
-        })
-        .where(eq(licenseActivation.id, activation.id));
+        });
+        break;
+      }
 
-      emitLicenseEvent("license:reactivated", {
-        planId: data.planId,
-        features: data.features,
-      });
-      break;
+      case "plan_changed": {
+        const data = event.data as {
+          previousPlanId: string;
+          newPlanId: string;
+          newFeatures: string[];
+          effectiveAt: string;
+        };
+
+        logger.info(
+          `Plan changed: ${data.previousPlanId} -> ${data.newPlanId}`
+        );
+
+        // Determine maxTerminals based on plan
+        const maxTerminalsMap: Record<string, number> = {
+          basic: 1,
+          professional: 5,
+          enterprise: -1, // Unlimited
+        };
+        const maxTerminals = maxTerminalsMap[data.newPlanId] || 1;
+
+        // Update local activation with new plan
+        const drizzle = getDrizzle();
+        await drizzle
+          .update(licenseActivation)
+          .set({
+            planId: data.newPlanId,
+            planName:
+              data.newPlanId.charAt(0).toUpperCase() + data.newPlanId.slice(1),
+            features: data.newFeatures,
+            maxTerminals,
+          })
+          .where(eq(licenseActivation.id, activation.id));
+
+        emitLicenseEvent("license:planChanged", {
+          previousPlanId: data.previousPlanId,
+          newPlanId: data.newPlanId,
+          newFeatures: data.newFeatures,
+          maxTerminals,
+        });
+        break;
+      }
+
+      default:
+        logger.debug(`Unhandled SSE event type: ${event.type}`);
     }
 
-    case "plan_changed": {
-      const data = event.data as {
-        previousPlanId: string;
-        newPlanId: string;
-        newFeatures: string[];
-      };
+    // Send acknowledgment to server (Phase 4: Event Durability & Reliability)
+    try {
+      const processingTimeMs = Date.now() - startTime;
+      const sseClient = getSSEClient();
 
-      logger.info(`Plan changed: ${data.previousPlanId} -> ${data.newPlanId}`);
-
-      // Update local activation with new plan
-      const drizzle = getDrizzle();
-      await drizzle
-        .update(licenseActivation)
-        .set({
-          planId: data.newPlanId,
-          planName:
-            data.newPlanId.charAt(0).toUpperCase() + data.newPlanId.slice(1),
-          features: data.newFeatures,
-        })
-        .where(eq(licenseActivation.id, activation.id));
-
-      emitLicenseEvent("license:planChanged", {
-        previousPlanId: data.previousPlanId,
-        newPlanId: data.newPlanId,
-        newFeatures: data.newFeatures,
-      });
-      break;
+      if (sseClient) {
+        await sseClient.sendAcknowledgment(
+          event.id,
+          processingStatus,
+          errorMessage,
+          processingTimeMs
+        );
+        logger.debug(
+          `Sent ${processingStatus} acknowledgment for event ${event.id} (${processingTimeMs}ms)`
+        );
+      }
+    } catch (ackError) {
+      logger.warn("Failed to send event acknowledgment:", ackError);
+      // Don't fail event processing if acknowledgment fails
     }
+  } catch (eventProcessingError) {
+    // Event processing failed
+    processingStatus = "failed";
+    errorMessage =
+      eventProcessingError instanceof Error
+        ? eventProcessingError.message
+        : "Unknown error";
 
-    default:
-      logger.debug(`Unhandled SSE event type: ${event.type}`);
+    logger.error("Failed to process SSE event:", eventProcessingError);
+
+    // Send failure acknowledgment
+    try {
+      const processingTimeMs = Date.now() - startTime;
+      const sseClient = getSSEClient();
+
+      if (sseClient) {
+        await sseClient.sendAcknowledgment(
+          event.id,
+          "failed",
+          errorMessage,
+          processingTimeMs
+        );
+      }
+    } catch (ackError) {
+      logger.warn("Failed to send failure acknowledgment:", ackError);
+    }
   }
 }
 

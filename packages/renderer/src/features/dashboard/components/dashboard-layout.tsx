@@ -14,6 +14,7 @@ import {
 import { useAuth } from "@/shared/hooks/use-auth";
 import { ClockOutWarningDialog } from "@/features/auth/components/clock-out-warning-dialog";
 import { userHasAnyRole } from "@/shared/utils/rbac-helpers";
+import { LicenseHeaderBadge } from "./license-header-badge";
 
 import { getLogger } from "@/shared/utils/logger";
 const logger = getLogger("dashboard-layout");
@@ -148,6 +149,7 @@ export function DashboardLayout({ children, subtitle }: DashboardLayoutProps) {
             <Button variant="ghost" size="sm">
               <Settings className="w-4 h-4" />
             </Button>
+            <LicenseHeaderBadge />
             <div className="flex items-center gap-3 pl-3 border-l">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
