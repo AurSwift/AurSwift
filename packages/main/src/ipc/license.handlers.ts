@@ -99,6 +99,7 @@ async function getLocalActivation() {
 
 /**
  * Store license activation in local database
+ * Uses upsert to handle re-activation after deactivation from dashboard
  */
 async function storeLocalActivation(data: {
   licenseKey: string;
@@ -116,13 +117,51 @@ async function storeLocalActivation(data: {
 }) {
   const drizzle = getDrizzle();
 
-  // Deactivate any existing activations
+  // Deactivate any OTHER activations (different license keys)
   await drizzle
     .update(licenseActivation)
     .set({ isActive: false })
     .where(eq(licenseActivation.isActive, true));
 
-  // Insert new activation
+  // Check if activation with this license key already exists
+  const [existing] = await drizzle
+    .select()
+    .from(licenseActivation)
+    .where(eq(licenseActivation.licenseKey, data.licenseKey))
+    .limit(1);
+
+  if (existing) {
+    // Update existing activation (re-activation scenario)
+    const [activation] = await drizzle
+      .update(licenseActivation)
+      .set({
+        machineIdHash: data.machineIdHash,
+        terminalName: data.terminalName,
+        activationId: data.activationId,
+        planId: data.planId,
+        planName: data.planName,
+        maxTerminals: data.maxTerminals,
+        features: data.features,
+        businessName: data.businessName,
+        subscriptionStatus: data.subscriptionStatus,
+        expiresAt: data.expiresAt ? new Date(data.expiresAt) : null,
+        trialEnd: data.trialEnd ? new Date(data.trialEnd) : null,
+        isActive: true,
+        lastHeartbeat: new Date(),
+        lastValidatedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(licenseActivation.licenseKey, data.licenseKey))
+      .returning();
+
+    logger.info("License re-activated (updated existing record):", {
+      licenseKey: data.licenseKey.substring(0, 15) + "...",
+    });
+
+    return activation;
+  }
+
+  // Insert new activation (first-time activation)
   const [activation] = await drizzle
     .insert(licenseActivation)
     .values({
@@ -1245,6 +1284,9 @@ export function registerLicenseHandlers() {
   /**
    * Initialize license system on app start
    * NOW WITH: Startup validation (blocking), SSE real-time sync, backup polling
+   *
+   * FINGERPRINT MIGRATION: If validation fails due to fingerprint mismatch
+   * (e.g., MAC address changed), automatically re-activate using stored license key.
    */
   ipcMain.handle("license:initialize", async () => {
     try {
@@ -1259,6 +1301,15 @@ export function registerLicenseHandlers() {
 
       const machineIdHash = generateMachineFingerprint();
       const apiBaseUrl = process.env.LICENSE_API_URL || "http://localhost:3000";
+
+      // Check if fingerprint has changed from stored value
+      const fingerprintChanged = activation.machineIdHash !== machineIdHash;
+      if (fingerprintChanged) {
+        logger.warn("Machine fingerprint has changed!", {
+          storedFingerprint: activation.machineIdHash?.substring(0, 20) + "...",
+          newFingerprint: machineIdHash.substring(0, 20) + "...",
+        });
+      }
 
       // 🔴 CRITICAL: Startup validation (BLOCKING) - ensure subscription is still valid
       logger.info("Performing startup license validation...");
@@ -1287,6 +1338,88 @@ export function registerLicenseHandlers() {
                 validationResult.revocationReason ||
                 "Your license has been revoked. Please contact support or reactivate.",
             };
+          }
+
+          // 🔄 FINGERPRINT MIGRATION: If validation failed and fingerprint changed,
+          // attempt auto-reactivation instead of failing. This handles cases where
+          // network interfaces changed, VPN adapters were added/removed, etc.
+          const isNotActivatedError =
+            validationResult.message?.toLowerCase().includes("not activated") ||
+            validationResult.message?.toLowerCase().includes("machine not found") ||
+            validationResult.message?.toLowerCase().includes("not activated on this device");
+
+          if (fingerprintChanged || isNotActivatedError) {
+            logger.info(
+              "Attempting auto-reactivation due to fingerprint change...",
+              { fingerprintChanged, isNotActivatedError }
+            );
+
+            try {
+              const reactivationResult = await activateLicense({
+                licenseKey: activation.licenseKey,
+                terminalName: activation.terminalName,
+              });
+
+              if (reactivationResult.success && reactivationResult.data) {
+                logger.info(
+                  "Auto-reactivation successful! License migrated to new fingerprint."
+                );
+
+                // Update local activation with new fingerprint
+                await storeLocalActivation({
+                  licenseKey: activation.licenseKey,
+                  machineIdHash,
+                  terminalName: reactivationResult.data.terminalName || activation.terminalName,
+                  activationId: reactivationResult.data.activationId,
+                  planId: reactivationResult.data.planId,
+                  planName: reactivationResult.data.planName,
+                  maxTerminals: reactivationResult.data.maxTerminals,
+                  features: reactivationResult.data.features,
+                  businessName: reactivationResult.data.businessName,
+                  subscriptionStatus: reactivationResult.data.subscriptionStatus,
+                  expiresAt: reactivationResult.data.expiresAt,
+                  trialEnd: reactivationResult.data.trialEnd || null,
+                });
+
+                await logValidationAttempt(
+                  "fingerprint_migration",
+                  "success",
+                  activation.licenseKey,
+                  machineIdHash
+                );
+
+                // Continue with normal initialization flow
+                initializeSSE(activation.licenseKey, machineIdHash, apiBaseUrl);
+                startHeartbeatTimer(activation.licenseKey);
+
+                return {
+                  success: true,
+                  isActivated: true,
+                  fingerprintMigrated: true,
+                  data: {
+                    planId: reactivationResult.data.planId,
+                    planName: reactivationResult.data.planName,
+                    features: reactivationResult.data.features,
+                    businessName: reactivationResult.data.businessName,
+                    subscriptionStatus: reactivationResult.data.subscriptionStatus,
+                    sseEnabled: true,
+                  },
+                };
+              } else {
+                logger.warn("Auto-reactivation failed:", reactivationResult.message);
+                await logValidationAttempt(
+                  "fingerprint_migration",
+                  "failed",
+                  activation.licenseKey,
+                  machineIdHash,
+                  reactivationResult.message
+                );
+                // Continue to check grace period below
+              }
+            } catch (reactivationError) {
+              logger.error("Auto-reactivation error:", reactivationError);
+              // Continue to check grace period below
+            }
           }
 
           // Other validation failures - check grace period

@@ -202,6 +202,10 @@ function collectIdentifiers(): MachineIdentifiers {
  *
  * Returns a stable, unique identifier for this machine.
  * The hash is deterministic - same machine always produces same hash.
+ *
+ * STABILITY FIX: MAC addresses are now only used as a fallback when no
+ * stable hardware identifier (disk serial/IOPlatformUUID) is available.
+ * This prevents fingerprint changes due to network interface fluctuations.
  */
 export function generateMachineFingerprint(): string {
   try {
@@ -218,16 +222,28 @@ export function generateMachineFingerprint(): string {
       identifiers.platform,
       identifiers.arch,
       identifiers.cpuModel,
-
-      // Tier 3: Moderately stable (sorted MAC addresses)
-      // Use first 3 MACs or fewer if not available
-      ...identifiers.macAddresses.slice(0, 3),
     ];
 
-    // Ensure we have minimum components for uniqueness
-    if (components.filter((c) => !c.includes("no-")).length < 3) {
+    // STABILITY FIX: Only include MAC addresses if we don't have a stable
+    // hardware identifier. This prevents fingerprint changes when network
+    // interfaces go up/down or VPN adapters are added/removed.
+    const hasStableHardwareId = !!identifiers.diskSerial || !!identifiers.windowsProductId;
+
+    if (!hasStableHardwareId) {
+      // Fallback: Use MAC addresses only when no stable ID is available
+      // This is less stable but necessary for uniqueness on some systems
       logger.warn(
-        "Low stability fingerprint - few hardware identifiers available"
+        "No stable hardware ID available, falling back to MAC addresses for fingerprint"
+      );
+      components.push(...identifiers.macAddresses.slice(0, 3));
+    }
+
+    // Ensure we have minimum components for uniqueness
+    const stableComponentCount = components.filter((c) => !c.includes("no-")).length;
+    if (stableComponentCount < 3) {
+      logger.warn(
+        "Low stability fingerprint - few hardware identifiers available",
+        { stableComponentCount }
       );
     }
 
@@ -245,6 +261,7 @@ export function generateMachineFingerprint(): string {
       hasWindowsProductId: !!identifiers.windowsProductId,
       hasDiskSerial: !!identifiers.diskSerial,
       macCount: identifiers.macAddresses.length,
+      usedMacAddresses: !hasStableHardwareId,
     });
 
     return fingerprint;
