@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.29.0](https://github.com/AurSwift/AurSwift/compare/v1.28.0...v1.29.0) (2026-01-10)
+
+
+### chore
+
+* fallback to static ones from all dynamic imports ([](https://github.com/AurSwift/AurSwift/commit/e073945567de26404927d35bab0da22a148fb813))
+
+
+### feat
+
+* add LicenseHeaderBadge component to display current subscription plan status in dashboard ([](https://github.com/AurSwift/AurSwift/commit/fa18fb918c2ab8b6bb1d3345f308adec535dcf2f))
+* enhance license activation handling with re-activation support and improved fingerprint stability ([](https://github.com/AurSwift/AurSwift/commit/af30e0950f1431de26f3031271cfb48f3b039ec3))
+* enhance license handling with optional terminal name and trial end properties ([](https://github.com/AurSwift/AurSwift/commit/7b50769a54963abb8d7282fb13e6f2f8646659dd))
+
 # [1.28.0](https://github.com/AurSwift/AurSwift/compare/v1.27.1...v1.28.0) (2026-01-07)
 
 
