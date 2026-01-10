@@ -904,7 +904,7 @@ export function registerLicenseHandlers() {
         await storeLocalActivation({
           licenseKey: licenseKey.toUpperCase().trim(),
           machineIdHash,
-          terminalName: result.data.terminalName, // Use terminal name from server response
+          terminalName: result.data.terminalName || terminalName || "Terminal", // Use terminal name from server response, fallback to provided name or default
           activationId: result.data.activationId,
           planId: result.data.planId,
           planName: result.data.planName,
@@ -913,7 +913,7 @@ export function registerLicenseHandlers() {
           businessName: result.data.businessName,
           subscriptionStatus: result.data.subscriptionStatus,
           expiresAt: result.data.expiresAt,
-          trialEnd: result.data.trialEnd,
+          trialEnd: result.data.trialEnd ?? null,
         });
 
         // Log successful activation
@@ -1378,7 +1378,7 @@ export function registerLicenseHandlers() {
                   businessName: reactivationResult.data.businessName,
                   subscriptionStatus: reactivationResult.data.subscriptionStatus,
                   expiresAt: reactivationResult.data.expiresAt,
-                  trialEnd: reactivationResult.data.trialEnd || null,
+                  trialEnd: reactivationResult.data.trialEnd ?? null,
                 });
 
                 await logValidationAttempt(

@@ -155,6 +155,8 @@ export interface ActivationResponse {
     expiresAt: string | null;
     subscriptionStatus: string;
     businessName: string | null;
+    terminalName?: string;
+    trialEnd?: string | null;
   };
 }
 
@@ -184,6 +186,7 @@ export interface HeartbeatResponse {
     shouldDisable: boolean;
     gracePeriodRemaining: number | null;
     heartbeatIntervalMs?: number; // Dynamic interval from server
+    trialEnd?: string | null;
   };
 }
 

@@ -18,7 +18,6 @@ import { Separator } from "@/components/ui/separator";
 import {
   Shield,
   Calendar,
-  CreditCard,
   Package,
   Server,
   AlertCircle,

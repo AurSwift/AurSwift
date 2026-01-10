@@ -16,6 +16,7 @@ export interface LicenseStatus {
   businessName?: string | null;
   subscriptionStatus?: string;
   expiresAt?: string | null;
+  trialEnd?: string | null;
   activatedAt?: string;
   lastHeartbeat?: string;
   daysSinceHeartbeat?: number | null;
