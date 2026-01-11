@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { AdaptiveKeyboard } from "@/features/adaptive-keyboard/adaptive-keyboard";
 import { getLogger } from "@/shared/utils/logger";
+import { getAppVersion } from "@/shared/utils/version";
 
 const logger = getLogger("license-activation");
 
@@ -160,149 +161,154 @@ export function LicenseActivationScreen({
 
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-4">
-      <div className="w-full max-w-lg space-y-6">
-        {/* Logo/Header */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-            <KeyRound className="w-8 h-8 text-primary" />
+        <div className="w-full max-w-lg space-y-6">
+          {/* Logo/Header */}
+          <div className="text-center space-y-2">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+              <KeyRound className="w-8 h-8 text-primary" />
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight">aurswift EPOS</h1>
+            <p className="text-sm text-muted-foreground">
+              Version {getAppVersion()}
+            </p>
+            <p className="text-muted-foreground">
+              Enter your license key to activate this terminal
+            </p>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">aurswift EPOS</h1>
-          <p className="text-muted-foreground">
-            Enter your license key to activate this terminal
+
+          {/* Activation Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <KeyRound className="w-5 h-5" />
+                License Activation
+              </CardTitle>
+              <CardDescription>
+                Find your license key in your aurswift dashboard at{" "}
+                <span className="font-medium text-primary">aurswift.com</span>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Success State */}
+              {isSuccess && (
+                <Alert className="border-green-200 bg-green-50 dark:bg-green-900/20">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-700 dark:text-green-400">
+                    License activated successfully! Redirecting...
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Error State */}
+              {(activationError || error) && !isSuccess && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    {activationError || error}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* License Key Input */}
+              <div className="space-y-2">
+                <Label htmlFor="license-key">License Key</Label>
+                <Input
+                  ref={licenseInputRef}
+                  id="license-key"
+                  type="text"
+                  placeholder="AUR-XXX-V2-XXXXXXXX-XX"
+                  value={licenseKey}
+                  onChange={(e) => handleLicenseKeyChange(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  onFocus={() => setKeyboardVisible(true)}
+                  className="font-mono text-lg tracking-wider"
+                  disabled={isLoading || isSuccess}
+                  autoFocus
+                />
+                <p className="text-xs text-muted-foreground">
+                  Format: AUR-PRO-V2-XXXXXXXX-XX
+                </p>
+              </div>
+
+              {/* Terminal Name Input */}
+              <div className="space-y-2">
+                <Label htmlFor="terminal-name">
+                  Terminal Name{" "}
+                  <span className="text-muted-foreground font-normal">
+                    (optional)
+                  </span>
+                </Label>
+                <div className="relative">
+                  <Monitor className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="terminal-name"
+                    type="text"
+                    placeholder={machineInfo?.hostname || "Main Counter"}
+                    value={terminalName}
+                    onChange={(e) => setTerminalName(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="pl-10"
+                    disabled={isLoading || isSuccess}
+                  />
+                </div>
+              </div>
+
+              {/* Activate Button */}
+              <Button
+                onClick={handleActivate}
+                disabled={isLoading || isSuccess || licenseKey.length < 20}
+                className="w-full"
+                size="lg"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Activating...
+                  </>
+                ) : isSuccess ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                    Activated!
+                  </>
+                ) : (
+                  <>
+                    <KeyRound className="w-4 h-4 mr-2" />
+                    Activate License
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Adaptive Keyboard */}
+          {keyboardVisible && !isSuccess && (
+            <div className="rounded-lg overflow-hidden shadow-lg">
+              <AdaptiveKeyboard
+                onInput={handleKeyboardInput}
+                onBackspace={handleKeyboardBackspace}
+                onClear={handleKeyboardClear}
+                onEnter={handleKeyboardEnter}
+                initialMode="qwerty"
+                inputType="text"
+                visible={keyboardVisible}
+                onClose={() => setKeyboardVisible(false)}
+              />
+            </div>
+          )}
+
+          {/* Help Link */}
+          <p className="text-center text-sm text-muted-foreground">
+            Need help?{" "}
+            <a
+              href="https://aurswift.com/support"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              Contact Support
+            </a>
           </p>
         </div>
-
-        {/* Activation Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <KeyRound className="w-5 h-5" />
-              License Activation
-            </CardTitle>
-            <CardDescription>
-              Find your license key in your aurswift dashboard at{" "}
-              <span className="font-medium text-primary">aurswift.com</span>
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Success State */}
-            {isSuccess && (
-              <Alert className="border-green-200 bg-green-50 dark:bg-green-900/20">
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-                <AlertDescription className="text-green-700 dark:text-green-400">
-                  License activated successfully! Redirecting...
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {/* Error State */}
-            {(activationError || error) && !isSuccess && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{activationError || error}</AlertDescription>
-              </Alert>
-            )}
-
-            {/* License Key Input */}
-            <div className="space-y-2">
-              <Label htmlFor="license-key">License Key</Label>
-              <Input
-                ref={licenseInputRef}
-                id="license-key"
-                type="text"
-                placeholder="AUR-XXX-V2-XXXXXXXX-XX"
-                value={licenseKey}
-                onChange={(e) => handleLicenseKeyChange(e.target.value)}
-                onKeyDown={handleKeyDown}
-                onFocus={() => setKeyboardVisible(true)}
-                className="font-mono text-lg tracking-wider"
-                disabled={isLoading || isSuccess}
-                autoFocus
-              />
-              <p className="text-xs text-muted-foreground">
-                Format: AUR-PRO-V2-XXXXXXXX-XX
-              </p>
-            </div>
-
-            {/* Terminal Name Input */}
-            <div className="space-y-2">
-              <Label htmlFor="terminal-name">
-                Terminal Name{" "}
-                <span className="text-muted-foreground font-normal">
-                  (optional)
-                </span>
-              </Label>
-              <div className="relative">
-                <Monitor className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="terminal-name"
-                  type="text"
-                  placeholder={machineInfo?.hostname || "Main Counter"}
-                  value={terminalName}
-                  onChange={(e) => setTerminalName(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className="pl-10"
-                  disabled={isLoading || isSuccess}
-                />
-              </div>
-            </div>
-
-            {/* Activate Button */}
-            <Button
-              onClick={handleActivate}
-              disabled={isLoading || isSuccess || licenseKey.length < 20}
-              className="w-full"
-              size="lg"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Activating...
-                </>
-              ) : isSuccess ? (
-                <>
-                  <CheckCircle2 className="w-4 h-4 mr-2" />
-                  Activated!
-                </>
-              ) : (
-                <>
-                  <KeyRound className="w-4 h-4 mr-2" />
-                  Activate License
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Adaptive Keyboard */}
-        {keyboardVisible && !isSuccess && (
-          <div className="rounded-lg overflow-hidden shadow-lg">
-            <AdaptiveKeyboard
-              onInput={handleKeyboardInput}
-              onBackspace={handleKeyboardBackspace}
-              onClear={handleKeyboardClear}
-              onEnter={handleKeyboardEnter}
-              initialMode="qwerty"
-              inputType="text"
-              visible={keyboardVisible}
-              onClose={() => setKeyboardVisible(false)}
-            />
-          </div>
-        )}
-
-        {/* Help Link */}
-        <p className="text-center text-sm text-muted-foreground">
-          Need help?{" "}
-          <a
-            href="https://aurswift.com/support"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary hover:underline"
-          >
-            Contact Support
-          </a>
-        </p>
-      </div>
       </div>
     </div>
   );
