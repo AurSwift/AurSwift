@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.30.2](https://github.com/AurSwift/AurSwift/compare/v1.30.1...v1.30.2) (2026-01-11)
+
+
+### chore
+
+* remove seed-data documentation and batch-replace-console script ([](https://github.com/AurSwift/AurSwift/commit/c1443a08a540ff89721efb04cd88ca2a340d9f60))
+
+
+### fix
+
+* update external link in WindowManager to point to the correct GitHub repository ([](https://github.com/AurSwift/AurSwift/commit/674d6711150b9c18f37f32d90933e1dab5ca7cfe))
+
 ## [1.30.1](https://github.com/AurSwift/AurSwift/compare/v1.30.0...v1.30.1) (2026-01-11)
 
 
