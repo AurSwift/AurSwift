@@ -57,7 +57,12 @@ export function FeatureGate({
   }
 
   // If requires upgrade and should show with badge, render children with badge
-  if (access.requiresUpgrade && showWithBadge && showUpgradeBadge && access.upgradePlan) {
+  if (
+    access.requiresUpgrade &&
+    showWithBadge &&
+    showUpgradeBadge &&
+    access.upgradePlan
+  ) {
     return (
       <div className="relative">
         {children}
