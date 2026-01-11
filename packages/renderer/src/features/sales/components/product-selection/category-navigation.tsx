@@ -2,7 +2,6 @@
  * Category navigation component
  */
 
-import { motion } from "framer-motion";
 import type { Category } from "@/types/domain/category";
 
 interface CategoryNavigationProps {
@@ -33,7 +32,7 @@ export function CategoryNavigation({
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
         {currentCategories.map((category) => {
           return (
-            <motion.button
+            <button
               key={category.id}
               onClick={() => {
                 // Detect double-click for navigation
@@ -83,16 +82,14 @@ export function CategoryNavigation({
                   }, DOUBLE_CLICK_DELAY);
                 }
               }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="relative bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg p-3 sm:p-4 lg:p-5 shadow-md transition-all min-h-[80px] sm:min-h-[96px] lg:min-h-[112px] flex flex-col items-center justify-center touch-manipulation overflow-hidden"
+              className="relative bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg p-3 sm:p-4 lg:p-5 shadow-md transition-all min-h-[80px] sm:min-h-[96px] lg:min-h-[112px] flex flex-col items-center justify-center touch-manipulation overflow-hidden transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
               <div className="text-center w-full min-w-0 px-1 sm:px-2 flex flex-col items-center justify-center flex-1">
                 <p className="font-bold text-xs sm:text-sm lg:text-base uppercase tracking-wide line-clamp-2 break-words leading-tight w-full overflow-hidden">
                   {category.name}
                 </p>
               </div>
-            </motion.button>
+            </button>
           );
         })}
       </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "@/components/animate-presence";
 import { toast } from "sonner";
 import {
   getUserRoleName,
@@ -1137,32 +1137,9 @@ const StaffSchedulesView: React.FC<StaffSchedulesViewProps> = ({ onBack }) => {
     [getSchedulesForDate, selectedDate]
   );
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.3 },
-    },
-  };
-
   return (
     <div className="w-full min-h-screen p-2 sm:p-3 md:p-4 lg:p-6 pb-6">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-w-7xl mx-auto"
-      >
+      <div className="max-w-7xl mx-auto animate-slide-down">
         {/* Header Section - Optimized for narrow screens */}
         <div className="flex flex-col gap-3 sm:gap-4 mb-4 sm:mb-6 lg:mb-8">
           <div className="flex items-start gap-2 sm:gap-3">
@@ -1391,14 +1368,9 @@ const StaffSchedulesView: React.FC<StaffSchedulesViewProps> = ({ onBack }) => {
               </p>
             </div>
           ) : (
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 lg:gap-6 xl:grid-cols-3"
-            >
-              <AnimatePresence>
-                {schedulesForSelectedDate.map((schedule) => {
+            <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 lg:gap-6 xl:grid-cols-3">
+              <AnimatePresence exitAnimation="fade" exitDuration={300}>
+                {schedulesForSelectedDate.map((schedule, index) => {
                   const scheduleStatus = getScheduleStatus(
                     schedule.startTime,
                     schedule.endTime
@@ -1417,15 +1389,10 @@ const StaffSchedulesView: React.FC<StaffSchedulesViewProps> = ({ onBack }) => {
                     : "Unknown Staff";
 
                   return (
-                    <motion.div
+                    <div
                       key={schedule.id}
-                      variants={itemVariants}
-                      initial="hidden"
-                      animate="visible"
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      layout
-                      whileHover={{ y: -4 }}
-                      className="transform transition-all duration-200"
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                      className="transform transition-all duration-200 animate-slide-up hover:-translate-y-1"
                     >
                       <Card className="bg-white shadow-lg hover:shadow-xl border-0 overflow-hidden">
                         <CardHeader className="pb-3 sm:pb-4">
@@ -1528,11 +1495,11 @@ const StaffSchedulesView: React.FC<StaffSchedulesViewProps> = ({ onBack }) => {
                           </div>
                         </CardContent>
                       </Card>
-                    </motion.div>
+                    </div>
                   );
                 })}
               </AnimatePresence>
-            </motion.div>
+            </div>
           )}
         </div>
 
@@ -1544,11 +1511,7 @@ const StaffSchedulesView: React.FC<StaffSchedulesViewProps> = ({ onBack }) => {
             </p>
           </div>
         ) : schedules.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-8 sm:py-12 md:py-16"
-          >
+          <div className="text-center py-8 sm:py-12 md:py-16 animate-fade-in">
             <div className="text-slate-400 mb-3 sm:mb-4">
               <CreditCard className="w-12 h-12 sm:w-16 sm:h-16 mx-auto" />
             </div>
@@ -1558,9 +1521,9 @@ const StaffSchedulesView: React.FC<StaffSchedulesViewProps> = ({ onBack }) => {
             <p className="text-sm sm:text-base text-slate-500 px-2">
               Click "Schedule Shift" to create your first cashier shift.
             </p>
-          </motion.div>
+          </div>
         ) : null}
-      </motion.div>
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

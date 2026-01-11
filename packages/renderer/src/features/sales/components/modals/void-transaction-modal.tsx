@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "@/components/animate-presence";
 import { useAuth } from "@/shared/hooks/use-auth";
 import { toast } from "sonner";
 
@@ -358,13 +358,10 @@ const VoidTransactionModal: React.FC<VoidModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 sm:p-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        className="bg-white rounded-lg shadow-xl max-w-[calc(100vw-1.5rem)] sm:max-w-4xl w-full max-h-[90vh] overflow-hidden"
-      >
+    <>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 sm:p-4 animate-fade-in">
+      <AnimatePresence exitAnimation="modal-exit" exitDuration={200}>
+        <div className="bg-white rounded-lg shadow-xl max-w-[calc(100vw-1.5rem)] sm:max-w-4xl w-full max-h-[90vh] overflow-hidden animate-modal-enter">
         {/* Header */}
         <div className="bg-red-600 text-white p-3 sm:p-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -384,15 +381,12 @@ const VoidTransactionModal: React.FC<VoidModalProps> = ({
         </div>
 
         <div className="p-4 sm:p-6 max-h-[calc(90vh-5rem)] overflow-auto">
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait" exitAnimation="slide-left-exit" exitDuration={200}>
             {/* Step 1: Search for Transaction */}
             {currentStep === "search" && (
-              <motion.div
+              <div
                 key="search"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="space-y-6"
+                className="space-y-6 animate-slide-right"
               >
                 <div>
                   <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">
@@ -512,17 +506,14 @@ const VoidTransactionModal: React.FC<VoidModalProps> = ({
                     </div>
                   )}
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {/* Step 2: Confirm Void */}
             {currentStep === "confirm" && selectedTransaction && (
-              <motion.div
+              <div
                 key="confirm"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="space-y-6"
+                className="space-y-6 animate-slide-right"
               >
                 <div>
                   <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">
@@ -695,16 +686,14 @@ const VoidTransactionModal: React.FC<VoidModalProps> = ({
                     </span>
                   </Button>
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {/* Step 3: Processing */}
             {currentStep === "processing" && (
-              <motion.div
+              <div
                 key="processing"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-6 sm:py-8"
+                className="text-center py-6 sm:py-8 animate-fade-in"
               >
                 <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-red-600 mx-auto mb-3 sm:mb-4"></div>
                 <h3 className="text-base sm:text-lg font-semibold mb-2">
@@ -713,14 +702,16 @@ const VoidTransactionModal: React.FC<VoidModalProps> = ({
                 <p className="text-sm sm:text-base text-slate-600">
                   Please wait while we process the void transaction.
                 </p>
-              </motion.div>
+              </div>
             )}
           </AnimatePresence>
         </div>
-      </motion.div>
+        </div>
+      </AnimatePresence>
+    </div>
 
-      {/* Manager Approval Dialog */}
-      <AlertDialog open={showManagerDialog} onOpenChange={setShowManagerDialog}>
+    {/* Manager Approval Dialog */}
+    <AlertDialog open={showManagerDialog} onOpenChange={setShowManagerDialog}>
         <AlertDialogContent className="max-w-[calc(100vw-2rem)] mx-4 sm:max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-base sm:text-lg">
@@ -767,7 +758,7 @@ const VoidTransactionModal: React.FC<VoidModalProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   );
 };
 

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff, AlertCircle } from "lucide-react";
@@ -133,27 +132,19 @@ export function LoginForm({ onSubmit, error, isLoading }: LoginFormProps) {
             )}
           />
 
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <div className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]">
             <Button
               type="submit"
               className="w-full h-10 sm:h-11 text-sm sm:text-base font-medium touch-manipulation"
               disabled={isSubmitting || isLoading}
             >
               {isSubmitting || isLoading ? (
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{
-                    duration: 1,
-                    repeat: Number.POSITIVE_INFINITY,
-                    ease: "linear",
-                  }}
-                  className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full"
-                />
+                <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
               ) : (
                 "Sign In"
               )}
             </Button>
-          </motion.div>
+          </div>
         </form>
       </Form>
     </>

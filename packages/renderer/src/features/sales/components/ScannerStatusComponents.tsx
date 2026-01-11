@@ -4,7 +4,7 @@
  */
 
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "@/components/animate-presence";
 import {
   ScanBarcode,
   Wifi,
@@ -85,10 +85,8 @@ export const ScannerStatusBar: React.FC<ScannerStatusBarProps> = ({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={`flex items-center justify-between p-3 rounded-lg border ${getStatusColor()} ${className}`}
+    <div
+      className={`flex items-center justify-between p-3 rounded-lg border ${getStatusColor()} ${className} animate-slide-down`}
     >
       <div className="flex items-center space-x-3">
         <div className="flex items-center space-x-2">
@@ -142,7 +140,7 @@ export const ScannerStatusBar: React.FC<ScannerStatusBarProps> = ({
           {scannerStatus.isReady ? "Ready to scan" : "Busy"}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -191,13 +189,10 @@ export const ScanHistory: React.FC<ScanHistoryProps> = ({
         <div className="space-y-1">
           <AnimatePresence>
             {recentScans.map((scan, index) => (
-              <motion.div
+              <div
                 key={`${scan.timestamp}-${scan.barcode}`}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 10 }}
-                transition={{ delay: index * 0.05 }}
-                className={`flex items-center justify-between text-xs p-2 rounded border ${
+                style={{ animationDelay: `${index * 0.05}s` }}
+                className={`flex items-center justify-between text-xs p-2 rounded border animate-slide-left ${
                   scan.success
                     ? "bg-green-50 border-green-200"
                     : "bg-red-50 border-red-200"
@@ -235,7 +230,7 @@ export const ScanHistory: React.FC<ScanHistoryProps> = ({
                     </span>
                   )}
                 </div>
-              </motion.div>
+              </div>
             ))}
           </AnimatePresence>
         </div>
@@ -267,13 +262,8 @@ export const ScannerGuide: React.FC<ScannerGuideProps> = ({
   if (!isVisible) return null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-    >
-      <Card className="max-w-md w-full bg-white">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-fade-in">
+      <Card className="max-w-md w-full bg-white animate-modal-enter-95">
         <CardContent className="p-6">
           <div className="text-center mb-4">
             <ScanBarcode className="h-12 w-12 text-blue-600 mx-auto mb-2" />
@@ -318,6 +308,6 @@ export const ScannerGuide: React.FC<ScannerGuideProps> = ({
           )}
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 };

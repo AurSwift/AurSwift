@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "@/components/animate-presence";
 import {
   CreditCard,
   Wifi,
@@ -297,13 +297,9 @@ export const PaymentTerminal: React.FC<PaymentTerminalProps> = ({
       </Card>
 
       {/* Payment Processing Status */}
-      <AnimatePresence>
+      <AnimatePresence exitAnimation="slide-up-exit" exitDuration={300}>
         {isProcessing && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-          >
+          <div className="animate-slide-up">
             <Card className="bg-white border-slate-200">
               <CardContent className="pt-6">
                 <div className="text-center space-y-4">
@@ -342,7 +338,7 @@ export const PaymentTerminal: React.FC<PaymentTerminalProps> = ({
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
@@ -561,12 +557,8 @@ export const PaymentStatusModal: React.FC<PaymentStatusModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
-      >
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 animate-modal-enter">
         <div className="text-center space-y-4">
           <div className="flex justify-center">
             {getStepIcon(paymentState.step)}
@@ -606,7 +598,7 @@ export const PaymentStatusModal: React.FC<PaymentStatusModalProps> = ({
             )}
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };

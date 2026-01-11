@@ -2,7 +2,7 @@
  * Cart items table component
  */
 
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "@/components/animate-presence";
 import {
   Table,
   TableBody,

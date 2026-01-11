@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "@/components/animate-presence";
 import { useAuth } from "@/shared/hooks/use-auth";
 import { getUserRoleName } from "@/shared/utils/rbac-helpers";
 import { toast } from "sonner";
@@ -407,12 +407,8 @@ const RefundTransactionModal: React.FC<RefundModalProps> = ({
   return (
     <>
       {/* Main Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-[calc(100vw-1.5rem)] sm:max-w-6xl max-h-[90vh] overflow-hidden flex flex-col"
-        >
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 animate-fade-in">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[calc(100vw-1.5rem)] sm:max-w-6xl max-h-[90vh] overflow-hidden flex flex-col animate-modal-enter-95">
           {/* Header */}
           <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-200">
             <div className="min-w-0 flex-1 pr-2">
@@ -445,7 +441,7 @@ const RefundTransactionModal: React.FC<RefundModalProps> = ({
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto">
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="wait" exitAnimation="slide-left-exit" exitDuration={200}>
               {currentView === "search" ? (
                 <SearchView
                   key="search"
@@ -484,18 +480,14 @@ const RefundTransactionModal: React.FC<RefundModalProps> = ({
               )}
             </AnimatePresence>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* Confirmation Dialog */}
-      <AnimatePresence>
+      <AnimatePresence exitAnimation="modal-exit-95" exitDuration={200}>
         {showConfirmDialog && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-white rounded-2xl shadow-2xl max-w-[calc(100vw-2rem)] sm:max-w-md w-full p-4 sm:p-6"
-            >
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 animate-fade-in">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-[calc(100vw-2rem)] sm:max-w-md w-full p-4 sm:p-6 animate-modal-enter-95">
               <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
                 <div className="w-7 h-7 sm:w-8 sm:h-8 bg-red-100 rounded-full flex items-center justify-center shrink-0">
                   <svg
@@ -599,7 +591,7 @@ const RefundTransactionModal: React.FC<RefundModalProps> = ({
                   )}
                 </button>
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
       </AnimatePresence>
@@ -630,12 +622,7 @@ const SearchView: React.FC<{
   onLoadRecent,
 }) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 20 }}
-      className="p-4 sm:p-6 h-full flex flex-col overflow-auto"
-    >
+    <div className="p-4 sm:p-6 h-full flex flex-col overflow-auto animate-slide-right">
       <div className="max-w-2xl mx-auto w-full space-y-4 sm:space-y-6">
         {/* Search Type Tabs */}
         <div className="grid grid-cols-3 gap-2">
@@ -774,7 +761,7 @@ const SearchView: React.FC<{
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -837,12 +824,7 @@ const RefundView: React.FC<{
   if (!originalTransaction) return null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="h-full overflow-y-auto"
-    >
+    <div className="h-full overflow-y-auto animate-slide-right">
       {/* Single scrollable container */}
       <div className="flex flex-col lg:flex-row lg:h-full">
         {/* Left Panel - Transaction Details */}
@@ -1204,7 +1186,7 @@ const RefundView: React.FC<{
           </div>
         </div>
       )}
-    </motion.div>
+    </div>
   );
 };
 

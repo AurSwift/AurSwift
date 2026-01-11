@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
-import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -1309,16 +1308,8 @@ export function NewTransactionView({
 
           {/* Transaction Complete Message */}
           {payment.transactionComplete && !payment.showReceiptOptions && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-            >
-              <motion.div
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-                className="bg-white p-4 sm:p-6 rounded-lg text-center w-full max-w-sm"
-              >
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-fade-in">
+              <div className="bg-white p-4 sm:p-6 rounded-lg text-center w-full max-w-sm animate-modal-enter">
                 <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 text-green-500 mx-auto mb-3 sm:mb-4" />
                 <h2 className="text-lg sm:text-xl font-bold mb-2 text-slate-800">
                   Transaction Complete!
@@ -1337,8 +1328,8 @@ export function NewTransactionView({
                 >
                   OK
                 </Button>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
           )}
 
           {/* Numeric Keypad */}

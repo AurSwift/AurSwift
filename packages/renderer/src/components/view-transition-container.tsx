@@ -1,5 +1,6 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "@/components/animate-presence";
 import { type ReactNode } from "react";
+import { cn } from "@/shared/utils/cn";
 
 interface ViewTransitionContainerProps {
   /**
@@ -40,7 +41,7 @@ interface ViewTransitionContainerProps {
 /**
  * Reusable container component for animated view transitions
  * 
- * Provides consistent slide animations between views using framer-motion
+ * Provides consistent slide animations between views using CSS animations
  * 
  * @example
  * ```tsx
@@ -72,26 +73,18 @@ export function ViewTransitionContainer({
   };
 
   const direction = determineDirection(currentView);
+  const exitAnimation = direction === "right" ? "slide-left-exit" : "slide-right-exit";
+  const enterAnimationClass = direction === "right" ? "animate-slide-right" : "animate-slide-left";
 
   return (
     <div className="grid gap-6">
-      <AnimatePresence mode="wait">
-        <motion.div
+      <AnimatePresence mode="wait" exitAnimation={exitAnimation} exitDuration={animationDuration * 1000}>
+        <div
           key={currentView}
-          initial={{
-            x: direction === "right" ? 300 : -300,
-            opacity: 0,
-          }}
-          animate={{ x: 0, opacity: 1 }}
-          exit={{
-            x: direction === "right" ? -300 : 300,
-            opacity: 0,
-          }}
-          transition={{ duration: animationDuration, ease: "easeInOut" }}
-          className={className}
+          className={cn(className, enterAnimationClass)}
         >
           {views[currentView] || null}
-        </motion.div>
+        </div>
       </AnimatePresence>
     </div>
   );

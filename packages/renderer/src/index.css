@@ -217,4 +217,222 @@
   .animate-shimmer {
     animation: shimmer 2s ease-in-out infinite;
   }
+
+  /* Fade animations */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  /* Slide animations */
+  @keyframes slide-up {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-down {
+    from {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-left {
+    from {
+      transform: translateX(300px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-right {
+    from {
+      transform: translateX(-300px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-left-exit {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(-300px);
+      opacity: 0;
+    }
+  }
+
+  @keyframes slide-right-exit {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(300px);
+      opacity: 0;
+    }
+  }
+
+  @keyframes slide-up-exit {
+    from {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+  }
+
+  @keyframes slide-down-exit {
+    from {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+  }
+
+  /* Modal animations */
+  @keyframes modal-enter {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes modal-exit {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+  }
+
+  @keyframes modal-enter-95 {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes modal-exit-95 {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+  }
+
+  /* Utility classes */
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-in-out;
+  }
+  .animate-fade-out {
+    animation: fade-out 0.3s ease-in-out;
+  }
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-in-out;
+  }
+  .animate-slide-down {
+    animation: slide-down 0.3s ease-in-out;
+  }
+  .animate-slide-left {
+    animation: slide-left 0.3s ease-in-out;
+  }
+  .animate-slide-right {
+    animation: slide-right 0.3s ease-in-out;
+  }
+  .animate-slide-left-exit {
+    animation: slide-left-exit 0.3s ease-in-out;
+  }
+  .animate-slide-right-exit {
+    animation: slide-right-exit 0.3s ease-in-out;
+  }
+  .animate-slide-up-exit {
+    animation: slide-up-exit 0.3s ease-in-out;
+  }
+  .animate-slide-down-exit {
+    animation: slide-down-exit 0.3s ease-in-out;
+  }
+  .animate-modal-enter {
+    animation: modal-enter 0.2s ease-in-out;
+  }
+  .animate-modal-exit {
+    animation: modal-exit 0.2s ease-in-out;
+  }
+  .animate-modal-enter-95 {
+    animation: modal-enter-95 0.2s ease-in-out;
+  }
+  .animate-modal-exit-95 {
+    animation: modal-exit-95 0.2s ease-in-out;
+  }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-in,
+    .animate-fade-out,
+    .animate-slide-up,
+    .animate-slide-down,
+    .animate-slide-left,
+    .animate-slide-right,
+    .animate-slide-left-exit,
+    .animate-slide-right-exit,
+    .animate-slide-up-exit,
+    .animate-slide-down-exit,
+    .animate-modal-enter,
+    .animate-modal-exit,
+    .animate-modal-enter-95,
+    .animate-modal-exit-95 {
+      animation: none;
+      transition: opacity 0.01s;
+    }
+  }
 }

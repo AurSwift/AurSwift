@@ -4,7 +4,6 @@
  * Supports Viva Wallet for contactless card payments
  */
 
-import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreditCard } from "lucide-react";
 import { PaymentMethodSelector } from "./payment-method-selector";
@@ -117,7 +116,7 @@ export function PaymentPanel({
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+    <div className="animate-slide-up">
       <Card className="bg-white border-slate-200 shadow-sm">
         <CardHeader className="bg-slate-50 py-2 sm:py-3 px-4 sm:px-6">
           <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
@@ -202,6 +201,6 @@ export function PaymentPanel({
           )}
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 }

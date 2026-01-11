@@ -2,7 +2,6 @@
  * Product card component
  */
 
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Scale } from "lucide-react";
@@ -30,7 +29,7 @@ export function ProductCard({
   };
 
   return (
-    <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+    <div className="transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]">
       <Button
         variant="outline"
         className={`h-auto min-h-[100px] sm:min-h-[120px] lg:min-h-[140px] py-2 sm:py-3 lg:py-4 flex flex-col items-center justify-start w-full transition-all touch-manipulation overflow-hidden ${
@@ -81,6 +80,6 @@ export function ProductCard({
           )}
         </div>
       </Button>
-    </motion.div>
+    </div>
   );
 }
