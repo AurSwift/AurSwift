@@ -135,9 +135,9 @@ export function DashboardLayout({ children, subtitle }: DashboardLayoutProps) {
                   onError={(e) => {
                     // Fallback to icon if logo fails to load
                     const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
+                    target.style.display = "none";
                     const fallback = target.nextElementSibling as HTMLElement;
-                    if (fallback) fallback.style.display = 'flex';
+                    if (fallback) fallback.style.display = "flex";
                   }}
                 />
                 <div className="hidden w-full h-full items-center justify-center">

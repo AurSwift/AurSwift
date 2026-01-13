@@ -42,7 +42,10 @@ export const FEATURE_REGISTRY: FeatureConfig[] = [
     title: "User Management",
     description: "Manage staff and permissions",
     icon: Users,
-    permissions: [PERMISSIONS.USERS_MANAGE],
+    permissions: [
+      PERMISSIONS.USERS_MANAGE,
+      PERMISSIONS.SCHEDULES_MANAGE_CASHIERS,
+    ], // Allow managers to see card
     category: "management",
     order: 1,
     // Available to all plans (no subscription requirement)
@@ -73,7 +76,7 @@ export const FEATURE_REGISTRY: FeatureConfig[] = [
         label: "Staff Schedules",
         icon: Calendar,
         onClick: () => {},
-        permissions: [PERMISSIONS.USERS_MANAGE],
+        permissions: [PERMISSIONS.SCHEDULES_MANAGE_CASHIERS], // Managers can access
       },
     ],
   },

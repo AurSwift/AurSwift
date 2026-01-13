@@ -70,7 +70,10 @@ export const staffViews: Record<string, ViewConfig> = {
       title: "Staff Schedules",
       description: "Manage staff schedules",
     },
-    permissions: [STAFF_PERMISSIONS.MANAGE],
+    permissions: [
+      STAFF_PERMISSIONS.MANAGE_SCHEDULES,
+      STAFF_PERMISSIONS.MANAGE_CASHIER_SCHEDULES,
+    ], // Allow both admins and managers
     requiresAuth: true,
   },
 };
