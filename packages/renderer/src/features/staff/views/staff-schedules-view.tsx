@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { AnimatePresence } from "@/components/animate-presence";
 import { toast } from "sonner";
 import {
   getUserRoleName,
@@ -147,8 +146,11 @@ const StaffSchedulesView: React.FC<StaffSchedulesViewProps> = ({ onBack }) => {
     PERMISSIONS.SCHEDULES_MANAGE_CASHIERS
   );
 
-  // State for cashiers - will be loaded from database
+  // State for cashiers - will be loaded from database (filtered by permissions for form dropdown)
   const [cashiers, setCashiers] = useState<Staff[]>([]);
+
+  // State for all staff members - for displaying schedule cards (not filtered by permissions)
+  const [allStaff, setAllStaff] = useState<Staff[]>([]);
 
   // State for schedules - will be loaded from database
   const [schedules, setSchedules] = useState<Schedule[]>([]);
@@ -233,6 +235,21 @@ const StaffSchedulesView: React.FC<StaffSchedulesViewProps> = ({ onBack }) => {
           }
 
           setCashiers(filteredUsers);
+
+          // Store ALL non-admin staff for display purposes (to show names in schedule cards)
+          // This is separate from the filtered list - managers need to see schedule names
+          // even if they can't edit those schedules (e.g., other managers' schedules)
+          const allNonAdminStaff = allUsers.filter((staffUser) => {
+            const staffRoleName = getUserRoleName(staffUser);
+            logger.info(
+              `[loadCashiers] allStaff filter: ${staffUser.firstName} ${staffUser.lastName} (${staffUser.id}), roleName: ${staffRoleName}`
+            );
+            return staffRoleName !== "admin";
+          });
+          logger.info(
+            `[loadCashiers] Set allStaff to ${allNonAdminStaff.length} users (all non-admin staff for display)`
+          );
+          setAllStaff(allNonAdminStaff);
         } else {
           logger.error("Failed to load staff members:", response.message);
           toast.error("Failed to load staff members", {
@@ -626,7 +643,7 @@ const StaffSchedulesView: React.FC<StaffSchedulesViewProps> = ({ onBack }) => {
     return (
       <>
         <DrawerHeader className="shrink-0 px-3 sm:px-4 border-b">
-          <DrawerTitle className="text-lg sm:text-xl md:text-2xl">
+          <DrawerTitle className="text-base sm:text-lg md:text-xl">
             {isEditMode ? "Edit Staff Schedule" : "Create New Schedule"}
           </DrawerTitle>
           <DrawerDescription className="sr-only">
@@ -641,8 +658,8 @@ const StaffSchedulesView: React.FC<StaffSchedulesViewProps> = ({ onBack }) => {
             onSubmit={handleSubmit}
             className="flex flex-col h-full min-h-0"
           >
-            <div className="px-3 sm:px-4 pb-3 sm:pb-4 space-y-4 sm:space-y-6 overflow-y-auto flex-1 min-h-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            <div className="px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 md:pb-6 space-y-3 sm:space-y-4 md:space-y-6 overflow-y-auto flex-1 min-h-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
                 <FormField
                   control={form.control}
                   name="staffId"
@@ -821,12 +838,12 @@ const StaffSchedulesView: React.FC<StaffSchedulesViewProps> = ({ onBack }) => {
 
                 {startTime && endTime && (
                   <div className="md:col-span-2 p-3 bg-sky-50 rounded-lg border border-sky-200">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-sky-600" />
-                      <span className="font-medium text-sky-800">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Clock className="w-4 h-4 text-sky-600 shrink-0" />
+                      <span className="font-medium text-sky-800 text-sm sm:text-base">
                         Shift Duration:
                       </span>
-                      <span className="text-sky-700">
+                      <span className="text-sky-700 text-sm sm:text-base">
                         {(() => {
                           const formatTime = (time: string) => {
                             const [hour, minute] = time.split(":").map(Number);
@@ -1132,16 +1149,49 @@ const StaffSchedulesView: React.FC<StaffSchedulesViewProps> = ({ onBack }) => {
     }
   };
 
+  // Filter schedules based on user permissions
+  // Managers should only see cashier schedules, not their own or other managers' schedules
+  const filteredSchedules = useMemo(() => {
+    // If user can schedule all (admin), show all schedules
+    if (canScheduleAll) {
+      return schedules;
+    }
+
+    // If user can only schedule cashiers (manager), filter to cashier schedules only
+    if (canScheduleCashiers) {
+      const cashierSchedules = schedules.filter((schedule) => {
+        const staffMember = allStaff.find((s) => s.id === schedule.staffId);
+        if (!staffMember) {
+          logger.warn(
+            `[filteredSchedules] Staff member not found for schedule ${schedule.id}, staffId: ${schedule.staffId}`
+          );
+          return false;
+        }
+        const staffRoleName = getUserRoleName(staffMember);
+        // Only show cashier schedules for managers
+        return staffRoleName === "cashier";
+      });
+
+      logger.info(
+        `[filteredSchedules] Manager view: Filtered ${schedules.length} total schedules to ${cashierSchedules.length} cashier schedules`
+      );
+      return cashierSchedules;
+    }
+
+    // No permission - return empty array
+    return [];
+  }, [schedules, allStaff, canScheduleAll, canScheduleCashiers]);
+
   // Memoized function to get schedules for a date
   const getSchedulesForDate = useCallback(
     (date: Date) => {
       const dateString = format(date, "yyyy-MM-dd");
-      return schedules.filter((schedule) => {
+      return filteredSchedules.filter((schedule) => {
         const scheduleDate = schedule.startTime.split("T")[0];
         return scheduleDate === dateString;
       });
     },
-    [schedules]
+    [filteredSchedules]
   );
 
   // Memoized schedules for selected date
@@ -1176,14 +1226,17 @@ const StaffSchedulesView: React.FC<StaffSchedulesViewProps> = ({ onBack }) => {
           </div>
 
           <div className="w-full">
-            <Drawer open={isDrawerOpen} onOpenChange={(open) => {
-              if (open) {
-                setupDrawerForm();
-                setIsDrawerOpen(true);
-              } else {
-                closeDrawer();
-              }
-            }}>
+            <Drawer
+              open={isDrawerOpen}
+              onOpenChange={(open) => {
+                if (open) {
+                  setupDrawerForm();
+                  setIsDrawerOpen(true);
+                } else {
+                  closeDrawer();
+                }
+              }}
+            >
               <DrawerTrigger asChild>
                 <Button
                   className="bg-linear-to-r from-sky-600 to-sky-500 hover:from-sky-700 hover:to-sky-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
@@ -1200,7 +1253,7 @@ const StaffSchedulesView: React.FC<StaffSchedulesViewProps> = ({ onBack }) => {
                 </Button>
               </DrawerTrigger>
 
-              <DrawerContent className="h-[90vh] max-h-[90vh] flex flex-col">
+              <DrawerContent className="h-[90vh] max-h-[90vh] flex flex-col max-w-full sm:max-w-2xl md:max-w-3xl mx-auto">
                 <ScheduleFormContent
                   editingSchedule={editingSchedule}
                   selectedDate={selectedDate}
@@ -1369,10 +1422,10 @@ const StaffSchedulesView: React.FC<StaffSchedulesViewProps> = ({ onBack }) => {
               Loading schedules...
             </p>
           </div>
-        ) : schedules.length === 0 ? (
+        ) : filteredSchedules.length === 0 ? (
           <div className="text-center py-8 sm:py-12 md:py-16 animate-fade-in bg-white rounded-lg shadow">
             <div className="text-slate-400 mb-3 sm:mb-4">
-              <CreditCard className="w-12 h-12 sm:w-16 sm:w-16 mx-auto" />
+              <CreditCard className="w-12 h-12 sm:w-16 sm:h-16 mx-auto" />
             </div>
             <h3 className="text-lg sm:text-xl font-semibold text-slate-600 mb-2 px-2">
               No shifts scheduled
@@ -1383,7 +1436,7 @@ const StaffSchedulesView: React.FC<StaffSchedulesViewProps> = ({ onBack }) => {
           </div>
         ) : (
           /* Shifts for Selected Date */
-          <div className="mb-3 sm:mb-4 md:mb-6">
+          <div className="w-full mb-3 sm:mb-4 md:mb-6">
             <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-slate-800 mb-2 sm:mb-3 md:mb-4 break-word">
               Shifts for {format(selectedDate, "MMMM d, yyyy")}
             </h3>
@@ -1407,8 +1460,7 @@ const StaffSchedulesView: React.FC<StaffSchedulesViewProps> = ({ onBack }) => {
                 </p>
               </div>
             ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
-              <AnimatePresence exitAnimation="fade" exitDuration={300}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-4 lg:gap-6">
                 {schedulesForSelectedDate.map((schedule, index) => {
                   const scheduleStatus = getScheduleStatus(
                     schedule.startTime,
@@ -1419,13 +1471,21 @@ const StaffSchedulesView: React.FC<StaffSchedulesViewProps> = ({ onBack }) => {
                     schedule.endTime
                   );
 
-                  // Find staff member details
-                  const staffMember = cashiers.find(
+                  // Find staff member details - use allStaff for display (not filtered by permissions)
+                  const staffMember = allStaff.find(
                     (c) => c.id === schedule.staffId
                   );
+
+                  // Defensive fallback: log missing staff member for debugging
+                  if (!staffMember) {
+                    logger.warn(
+                      `[StaffSchedules] Staff member not found for schedule ${schedule.id}, staffId: ${schedule.staffId}. Available allStaff: ${allStaff.length} users`
+                    );
+                  }
+
                   const staffName = staffMember
                     ? `${staffMember.firstName} ${staffMember.lastName}`
-                    : "Unknown Staff";
+                    : `Unknown Staff (ID: ${schedule.staffId?.slice(0, 8)}...)`;
 
                   return (
                     <div
@@ -1433,7 +1493,7 @@ const StaffSchedulesView: React.FC<StaffSchedulesViewProps> = ({ onBack }) => {
                       style={{ animationDelay: `${index * 0.05}s` }}
                       className="transform transition-all duration-200 animate-slide-up hover:-translate-y-1"
                     >
-                      <Card className="bg-white shadow-lg hover:shadow-xl border-0 overflow-hidden">
+                      <Card className="h-full bg-white shadow-lg hover:shadow-xl border-0 overflow-hidden">
                         <CardHeader className="pb-3 sm:pb-4">
                           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
                             <div className="space-y-1 min-w-0 flex-1">
@@ -1537,9 +1597,8 @@ const StaffSchedulesView: React.FC<StaffSchedulesViewProps> = ({ onBack }) => {
                     </div>
                   );
                 })}
-              </AnimatePresence>
-            </div>
-          )}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -1552,7 +1611,7 @@ const StaffSchedulesView: React.FC<StaffSchedulesViewProps> = ({ onBack }) => {
             <AlertDialogDescription>
               {scheduleToDelete &&
                 (() => {
-                  const staffMember = cashiers.find(
+                  const staffMember = allStaff.find(
                     (c) => c.id === scheduleToDelete.staffId
                   );
                   const staffName = staffMember
