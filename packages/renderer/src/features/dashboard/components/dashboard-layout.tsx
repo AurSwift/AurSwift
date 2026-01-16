@@ -2,15 +2,7 @@ import type { ReactNode } from "react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
-import {
-  Store,
-  LogOut,
-  User,
-  Bell,
-  Settings,
-  Clock,
-  Power,
-} from "lucide-react";
+import { Store, LogOut, Clock, Power } from "lucide-react";
 import { useAuth } from "@/shared/hooks/use-auth";
 import { ClockOutWarningDialog } from "@/features/auth/components/clock-out-warning-dialog";
 import { userHasAnyRole } from "@/shared/utils/rbac-helpers";
@@ -131,7 +123,7 @@ export function DashboardLayout({ children, subtitle }: DashboardLayoutProps) {
               <div className="relative w-10 h-10 rounded-xl overflow-hidden ring-2 ring-primary/20 shadow-md bg-black flex items-center justify-center">
                 <img
                   src="/logo.png"
-                  alt="AuraSwift Logo"
+                  alt="AurSwift Logo"
                   className="w-full h-full object-contain p-1"
                   onError={(e) => {
                     // Fallback to icon if logo fails to load
@@ -141,13 +133,10 @@ export function DashboardLayout({ children, subtitle }: DashboardLayoutProps) {
                     if (fallback) fallback.style.display = "flex";
                   }}
                 />
-                <div className="hidden w-full h-full items-center justify-center">
-                  <Store className="w-5 h-5 text-primary-foreground" />
-                </div>
               </div>
               <div>
                 <h1 className="text-lg font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                  AuraSwift
+                  AurSwift
                 </h1>
                 <p className="text-[10px] text-muted-foreground/60 -mt-1">
                   EPOS System
@@ -163,19 +152,10 @@ export function DashboardLayout({ children, subtitle }: DashboardLayoutProps) {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm">
-              <Bell className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="sm">
-              <Settings className="w-4 h-4" />
-            </Button>
             <WiFiStatusIcon size={18} />
             <LicenseHeaderBadge />
             <div className="flex items-center gap-3 pl-3 border-l">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4" />
-                </div>
                 {activeShift &&
                   userHasAnyRole(user, ["cashier", "manager"]) && (
                     <div className="flex items-center gap-1 px-2 py-1 bg-green-100 rounded-full">

@@ -59,11 +59,6 @@ export function AuthHeader() {
       <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 min-w-0">
         <span className="hidden md:inline-flex items-center gap-1.5 lg:gap-2 text-gray-400">
           <WiFiStatusIcon />
-          <BatteryFull
-            className="w-4 h-4 lg:w-5 lg:h-5"
-            aria-label="Battery Status"
-          />
-          <Bell className="w-4 h-4 lg:w-5 lg:h-5" aria-label="Notifications" />
         </span>
         <span
           className="text-xs sm:text-sm font-mono text-gray-700 whitespace-nowrap"
