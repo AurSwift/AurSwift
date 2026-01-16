@@ -252,9 +252,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   /**
    * Logout: End user session
-   * Note: UI should ensure user has ended their shift before calling this
+   * Note: Backend automatically handles clock-out if user has active shift
    */
-  const logout = async (): Promise<{ needsClockOutWarning?: boolean }> => {
+  const logout = async (): Promise<void> => {
     setIsLoading(true);
     setError(null);
 
@@ -303,8 +303,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       logger.info("[Logout] User logged out successfully");
     }
-
-    return { needsClockOutWarning: false };
   };
 
   /**

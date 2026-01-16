@@ -116,9 +116,7 @@ export interface AuthContextType {
     avatar?: string;
     address?: string;
   }) => Promise<{ success: boolean; message: string; errors?: string[] }>;
-  logout: (options?: { clockOut?: boolean }) => Promise<{
-    needsClockOutWarning?: boolean;
-  }>;
+  logout: (options?: { clockOut?: boolean }) => Promise<void>;
   clockIn: (
     userId: string,
     businessId: string

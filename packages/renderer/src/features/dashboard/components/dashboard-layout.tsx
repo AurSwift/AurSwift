@@ -2,9 +2,8 @@ import type { ReactNode } from "react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
-import { Store, LogOut, Clock, Power } from "lucide-react";
+import { LogOut, Clock, Power } from "lucide-react";
 import { useAuth } from "@/shared/hooks/use-auth";
-import { ClockOutWarningDialog } from "@/features/auth/components/clock-out-warning-dialog";
 import { userHasAnyRole } from "@/shared/utils/rbac-helpers";
 import { LicenseHeaderBadge } from "./license-header-badge";
 import { WiFiStatusIcon } from "@/features/license";
@@ -20,16 +19,13 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children, subtitle }: DashboardLayoutProps) {
   const { user, logout, isLoading } = useAuth();
-  const [showClockOutDialog, setShowClockOutDialog] = useState(false);
   const [activeShift, setActiveShift] = useState<{
     id: string;
     clockInEvent?: { timestamp: string };
     createdAt?: string;
   } | null>(null);
-  const [clockInTime, setClockInTime] = useState<string | undefined>();
-  const [isCheckingShift, setIsCheckingShift] = useState(false);
 
-  // Check for active shift on mount and periodically
+  // Check for active shift on mount and periodically (for "Clocked In" badge display)
   useEffect(() => {
     if (!user) return;
 
@@ -38,16 +34,8 @@ export function DashboardLayout({ children, subtitle }: DashboardLayoutProps) {
         const response = await window.timeTrackingAPI.getActiveShift(user.id);
         if (response.success && response.shift) {
           setActiveShift(response.shift);
-          // Get clock-in timestamp from the clock event
-          if (response.shift.clockInEvent?.timestamp) {
-            setClockInTime(response.shift.clockInEvent.timestamp);
-          } else if (response.shift.createdAt) {
-            // Fallback to createdAt if clock event not available
-            setClockInTime(response.shift.createdAt);
-          }
         } else {
           setActiveShift(null);
-          setClockInTime(undefined);
         }
       } catch (error) {
         logger.error("Failed to check active shift:", error);
@@ -62,44 +50,7 @@ export function DashboardLayout({ children, subtitle }: DashboardLayoutProps) {
 
   const handleLogout = async () => {
     if (!user) return;
-
-    // Check if user is clocked in
-    setIsCheckingShift(true);
-    try {
-      const response = await window.timeTrackingAPI.getActiveShift(user.id);
-      if (
-        response.success &&
-        response.shift &&
-        userHasAnyRole(user, ["cashier", "manager"])
-      ) {
-        setActiveShift(response.shift);
-        // Get clock-in timestamp
-        if (response.shift.clockInEvent?.timestamp) {
-          setClockInTime(response.shift.clockInEvent.timestamp);
-        } else if (response.shift.createdAt) {
-          setClockInTime(response.shift.createdAt);
-        }
-        setShowClockOutDialog(true);
-        setIsCheckingShift(false);
-        return;
-      }
-    } catch (error) {
-      logger.error("Failed to check shift:", error);
-    }
-    setIsCheckingShift(false);
-
-    // No active shift, proceed with logout
-    await logout();
-  };
-
-  const handleClockOutAndLogout = async () => {
-    setShowClockOutDialog(false);
-    // Logout will auto-handle clock-out
-    await logout();
-  };
-
-  const handleLogoutOnly = async () => {
-    setShowClockOutDialog(false);
+    // Backend automatically handles clock-out during logout
     await logout();
   };
 
@@ -170,9 +121,9 @@ export function DashboardLayout({ children, subtitle }: DashboardLayoutProps) {
                 onClick={handleLogout}
                 variant="ghost"
                 size="sm"
-                disabled={isLoading || isCheckingShift}
+                disabled={isLoading}
               >
-                {isLoading || isCheckingShift ? (
+                {isLoading ? (
                   <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <LogOut className="w-4 h-4" />
@@ -193,15 +144,6 @@ export function DashboardLayout({ children, subtitle }: DashboardLayoutProps) {
 
       {/* Main Content */}
       <main className="p-3">{children}</main>
-
-      {/* Clock Out Warning Dialog */}
-      <ClockOutWarningDialog
-        open={showClockOutDialog}
-        onClose={() => setShowClockOutDialog(false)}
-        onClockOutAndLogout={handleClockOutAndLogout}
-        onLogoutOnly={handleLogoutOnly}
-        clockInTime={clockInTime}
-      />
     </div>
   );
 }
