@@ -2,6 +2,43 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.31.0](https://github.com/AurSwift/AurSwift/compare/v1.30.2...v1.31.0) (2026-01-16)
+
+
+### feat
+
+* enhance license server connectivity checks with SSE support ([](https://github.com/AurSwift/AurSwift/commit/99b8db018d932fa0702bfab7cec3e1926bbeda05))
+* enhance WiFiStatusIcon component with online/offline detection ([](https://github.com/AurSwift/AurSwift/commit/997b29935ba9f14fbb5c2c7e07deb939015a77f7))
+* implement system notifications and email service enhancements ([](https://github.com/AurSwift/AurSwift/commit/28c542928d63e61745f90ae5de90603ddf3f158f))
+* suppress update notifications during license activation ([](https://github.com/AurSwift/AurSwift/commit/e4e08d084f9a1d4066638d73f0f974644b9e9220))
+
+
+### fix
+
+* update license key length validation in License Activation Screen ([](https://github.com/AurSwift/AurSwift/commit/1853dbca56ae5616c0d6ade858309ff8fbdd44fb))
+
+
+### refactor
+
+* clean up dashboard and auth header components ([](https://github.com/AurSwift/AurSwift/commit/4f08e79a893c811c05d4c59e6033b535d771cb1e))
+* enhance AnimatePresence component with 'as' prop for flexible rendering ([](https://github.com/AurSwift/AurSwift/commit/f891959029ba131cdd097975a1677c932c00eeaf))
+* enhance Clock Out Warning Dialog layout and styling ([](https://github.com/AurSwift/AurSwift/commit/614fe9e803894c30247a912740fa0bf0c1d98d45))
+* enhance Staff Schedules View with improved drawer functionality and styling ([](https://github.com/AurSwift/AurSwift/commit/0621e0ed73b3647702ef1883e90e45de2d03d2bc))
+* enhance Staff Schedules View with improved state management and filtering ([](https://github.com/AurSwift/AurSwift/commit/5f0834722b9f3f83682e9be9c4d49c8c9def4658))
+* enhance user management and inventory dashboard with improved data handling ([](https://github.com/AurSwift/AurSwift/commit/b65d30ccb8c59d12520937c6572897322280666e))
+* improve License Activation Screen layout and styling ([](https://github.com/AurSwift/AurSwift/commit/2b9058e3ab0961ae34ab30f18c57cbb91f0355a0))
+* remove clock in/out functionality from auth user selection and pin entry screen ([](https://github.com/AurSwift/AurSwift/commit/c7f8c059bfaca6c23d9a8daf8ec99d09923a83e0))
+* remove ClockOutWarningDialog component and related functionality ([](https://github.com/AurSwift/AurSwift/commit/9504e3dc1ebf22a3006d8a4b976ef846a8599f75))
+* replace console logging with structured logging across various services ([](https://github.com/AurSwift/AurSwift/commit/53b78a568b6d21719ad0338b5923728dc6c4aba2))
+* replace console logging with structured logging in license and sales modals ([](https://github.com/AurSwift/AurSwift/commit/a1d417e2d57729011f449b8f4aaff0d1ce615a3f))
+* standardize naming and improve documentation across services ([](https://github.com/AurSwift/AurSwift/commit/60fe25cad53a9d4d40cc4543ea87c4b8df2fbf47))
+* standardize string quotes and clean up test-types-import.ts ([](https://github.com/AurSwift/AurSwift/commit/773dc27f958eb6f1099a878ee6d2ba95c4b8cf94))
+* update AuthHeader component to include logo and improve fallback handling ([](https://github.com/AurSwift/AurSwift/commit/fa659ce8fe2caa826e1b83e181d1c8f09a20aab3))
+* update button styles in PinEntryScreen for improved user interaction ([](https://github.com/AurSwift/AurSwift/commit/662fc7edc32839e8c10295eccf9f4b612cd3eb19))
+* update CashierDashboardView styling for improved readability ([](https://github.com/AurSwift/AurSwift/commit/4207c7404802f42e1415cb67c1f817751f38bc52))
+* update dashboard header with logo and improved styling ([](https://github.com/AurSwift/AurSwift/commit/8a8b3095259dc0b8488adf3cb287e0a1b2c609dd))
+* update permissions for user management and staff schedules ([](https://github.com/AurSwift/AurSwift/commit/7aa93fea5f84bccc9376048e03e099f27ea340ea))
+
 ## [1.30.2](https://github.com/AurSwift/AurSwift/compare/v1.30.1...v1.30.2) (2026-01-11)
 
 
