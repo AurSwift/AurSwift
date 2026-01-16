@@ -169,7 +169,7 @@ export function LicenseActivationScreen({
               <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-2xl bg-black flex items-center justify-center shadow-2xl ring-4 ring-primary/20 overflow-hidden">
                 <img
                   src="/logo.png"
-                  alt="AuraSwift Logo"
+                  alt="Aurswift Logo"
                   className="w-full h-full object-contain p-3 sm:p-4 md:p-5 lg:p-6"
                   onError={(e) => {
                     // Fallback to key icon if logo fails to load

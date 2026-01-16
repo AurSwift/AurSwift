@@ -18,7 +18,7 @@
 
 ## Introduction
 
-This document provides an **exhaustive technical breakdown** of the add-to-cart flow in the AuraSwift POS system. It covers every file, function, parameter, database interaction, IPC call, and state transition involved when a user clicks a product or category item, **or scans a barcode**.
+This document provides an **exhaustive technical breakdown** of the add-to-cart flow in the Aurswift POS system. It covers every file, function, parameter, database interaction, IPC call, and state transition involved when a user clicks a product or category item, **or scans a barcode**.
 
 ### What This Document Covers
 

@@ -93,7 +93,7 @@ export function OfflineWarningBanner() {
         <AlertDescription className="space-y-2">
           <p>
             Your license could not be verified for more than 7 days. Please
-            reconnect to the internet to continue using AuraSwift.
+            reconnect to the internet to continue using AurSwift EPOS.
           </p>
           <div className="flex gap-2 mt-3">
             <Button

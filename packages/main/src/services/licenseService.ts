@@ -33,12 +33,8 @@ const RETRY_DELAY_MS = 1000; // Base delay, will be multiplied exponentially
 const ALLOWED_API_DOMAINS = [
   "localhost",
   "127.0.0.1",
-  "auraswift.io",
-  "api.auraswift.io",
-  "www.auraswift.io",
-  // Add staging/dev domains as needed
-  "staging.auraswift.io",
-  "dev.auraswift.io",
+  "aurswift.vercel.app",
+  "aurswift.com",
 ] as const;
 
 // ============================================================================
@@ -66,7 +62,7 @@ function validateApiUrl(urlString: string): { valid: boolean; error?: string } {
     const isAllowed = ALLOWED_API_DOMAINS.some((domain) => {
       // Exact match
       if (hostname === domain) return true;
-      // Subdomain match (e.g., api.auraswift.io matches *.auraswift.io)
+      // Subdomain match
       if (domain.includes(".") && hostname.endsWith(`.${domain}`)) return true;
       return false;
     });

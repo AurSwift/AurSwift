@@ -51,7 +51,7 @@ export async function exportLocalData(
     // Default export location: user's Documents folder
     const defaultPath =
       options.destination ||
-      path.join(app.getPath("documents"), "AuraSwift EPOS Exports");
+      path.join(app.getPath("documents"), "Aurswift EPOS Exports");
 
     // Ensure export directory exists
     await fs.mkdir(defaultPath, { recursive: true });
@@ -116,7 +116,7 @@ export async function exportLocalData(
       // Write JSON file
       const jsonPath = path.join(
         defaultPath,
-        `auraswift-data-export-${exportDate}-${exportTime}.json`
+        `aurswift-data-export-${exportDate}-${exportTime}.json`
       );
 
       await fs.writeFile(jsonPath, JSON.stringify(jsonData, null, 2), "utf-8");
@@ -131,7 +131,7 @@ export async function exportLocalData(
     if (options.format === "sqlite" || options.format === "both") {
       const backupPath = path.join(
         defaultPath,
-        `auraswift-database-backup-${exportDate}-${exportTime}.db`
+        `aurswift-database-backup-${exportDate}-${exportTime}.db`
       );
 
       // Use SQLite backup API for safe backup
@@ -337,7 +337,7 @@ export async function cleanupOldBackups(
 
     // Filter for backup files
     const backupFiles = files
-      .filter((file) => file.startsWith("auraswift-database-backup-"))
+      .filter((file) => file.startsWith("aurswift-database-backup-"))
       .map((file) => ({
         name: file,
         path: path.join(backupDirectory, file),
