@@ -62,17 +62,18 @@ export class ScheduleValidator {
         `[validateClockIn] Found schedule: ${schedule.id} (${schedule.startTime} - ${schedule.endTime})`
       );
 
-      // 2. Check if already clocked in
+      // 2. Allow multiple shifts per schedule (e.g., split shifts, mid-day breaks)
+      // Active shift check removed to support cashier logging out for lunch and back in
       const activeShift = db.shifts.getActiveShift(userId);
       if (activeShift) {
         logger.warn(
-          `[validateClockIn] User ${userId} already has active shift ${activeShift.id}`
+          `[validateClockIn] User ${userId} already has active shift ${activeShift.id} - blocking duplicate clock-in`
         );
         return {
           valid: false,
           canClockIn: false,
           requiresApproval: false,
-          warnings: ["Already clocked in"],
+          warnings: ["Already clocked in - please clock out first"],
           schedule,
           reason: "User already has an active shift",
         };

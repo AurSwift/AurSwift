@@ -83,19 +83,19 @@ export class TimeTrackingReportManager {
     // Calculate statistics
     const totalShifts = shifts.length;
     const completedShifts = shifts.filter(
-      (s: any) => s.shift.status === "completed"
+      (s: any) => s.shift.status === "ended"
     );
 
     const totalHours = completedShifts.reduce(
-      (sum: number, s: any) => sum + (s.shift.totalHours || 0),
+      (sum: number, s: any) => sum + (s.shift.total_hours || 0),
       0
     );
     const regularHours = completedShifts.reduce(
-      (sum: number, s: any) => sum + (s.shift.regularHours || 0),
+      (sum: number, s: any) => sum + (s.shift.regular_hours || 0),
       0
     );
     const overtimeHours = completedShifts.reduce(
-      (sum: number, s: any) => sum + (s.shift.overtimeHours || 0),
+      (sum: number, s: any) => sum + (s.shift.overtime_hours || 0),
       0
     );
 
@@ -105,13 +105,13 @@ export class TimeTrackingReportManager {
 
     shifts.forEach((shiftData: any) => {
       const shift = shiftData.shift;
-      if (shift.scheduleId) {
+      if (shift.schedule_id) {
         const [schedule] = this.db
           .select({
             startTime: schema.schedules.startTime,
           })
           .from(schema.schedules)
-          .where(eq(schema.schedules.id, shift.scheduleId))
+          .where(eq(schema.schedules.id, shift.schedule_id))
           .limit(1)
           .all();
 
@@ -131,7 +131,7 @@ export class TimeTrackingReportManager {
 
     // Count missed clock-outs
     const missedClockOuts = shifts.filter(
-      (s: any) => s.shift.status === "active" || !s.shift.clockOutId
+      (s: any) => s.shift.status === "active" || !s.shift.clock_out_id
     ).length;
 
     return {
@@ -197,11 +197,11 @@ export class TimeTrackingReportManager {
           ce.timestamp as actualTime,
           s.startTime as scheduledTime,
           CAST((julianday(ce.timestamp) - julianday(s.startTime)) * 24 * 60 AS INTEGER) as minutesLate,
-          ts.id as shiftId
-        FROM time_shifts ts
-        JOIN users u ON ts.userId = u.id
-        JOIN clock_events ce ON ts.clockInId = ce.id
-        LEFT JOIN schedules s ON ts.scheduleId = s.id
+          sh.id as shiftId
+        FROM shifts sh
+        JOIN users u ON sh.user_id = u.id
+        JOIN clock_events ce ON sh.clock_in_id = ce.id
+        LEFT JOIN schedules s ON sh.schedule_id = s.id
         WHERE u.businessId = ?
           AND ce.timestamp >= ?
           AND ce.timestamp <= ?
@@ -229,13 +229,13 @@ export class TimeTrackingReportManager {
           u.firstName,
           u.lastName,
           ce.timestamp as clockInTime,
-          ts.id as shiftId,
-          ts.status
-        FROM time_shifts ts
-        JOIN users u ON ts.userId = u.id
-        JOIN clock_events ce ON ts.clockInId = ce.id
+          sh.id as shiftId,
+          sh.status
+        FROM shifts sh
+        JOIN users u ON sh.user_id = u.id
+        JOIN clock_events ce ON sh.clock_in_id = ce.id
         WHERE u.businessId = ?
-          AND ts.status = 'active'
+          AND sh.status = 'active'
           AND ce.timestamp < ?
         ORDER BY ce.timestamp ASC
       `
@@ -258,16 +258,16 @@ export class TimeTrackingReportManager {
           u.id as userId,
           u.firstName,
           u.lastName,
-          COUNT(ts.id) as shiftsWithOvertime,
-          SUM(ts.overtimeHours) as totalOvertimeHours,
-          AVG(ts.overtimeHours) as averageOvertimePerShift
-        FROM time_shifts ts
-        JOIN users u ON ts.userId = u.id
-        JOIN clock_events ce ON ts.clockInId = ce.id
+          COUNT(sh.id) as shiftsWithOvertime,
+          SUM(sh.overtime_hours) as totalOvertimeHours,
+          AVG(sh.overtime_hours) as averageOvertimePerShift
+        FROM shifts sh
+        JOIN users u ON sh.user_id = u.id
+        JOIN clock_events ce ON sh.clock_in_id = ce.id
         WHERE u.businessId = ?
           AND ce.timestamp >= ?
           AND ce.timestamp <= ?
-          AND ts.overtimeHours > 0
+          AND sh.overtime_hours > 0
         GROUP BY u.id, u.firstName, u.lastName
         ORDER BY totalOvertimeHours DESC
       `
@@ -290,18 +290,18 @@ export class TimeTrackingReportManager {
           u.id as userId,
           u.firstName,
           u.lastName,
-          COUNT(DISTINCT ts.id) as totalShifts,
-          COUNT(DISTINCT CASE WHEN b.id IS NOT NULL THEN ts.id END) as shiftsWithBreaks,
+          COUNT(DISTINCT sh.id) as totalShifts,
+          COUNT(DISTINCT CASE WHEN b.id IS NOT NULL THEN sh.id END) as shiftsWithBreaks,
           COUNT(b.id) as totalBreaks,
-          CAST(AVG(b.duration) AS INTEGER) as averageBreakDuration
-        FROM time_shifts ts
-        JOIN users u ON ts.userId = u.id
-        JOIN clock_events ce ON ts.clockInId = ce.id
-        LEFT JOIN breaks b ON b.shiftId = ts.id AND b.status = 'completed'
+          CAST(AVG(b.duration_seconds / 60) AS INTEGER) as averageBreakDuration
+        FROM shifts sh
+        JOIN users u ON sh.user_id = u.id
+        JOIN clock_events ce ON sh.clock_in_id = ce.id
+        LEFT JOIN breaks b ON b.shift_id = sh.id AND b.status = 'completed'
         WHERE u.businessId = ?
           AND ce.timestamp >= ?
           AND ce.timestamp <= ?
-          AND ts.totalHours >= 6
+          AND sh.total_hours >= 6
         GROUP BY u.id, u.firstName, u.lastName
         HAVING shiftsWithBreaks < totalShifts
         ORDER BY (CAST(shiftsWithBreaks AS REAL) / CAST(totalShifts AS REAL)) ASC
@@ -329,18 +329,18 @@ export class TimeTrackingReportManager {
           u.firstName,
           u.lastName,
           u.role,
-          COUNT(ts.id) as totalShifts,
-          CAST(SUM(ts.regularHours) AS REAL) as regularHours,
-          CAST(SUM(ts.overtimeHours) AS REAL) as overtimeHours,
-          CAST(SUM(ts.totalHours) AS REAL) as totalHours,
-          CAST(SUM(ts.breakDuration) AS REAL) as totalBreakMinutes
-        FROM time_shifts ts
-        JOIN users u ON ts.userId = u.id
-        JOIN clock_events ce ON ts.clockInId = ce.id
+          COUNT(sh.id) as totalShifts,
+          CAST(SUM(sh.regular_hours) AS REAL) as regularHours,
+          CAST(SUM(sh.overtime_hours) AS REAL) as overtimeHours,
+          CAST(SUM(sh.total_hours) AS REAL) as totalHours,
+          CAST(SUM(sh.break_duration_seconds / 60) AS REAL) as totalBreakMinutes
+        FROM shifts sh
+        JOIN users u ON sh.user_id = u.id
+        JOIN clock_events ce ON sh.clock_in_id = ce.id
         WHERE u.businessId = ?
           AND ce.timestamp >= ?
           AND ce.timestamp <= ?
-          AND ts.status = 'completed'
+          AND sh.status = 'ended'
         GROUP BY u.id, u.firstName, u.lastName, u.role
         ORDER BY u.lastName, u.firstName
       `
@@ -369,15 +369,15 @@ export class TimeTrackingReportManager {
       .prepare(
         `
         SELECT 
-          ts.*,
+          sh.*,
           ce_in.timestamp as clockInTime,
           ce_out.timestamp as clockOutTime,
           CAST(strftime('%w', ce_in.timestamp) AS INTEGER) as dayOfWeek,
           CAST(strftime('%H', ce_in.timestamp) AS INTEGER) as clockInHour
-        FROM time_shifts ts
-        JOIN clock_events ce_in ON ts.clockInId = ce_in.id
-        LEFT JOIN clock_events ce_out ON ts.clockOutId = ce_out.id
-        WHERE ts.userId = ?
+        FROM shifts sh
+        JOIN clock_events ce_in ON sh.clock_in_id = ce_in.id
+        LEFT JOIN clock_events ce_out ON sh.clock_out_id = ce_out.id
+        WHERE sh.user_id = ?
           AND ce_in.timestamp >= ?
           AND ce_in.timestamp <= ?
         ORDER BY ce_in.timestamp ASC
@@ -446,12 +446,12 @@ export class TimeTrackingReportManager {
           u.lastName,
           u.role,
           ce.timestamp as clockInTime,
-          ts.id as shiftId
-        FROM time_shifts ts
-        JOIN users u ON ts.userId = u.id
-        JOIN clock_events ce ON ts.clockInId = ce.id
+          sh.id as shiftId
+        FROM shifts sh
+        JOIN users u ON sh.user_id = u.id
+        JOIN clock_events ce ON sh.clock_in_id = ce.id
         WHERE u.businessId = ?
-          AND ts.status = 'active'
+          AND sh.status = 'active'
         ORDER BY ce.timestamp ASC
       `
       )
@@ -462,12 +462,12 @@ export class TimeTrackingReportManager {
       .prepare(
         `
         SELECT COUNT(*) as count
-        FROM time_shifts ts
-        JOIN users u ON ts.userId = u.id
-        JOIN clock_events ce ON ts.clockInId = ce.id
+        FROM shifts sh
+        JOIN users u ON sh.user_id = u.id
+        JOIN clock_events ce ON sh.clock_in_id = ce.id
         WHERE u.businessId = ?
           AND date(ce.timestamp) = date('now')
-          AND ts.status = 'completed'
+          AND sh.status = 'ended'
       `
       )
       .get(businessId) as { count: number } | undefined;
@@ -481,8 +481,8 @@ export class TimeTrackingReportManager {
           u.firstName,
           u.lastName
         FROM breaks b
-        JOIN time_shifts ts ON b.shiftId = ts.id
-        JOIN users u ON b.userId = u.id
+        JOIN shifts sh ON b.shift_id = sh.id
+        JOIN users u ON b.user_id = u.id
         WHERE u.businessId = ?
           AND b.status = 'active'
       `
@@ -494,14 +494,14 @@ export class TimeTrackingReportManager {
       .prepare(
         `
         SELECT 
-          CAST(SUM(ts.totalHours) AS REAL) as totalHours,
-          CAST(SUM(ts.overtimeHours) AS REAL) as overtimeHours
-        FROM time_shifts ts
-        JOIN users u ON ts.userId = u.id
-        JOIN clock_events ce ON ts.clockInId = ce.id
+          CAST(SUM(sh.total_hours) AS REAL) as totalHours,
+          CAST(SUM(sh.overtime_hours) AS REAL) as overtimeHours
+        FROM shifts sh
+        JOIN users u ON sh.user_id = u.id
+        JOIN clock_events ce ON sh.clock_in_id = ce.id
         WHERE u.businessId = ?
           AND date(ce.timestamp) = date('now')
-          AND ts.status = 'completed'
+          AND sh.status = 'ended'
       `
       )
       .get(businessId) as

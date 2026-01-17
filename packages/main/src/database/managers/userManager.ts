@@ -1218,26 +1218,13 @@ export class UserManager {
               clockOutEvent.id
             );
 
-            // Update schedule status to "completed" if linked
-            if (activeShift.scheduleId) {
-              try {
-                this.scheduleManager?.updateScheduleStatus(
-                  activeShift.scheduleId,
-                  "completed"
-                );
-                logger.info(
-                  `[logout] Updated schedule ${activeShift.scheduleId} status to completed`
-                );
-              } catch (error) {
-                logger.warn(
-                  `[logout] Failed to update schedule status: ${error}`
-                );
-                // Don't fail logout if schedule update fails
-              }
-            }
-
+            // Don't mark schedule as completed - allow multiple shifts per schedule
+            // Schedule will be auto-completed after its endTime expires
             logger.info(
-              `[logout] Auto clock-out successful for user ${user.id}: TimeShift ${activeShift.id} completed`
+              `[logout] Auto clock-out successful for user ${user.id}: Shift ${activeShift.id} completed`
+            );
+            logger.debug(
+              `[logout] Schedule ${activeShift.scheduleId} remains active for potential re-login`
             );
           } catch (error) {
             logger.error("Auto clock-out failed:", error);

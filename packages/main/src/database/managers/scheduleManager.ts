@@ -278,4 +278,41 @@ export class ScheduleManager {
       throw new Error("Schedule not found");
     }
   }
+
+  /**
+   * Auto-complete schedules that have passed their end time
+   * Should be called periodically (e.g., every 30 minutes)
+   * 
+   * @param graceMinutes - Minutes after schedule end to wait before auto-completing (default: 30)
+   * @returns Number of schedules auto-completed
+   */
+  autoCompleteExpiredSchedules(graceMinutes: number = 30): number {
+    const now = new Date();
+    const graceTime = new Date(now.getTime() - graceMinutes * 60 * 1000);
+
+    // Find schedules that are active or upcoming, but have passed their end time + grace
+    const expiredSchedules = this.db
+      .select()
+      .from(schema.schedules)
+      .where(
+        and(
+          drizzleSql`${schema.schedules.status} IN ('active', 'upcoming')`,
+          lte(schema.schedules.endTime, graceTime)
+        )
+      )
+      .all();
+
+    if (expiredSchedules.length === 0) {
+      return 0;
+    }
+
+    // Update all expired schedules to 'completed'
+    const scheduleIds = expiredSchedules.map((s) => s.id);
+    
+    for (const id of scheduleIds) {
+      this.updateScheduleStatus(id, 'completed');
+    }
+
+    return scheduleIds.length;
+  }
 }

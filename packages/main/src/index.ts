@@ -223,9 +223,26 @@ export async function initApp(initConfig: AppInitConfig) {
             }
           }
         }
+
+        logger.info(
+          `Auto-closed ${closedShifts.length} old shift(s), processed ${timeShiftGroups.size} time shift group(s)`
+        );
       }
     } catch (error) {
-      logger.error("Error during shift cleanup", error);
+      logger.error("Error during auto-close shifts", error);
+    }
+  };
+
+  const handleAutoCompleteSchedules = () => {
+    try {
+      const completedCount = db.schedules.autoCompleteExpiredSchedules(30);
+      if (completedCount > 0) {
+        logger.info(
+          `[Schedule Auto-Complete] Marked ${completedCount} expired schedule(s) as completed`
+        );
+      }
+    } catch (error) {
+      logger.error("Error during auto-complete schedules", error);
     }
   };
 
@@ -241,10 +258,11 @@ export async function initApp(initConfig: AppInitConfig) {
     logger.error("Error during startup session cleanup", error);
   }
 
-  // Set up periodic cleanup of old unclosed shifts
+  // Set up periodic cleanup of old unclosed shifts and expired schedules
   // Run cleanup every 30 minutes
   const cleanupInterval = setInterval(() => {
     handleAutoCloseShifts();
+    handleAutoCompleteSchedules();
   }, 30 * 60 * 1000); // 30 minutes
 
   // Set up periodic session cleanup
