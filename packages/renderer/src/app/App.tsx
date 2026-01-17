@@ -111,6 +111,7 @@ function AppContent() {
 function AppWithLicenseCheck() {
   const { isLoading, isActivated, refreshStatus } = useLicenseContext();
   const [showActivation, setShowActivation] = useState(false);
+  const [testMode, setTestMode] = useState(false);
 
   // Listen for system notifications
   useSystemNotifications();
@@ -127,6 +128,11 @@ function AppWithLicenseCheck() {
     return <LoadingScreen />;
   }
 
+  // Bypass license check in test mode
+  if (testMode) {
+    return <AppContent />;
+  }
+
   // Show activation screen if not licensed
   if (showActivation) {
     return (
@@ -135,6 +141,7 @@ function AppWithLicenseCheck() {
           refreshStatus();
           setShowActivation(false);
         }}
+        onTestMode={() => setTestMode(true)}
       />
     );
   }

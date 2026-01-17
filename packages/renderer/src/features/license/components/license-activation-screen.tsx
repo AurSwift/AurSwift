@@ -25,6 +25,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Power,
+  TestTube,
 } from "lucide-react";
 import { AdaptiveKeyboard } from "@/features/adaptive-keyboard/adaptive-keyboard";
 import { getLogger } from "@/shared/utils/logger";
@@ -34,10 +35,12 @@ const logger = getLogger("license-activation");
 
 interface LicenseActivationScreenProps {
   onActivationSuccess: () => void;
+  onTestMode?: () => void;
 }
 
 export function LicenseActivationScreen({
   onActivationSuccess,
+  onTestMode,
 }: LicenseActivationScreenProps) {
   const { activate, getMachineInfo, isLoading, error, clearError } =
     useLicense();
@@ -302,6 +305,20 @@ export function LicenseActivationScreen({
                   </>
                 )}
               </Button>
+
+              {/* Test Mode Button */}
+              {onTestMode && (
+                <Button
+                  onClick={onTestMode}
+                  disabled={isLoading || isSuccess}
+                  variant="outline"
+                  className="w-full text-sm sm:text-base h-11 sm:h-12"
+                  size="lg"
+                >
+                  <TestTube className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  Test Mode
+                </Button>
+              )}
             </CardContent>
           </Card>
 
