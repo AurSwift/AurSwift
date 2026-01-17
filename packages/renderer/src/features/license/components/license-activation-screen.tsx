@@ -247,7 +247,7 @@ export function LicenseActivationScreen({
                   ref={licenseInputRef}
                   id="license-key"
                   type="text"
-                  placeholder="AUR-XXX-V2-XXXXXXXX-XX"
+                  placeholder="AUR-XXX-V2-XXXXXXXX-XXXXXXXX"
                   value={licenseKey}
                   onChange={(e) => handleLicenseKeyChange(e.target.value)}
                   onKeyDown={handleKeyDown}
