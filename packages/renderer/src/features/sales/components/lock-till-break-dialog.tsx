@@ -154,7 +154,7 @@ export function LockTillBreakDialog({
             }
           } else {
             logger.warn(
-              "No breaks returned from policy API, using fallback defaults"
+              "No breaks returned from policy API, using fallback defaults",
             );
             // Fall back to defaults
             setAvailableBreaks([]);
@@ -176,7 +176,7 @@ export function LockTillBreakDialog({
 
   const handleBreakSelection = (breakCode: string) => {
     const selected = availableBreaks.find(
-      (b) => b.breakType.code === breakCode
+      (b) => b.breakType.code === breakCode,
     );
     if (selected) {
       setSelectedBreak(selected);
@@ -336,9 +336,12 @@ export function LockTillBreakDialog({
                 {selectedBreak.breakType.max_duration_minutes} min
                 {selectedBreak.breakType.allowed_window_start &&
                   selectedBreak.breakType.allowed_window_end && (
-                    <> • Time window:{" "}
-                    {selectedBreak.breakType.allowed_window_start} -{" "}
-                    {selectedBreak.breakType.allowed_window_end}</>
+                    <>
+                      {" "}
+                      • Time window:{" "}
+                      {selectedBreak.breakType.allowed_window_start} -{" "}
+                      {selectedBreak.breakType.allowed_window_end}
+                    </>
                   )}
               </span>
             </div>
@@ -399,8 +402,6 @@ export function LockTillBreakDialog({
 
               {/* Dynamic break type selection based on policy */}
               {renderBreakOptions()}
-
-       
             </>
           ) : (
             <Alert>
