@@ -116,4 +116,7 @@ export interface AuthAPI {
     };
     message?: string;
   }>;
+
+  /** Verify PIN for a user by ID (e.g. till unlock). Does not create a session. */
+  verifyPin: (userId: string, pin: string) => Promise<{ success: boolean; message?: string }>;
 }

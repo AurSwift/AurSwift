@@ -42,6 +42,7 @@ import type { TerminalsAPI } from "../types/api/terminals";
 import type { LicenseAPI } from "../types/api/license";
 import type { BasketAPI } from "../types/api/basket";
 import type { ReportsExportAPI } from "../types/api/reports-export";
+import type { BreakPolicyAPI } from "../types/api/break-policy";
 import type { APIResponse } from "../types/api/common";
 
 declare global {
@@ -127,6 +128,9 @@ declare global {
 
     // Reports Export
     reportsExportAPI: ReportsExportAPI;
+
+    // Break Policy Management
+    breakPolicyAPI: BreakPolicyAPI;
 
     // System Notifications
     systemNotificationsAPI?: {

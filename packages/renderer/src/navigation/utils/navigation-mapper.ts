@@ -31,6 +31,12 @@ export function mapActionToView(
       "role-permissions": RBAC_ROUTES.ROLE_MANAGEMENT,
       "user-role-assignment": RBAC_ROUTES.USER_ROLE_ASSIGNMENT,
       "staff-schedules": STAFF_ROUTES.SCHEDULES,
+      "break-policies": STAFF_ROUTES.BREAK_POLICIES,
+    },
+    "staff-management": {
+      "manage-cashiers": STAFF_ROUTES.MANAGE_CASHIERS,
+      "staff-schedules": STAFF_ROUTES.SCHEDULES,
+      "break-policies": STAFF_ROUTES.BREAK_POLICIES,
     },
     "management-actions": {
       "new-sale": SALES_ROUTES.NEW_TRANSACTION,
@@ -46,6 +52,7 @@ export function mapActionToView(
     "system-settings": {
       "general-settings": SETTINGS_ROUTES.GENERAL,
       "store-configuration": SETTINGS_ROUTES.STORE_CONFIGURATION,
+      "break-policies": STAFF_ROUTES.BREAK_POLICIES,
     },
   };
 

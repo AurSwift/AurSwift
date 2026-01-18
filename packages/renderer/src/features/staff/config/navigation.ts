@@ -11,8 +11,9 @@ export const STAFF_ROUTES = {
 
   /** Staff schedules view */
   SCHEDULES: "staff:schedules",
+
+  /** Break policy settings view */
+  BREAK_POLICIES: "staff:break-policies",
 } as const;
 
-export type StaffRoute =
-  (typeof STAFF_ROUTES)[keyof typeof STAFF_ROUTES];
-
+export type StaffRoute = (typeof STAFF_ROUTES)[keyof typeof STAFF_ROUTES];

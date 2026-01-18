@@ -31,6 +31,7 @@ import { RoleManager } from "./managers/roleManager.js";
 import { UserRoleManager } from "./managers/userRoleManager.js";
 import { UserPermissionManager } from "./managers/userPermissionManager.js";
 import { TerminalManager } from "./managers/terminalManager.js";
+import { BreakPolicyManager } from "./managers/breakPolicyManager.js";
 import { initializeDrizzle, resetDrizzle } from "./drizzle.js";
 import { getDatabaseInfo } from "./utils/dbInfo.js";
 import { isDevelopmentMode } from "./utils/environment.js";
@@ -83,6 +84,9 @@ export interface DatabaseManagers {
 
   // Terminal management
   terminals: TerminalManager;
+
+  // Break policy management
+  breakPolicy: BreakPolicyManager;
 
   getDatabaseInfo: () => {
     path: string;
@@ -207,6 +211,9 @@ export async function getDatabase(): Promise<DatabaseManagers> {
     // Terminal management
     const terminals = new TerminalManager(drizzle, uuid);
 
+    // Break policy management
+    const breakPolicy = new BreakPolicyManager(drizzle, uuid);
+
     managersInstance = {
       users,
       businesses,
@@ -244,6 +251,9 @@ export async function getDatabase(): Promise<DatabaseManagers> {
 
       // Terminal management
       terminals,
+
+      // Break policy management
+      breakPolicy,
 
       // Database info methods
       getDatabaseInfo: () => {

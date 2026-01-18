@@ -155,6 +155,23 @@ export class ShiftManager {
   }
 
   /**
+   * Get all shifts for a specific schedule
+   * Used to track how many shift segments have been created for one scheduled day
+   */
+  getShiftsByScheduleId(scheduleId: string): Shift[] {
+    if (!scheduleId) {
+      return [];
+    }
+
+    return this.db
+      .select()
+      .from(schema.shifts)
+      .where(eq(schema.shifts.schedule_id, scheduleId))
+      .orderBy(desc(schema.shifts.createdAt))
+      .all() as Shift[];
+  }
+
+  /**
    * Get active shifts by shift ID (shifts table is the unified time shift table)
    */
   getActiveShiftsByTimeShift(timeShiftId: string): Shift[] {

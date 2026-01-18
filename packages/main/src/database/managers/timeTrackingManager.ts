@@ -476,8 +476,44 @@ export class TimeTrackingManager {
       throw new Error("There is already an active break for this shift");
     }
 
-    // Check break compliance requirements
+    // Validate against break policy - check if allowed count exceeded
     const db = await getDatabase();
+    const availableBreaks = await db.breakPolicy.getAvailableBreaksForShift(
+      data.businessId,
+      data.shiftId,
+      new Date(shift.start_time)
+    );
+
+    const breakType = data.type || "rest";
+    const matchingBreakOption = availableBreaks.find(
+      (opt) => opt.breakType.code === breakType
+    );
+
+    if (matchingBreakOption) {
+      // Check if this break type is allowed (has remaining count)
+      if (matchingBreakOption.remainingCount <= 0) {
+        throw new Error(
+          `Break limit reached: You have already taken the maximum allowed ${matchingBreakOption.breakType.name} breaks (${matchingBreakOption.rule.allowed_count}) for this shift`
+        );
+      }
+
+      // Check if currently allowed (time window, hours worked, etc.)
+      if (!matchingBreakOption.isAllowed && matchingBreakOption.reason) {
+        logger.warn(
+          `[startBreak] Break not currently allowed: ${matchingBreakOption.reason}`
+        );
+        // We allow this with a warning - manager can override timing rules
+      }
+
+      // Use the paid status from the break type definition
+      data.isPaid = matchingBreakOption.breakType.is_paid;
+    } else {
+      logger.warn(
+        `[startBreak] No policy rule found for break type '${breakType}', using provided isPaid value`
+      );
+    }
+
+    // Check break compliance requirements
     const compliance = await breakComplianceValidator.validateBreakStart(
       shift as any,
       data.type || "rest",
@@ -596,10 +632,14 @@ export class TimeTrackingManager {
     const endTimeMs = now.getTime();
     const duration_seconds = Math.floor((endTimeMs - startTimeMs) / 1000); // Duration in seconds
 
+    // Get database managers for compliance validation
+    const db = await getDatabase();
+
     // Validate break compliance
-    const compliance = breakComplianceValidator.validateBreakEnd(
+    const compliance = await breakComplianceValidator.validateBreakEnd(
       breakRecord,
-      shift as any
+      shift as any,
+      db
     );
 
     // Log violations and warnings

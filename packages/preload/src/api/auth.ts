@@ -72,6 +72,9 @@ export const authAPI = {
 
   getBusinessById: (sessionToken: string, businessId: string) =>
     ipcRenderer.invoke("auth:getBusinessById", sessionToken, businessId),
+
+  verifyPin: (userId: string, pin: string) =>
+    ipcRenderer.invoke("auth:verifyPin", userId, pin),
 };
 
 export const authStore = {

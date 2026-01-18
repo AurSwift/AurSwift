@@ -5,7 +5,7 @@
  * This is used by the navigation system and dashboard.
  */
 
-import { Users } from "lucide-react";
+import { Users, Coffee } from "lucide-react";
 import { STAFF_PERMISSIONS } from "./permissions";
 import { STAFF_ROUTES } from "./navigation";
 import type { FeatureConfig } from "@/features/dashboard/types/feature-config";
@@ -14,6 +14,7 @@ import type { ViewConfig } from "@/navigation/types";
 // Import views from new location
 import ManageCashierView from "../views/manage-cashier-view";
 import StaffSchedulesView from "../views/staff-schedules-view";
+import BreakPolicySettingsView from "../views/break-policy-settings-view";
 
 /**
  * Staff Feature Configuration for Dashboard
@@ -40,6 +41,13 @@ export const staffFeature: FeatureConfig = {
       icon: Users,
       onClick: () => {},
       permissions: [STAFF_PERMISSIONS.MANAGE],
+    },
+    {
+      id: "break-policies",
+      label: "Break Policies",
+      icon: Coffee,
+      onClick: () => {},
+      permissions: [STAFF_PERMISSIONS.MANAGE_BREAK_POLICIES],
     },
   ],
 };
@@ -74,6 +82,17 @@ export const staffViews: Record<string, ViewConfig> = {
       STAFF_PERMISSIONS.MANAGE_SCHEDULES,
       STAFF_PERMISSIONS.MANAGE_CASHIER_SCHEDULES,
     ], // Allow both admins and managers
+    requiresAuth: true,
+  },
+  [STAFF_ROUTES.BREAK_POLICIES]: {
+    id: STAFF_ROUTES.BREAK_POLICIES,
+    level: "root",
+    component: BreakPolicySettingsView,
+    metadata: {
+      title: "Break Policies",
+      description: "Configure break types and rules for staff",
+    },
+    permissions: [STAFF_PERMISSIONS.MANAGE_BREAK_POLICIES],
     requiresAuth: true,
   },
 };

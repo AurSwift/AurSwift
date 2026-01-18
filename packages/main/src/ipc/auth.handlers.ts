@@ -257,6 +257,25 @@ export function registerAuthHandlers() {
     }
   });
 
+  ipcMain.handle("auth:verifyPin", async (event, userId: string, pin: string) => {
+    try {
+      const db = await getDatabase();
+
+      if (!userId || typeof userId !== "string" || userId.trim().length === 0) {
+        return { success: false, message: "User ID is required" };
+      }
+      if (!pin || typeof pin !== "string") {
+        return { success: false, message: "PIN is required" };
+      }
+
+      const isValid = await db.users.verifyPinForUser(userId, pin);
+      return { success: isValid, message: isValid ? "PIN verified" : "Invalid PIN" };
+    } catch (error) {
+      logger.error("Verify PIN IPC error:", error);
+      return { success: false, message: "Verification failed" };
+    }
+  });
+
   ipcMain.handle("auth:refreshToken", async (event, refreshToken) => {
     try {
       const db = await getDatabase();

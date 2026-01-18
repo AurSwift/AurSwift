@@ -414,6 +414,37 @@ export class UserManager {
     return userWithoutSecrets as User;
   }
 
+  /**
+   * Verify PIN for a user by ID (e.g. for till unlock).
+   * Does not create a session; used for re-authentication when till is locked.
+   */
+  async verifyPinForUser(userId: string, pin: string): Promise<boolean> {
+    if (!userId || typeof userId !== "string" || userId.trim().length === 0) {
+      return false;
+    }
+    if (!pin || typeof pin !== "string") {
+      return false;
+    }
+
+    const user = this.getUserById(userId);
+    if (!user || !user.pinHash) {
+      logger.warn(`[verifyPinForUser] User not found or has no PIN: ${userId}`);
+      return false;
+    }
+
+    if (!user.pinHash.startsWith("$2")) {
+      logger.warn(`[verifyPinForUser] Invalid PIN hash format for user ${userId}`);
+      return false;
+    }
+
+    const cleanPin = String(pin).trim();
+    const isValid = await this.bcrypt.compare(cleanPin, user.pinHash);
+    if (!isValid) {
+      logger.info(`[verifyPinForUser] Invalid PIN for user ${userId}`);
+    }
+    return isValid;
+  }
+
   getUsersByBusiness(businessId: string): any[] {
     // Get users with their primary role from RBAC system
     const usersWithRoles = this.db

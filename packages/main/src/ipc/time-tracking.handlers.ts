@@ -253,7 +253,7 @@ export function registerTimeTrackingHandlers() {
         }
       }
 
-      // 6. Validate minimum shift duration (optional - can be configured)
+      // 6. Validate minimum shift duration
       if (activeShift.clock_in_id) {
         const clockInEvent = db.timeTracking.getClockEventById(
           activeShift.clock_in_id
@@ -261,13 +261,24 @@ export function registerTimeTrackingHandlers() {
         if (clockInEvent) {
           const shiftDuration =
             Date.now() - new Date(clockInEvent.timestamp).getTime();
-          const minDuration = 1 * 60 * 1000; // 1 minute minimum
+          const minDuration = 5 * 60 * 1000; // 5 minute minimum shift duration
 
           if (shiftDuration < minDuration) {
+            const durationMinutes = Math.floor(shiftDuration / (1000 * 60));
             logger.warn(
-              `[ClockOut] Shift duration too short: ${shiftDuration}ms for user ${userId}`
+              `[ClockOut] Shift duration too short: ${durationMinutes} minutes for user ${userId}`
             );
-            // Don't block, but log warning
+
+            // If force flag is not set, block the clock-out and suggest taking a break instead
+            if (!data.forceShortShift) {
+              return {
+                success: false,
+                message: `Shift duration is only ${durationMinutes} minute(s). Minimum shift is 5 minutes. If you need a break, use "Take Break" instead of logging out.`,
+                code: "SHIFT_TOO_SHORT",
+                shiftDurationMinutes: durationMinutes,
+                requiresConfirmation: true,
+              };
+            }
           }
         }
       }

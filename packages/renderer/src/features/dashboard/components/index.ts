@@ -10,3 +10,6 @@ export { StatsCards } from "./stats-cards";
 export { ManagerStatsCards } from "./stats-cards";
 export { DashboardLayout } from "./dashboard-layout";
 export { LicenseHeaderBadge } from "./license-header-badge";
+
+export { LogoutConfirmationDialog } from "./logout-confirmation-dialog";
+export { BreakReminder } from "./break-reminder";

@@ -22,6 +22,7 @@ import {
   Trash2,
   Calendar,
   Brain,
+  Coffee,
 } from "lucide-react";
 import { PERMISSIONS } from "@app/shared/constants/permissions";
 import type { FeatureConfig } from "../types/feature-config";
@@ -77,6 +78,13 @@ export const FEATURE_REGISTRY: FeatureConfig[] = [
         icon: Calendar,
         onClick: () => {},
         permissions: [PERMISSIONS.SCHEDULES_MANAGE_CASHIERS], // Managers can access
+      },
+      {
+        id: "break-policies",
+        label: "Break Policies",
+        icon: Coffee,
+        onClick: () => {},
+        permissions: [PERMISSIONS.USERS_MANAGE], // Admins can configure break policies
       },
     ],
   },

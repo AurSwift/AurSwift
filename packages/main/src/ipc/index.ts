@@ -2,6 +2,7 @@ import { registerAgeVerificationHandlers } from "./age-verification.handlers.js"
 import { registerAuthHandlers } from "./auth.handlers.js";
 import { registerBasketHandlers } from "./basket.handlers.js";
 import { registerBatchHandlers } from "./batch.handlers.js";
+import { registerBreakPolicyHandlers } from "./break-policy.handlers.js";
 import { registerBusinessHandlers } from "./business.handlers.js";
 import { registerCartHandlers } from "./cart.handlers.js";
 import { registerCashDrawerHandlers } from "./cash-drawer.handlers.js";
@@ -27,6 +28,7 @@ export function registerAllIpcHandlers() {
   registerAuthHandlers();
   registerBasketHandlers();
   registerBatchHandlers();
+  registerBreakPolicyHandlers();
   registerBusinessHandlers();
   registerCartHandlers();
   registerCashDrawerHandlers();

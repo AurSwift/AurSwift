@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 // Hooks
 import { useAuth } from "@/shared/hooks/use-auth";
+import { useActiveShift } from "@/features/dashboard/hooks/use-active-shift";
 import {
   useReceiptPrintingFlow,
   useThermalPrinter,
@@ -43,6 +44,8 @@ import {
   CategoryPriceInputDisplay,
 } from "../components";
 import { ReceiptOptionsModal } from "../components/payment/receipt-options-modal";
+import { LockTillBreakDialog } from "../components/lock-till-break-dialog";
+import { LockScreen } from "../components/lock-screen";
 
 // Shared Components
 import {
@@ -104,6 +107,17 @@ export function NewTransactionView({
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const salesUnitSettings = useSalesUnitSettings(user?.businessId);
+
+  // Active shift hook for break integration
+  const {
+    shift: activeShift,
+    activeBreak,
+    refresh: refreshShift,
+  } = useActiveShift(user?.id);
+
+  // Lock till state
+  const [isTillLocked, setIsTillLocked] = useState(false);
+  const [showLockDialog, setShowLockDialog] = useState(false);
 
   // Search query state
   const [searchQuery] = useState("");
@@ -919,8 +933,23 @@ export function NewTransactionView({
   }, []);
 
   const handleLockTill = useCallback(() => {
-    toast.info("Lock till feature coming soon");
+    setShowLockDialog(true);
   }, []);
+
+  const handleLockConfirmed = useCallback(() => {
+    setIsTillLocked(true);
+    logger.info("Till locked");
+  }, []);
+
+  const handleUnlock = useCallback(async () => {
+    setIsTillLocked(false);
+    await refreshShift(); // Refresh to update break status
+    logger.info("Till unlocked");
+  }, [refreshShift]);
+
+  const handleBreakStarted = useCallback(async () => {
+    await refreshShift();
+  }, [refreshShift]);
 
   const handleSaveBasket = useCallback(() => {
     if (cart.cartItems.length === 0) {
@@ -1573,6 +1602,29 @@ export function NewTransactionView({
           }
         }}
       />
+
+      {/* Lock Till & Break Dialog */}
+      <LockTillBreakDialog
+        isOpen={showLockDialog}
+        onClose={() => setShowLockDialog(false)}
+        shiftId={activeShift?.id || null}
+        userId={user!.id}
+        businessId={user?.businessId}
+        shiftStartTime={activeShift?.clockInEvent?.timestamp}
+        onBreakStarted={handleBreakStarted}
+        onLockConfirmed={handleLockConfirmed}
+      />
+
+      {/* Lock Screen Overlay */}
+      {isTillLocked && user && (
+        <LockScreen
+          isLocked={isTillLocked}
+          onUnlock={handleUnlock}
+          lockedByUserId={user.id}
+          activeBreak={activeBreak}
+          userName={`${user.firstName || ""} ${user.lastName || ""}`.trim()}
+        />
+      )}
     </>
   );
 }

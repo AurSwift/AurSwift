@@ -148,13 +148,24 @@ export class ScheduleValidator {
         logger.warn(
           `[validateClockIn] Clock-in is ${minutesLate} minutes after scheduled time`
         );
+
+        // Count how many shifts have been created for this schedule today
+        const shiftsForSchedule = db.shifts.getShiftsByScheduleId(schedule.id);
+        const completedShifts = shiftsForSchedule.filter(
+          (s) => s.status === "completed"
+        ).length;
+
         return {
           valid: false,
           canClockIn: false,
           requiresApproval: true, // Can clock in with manager approval
           warnings: [
-            `Clock-in is ${minutesLate} minutes after scheduled time (${scheduleEnd.toLocaleTimeString()})`,
-          ],
+            `Your shift ended at ${scheduleEnd.toLocaleTimeString()}. You are ${minutesLate} minutes past your scheduled end time.`,
+            completedShifts > 0
+              ? `You have already completed ${completedShifts} shift segment(s) today.`
+              : "",
+            "If you need to work additional hours, please get manager approval.",
+          ].filter(Boolean),
           schedule,
           reason: "Clock-in is after scheduled time",
         };

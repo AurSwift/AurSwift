@@ -1910,6 +1910,181 @@ export const timeCorrections = createTable(
 );
 
 // ============================================================================
+// BREAK POLICIES - Admin-configurable break rules
+// ============================================================================
+
+/**
+ * Break type definitions - reusable break types (tea, meal, rest, etc.)
+ * These define what types of breaks are available in the system
+ */
+export const breakTypeDefinitions = createTable(
+  "break_type_definitions",
+  {
+    id: integer("id", { mode: "number" })
+      .primaryKey({ autoIncrement: true })
+      .notNull(),
+    publicId: text("public_id")
+      .notNull()
+      .$defaultFn(() => crypto.randomUUID()),
+    business_id: text("business_id")
+      .notNull()
+      .references(() => businesses.id, { onDelete: "cascade" }),
+
+    // Break type identity
+    name: text("name").notNull(), // e.g., "Tea Break", "Lunch Break", "Rest Break"
+    code: text("code").notNull(), // e.g., "tea", "meal", "rest" - for programmatic use
+    description: text("description"),
+
+    // Duration settings (in minutes)
+    default_duration_minutes: integer("default_duration_minutes")
+      .notNull()
+      .default(15),
+    min_duration_minutes: integer("min_duration_minutes").notNull().default(5),
+    max_duration_minutes: integer("max_duration_minutes").notNull().default(60),
+
+    // Payment and compliance
+    is_paid: integer("is_paid", { mode: "boolean" }).notNull().default(false),
+    is_required: integer("is_required", { mode: "boolean" })
+      .notNull()
+      .default(false), // Required by law/policy
+    counts_as_worked_time: integer("counts_as_worked_time", { mode: "boolean" })
+      .notNull()
+      .default(false),
+
+    // Time window restrictions (optional)
+    allowed_window_start: text("allowed_window_start"), // e.g., "12:00" for lunch window
+    allowed_window_end: text("allowed_window_end"), // e.g., "14:00"
+
+    // Display settings
+    icon: text("icon").default("coffee"), // Icon name for UI
+    color: text("color").default("#6B7280"), // Hex color for UI
+    sort_order: integer("sort_order").default(0),
+
+    // Status
+    is_active: integer("is_active", { mode: "boolean" })
+      .notNull()
+      .default(true),
+
+    ...timestampColumns,
+  },
+  (table) => [
+    index("break_type_defs_business_idx").on(table.business_id),
+    index("break_type_defs_code_idx").on(table.code),
+    index("break_type_defs_active_idx").on(table.is_active),
+    unique("break_type_defs_business_code_unique").on(
+      table.business_id,
+      table.code
+    ),
+  ]
+);
+
+/**
+ * Break policies - rules for break entitlements based on shift length
+ * Defines how many breaks of each type an employee is entitled to
+ */
+export const breakPolicies = createTable(
+  "break_policies",
+  {
+    id: integer("id", { mode: "number" })
+      .primaryKey({ autoIncrement: true })
+      .notNull(),
+    publicId: text("public_id")
+      .notNull()
+      .$defaultFn(() => crypto.randomUUID()),
+    business_id: text("business_id")
+      .notNull()
+      .references(() => businesses.id, { onDelete: "cascade" }),
+
+    // Policy identity
+    name: text("name").notNull(), // e.g., "Standard UK Policy", "Part-time Policy"
+    description: text("description"),
+
+    // Compliance settings
+    max_consecutive_hours: real("max_consecutive_hours").notNull().default(6), // Max hours before required break (UK: 6)
+    warn_before_required_minutes: integer("warn_before_required_minutes")
+      .notNull()
+      .default(30), // Show warning X mins before
+
+    // Enforcement settings
+    auto_enforce_breaks: integer("auto_enforce_breaks", { mode: "boolean" })
+      .notNull()
+      .default(true),
+    allow_skip_break: integer("allow_skip_break", { mode: "boolean" })
+      .notNull()
+      .default(false), // Can employee skip entitled break?
+    require_manager_override: integer("require_manager_override", {
+      mode: "boolean",
+    })
+      .notNull()
+      .default(false), // Need manager approval to skip
+
+    // Cover requirements (future feature)
+    min_staff_for_break: integer("min_staff_for_break").default(1), // Minimum staff on floor for break
+
+    // Status
+    is_active: integer("is_active", { mode: "boolean" })
+      .notNull()
+      .default(true),
+    is_default: integer("is_default", { mode: "boolean" })
+      .notNull()
+      .default(false), // Default policy for new employees
+
+    ...timestampColumns,
+  },
+  (table) => [
+    index("break_policies_business_idx").on(table.business_id),
+    index("break_policies_active_idx").on(table.is_active),
+    index("break_policies_default_idx").on(table.is_default),
+  ]
+);
+
+/**
+ * Break policy rules - defines break entitlements per shift length
+ * Links policies to break types with shift-length-based rules
+ */
+export const breakPolicyRules = createTable(
+  "break_policy_rules",
+  {
+    id: integer("id", { mode: "number" })
+      .primaryKey({ autoIncrement: true })
+      .notNull(),
+    publicId: text("public_id")
+      .notNull()
+      .$defaultFn(() => crypto.randomUUID()),
+    policy_id: integer("policy_id")
+      .notNull()
+      .references(() => breakPolicies.id, { onDelete: "cascade" }),
+    break_type_id: integer("break_type_id")
+      .notNull()
+      .references(() => breakTypeDefinitions.id, { onDelete: "cascade" }),
+
+    // Shift length threshold (when does this rule apply?)
+    min_shift_hours: real("min_shift_hours").notNull(), // e.g., 4.0 = shifts of 4+ hours
+    max_shift_hours: real("max_shift_hours"), // Optional upper bound (null = no limit)
+
+    // Entitlement
+    allowed_count: integer("allowed_count").notNull().default(1), // How many of this break type allowed
+    is_mandatory: integer("is_mandatory", { mode: "boolean" })
+      .notNull()
+      .default(false), // Must take this break (e.g., UK 20-min after 6h)
+
+    // Timing rules
+    earliest_after_hours: real("earliest_after_hours"), // Can't take before X hours into shift
+    latest_before_end_hours: real("latest_before_end_hours"), // Must take before last X hours of shift
+
+    // Priority for display ordering
+    priority: integer("priority").default(0),
+
+    ...timestampColumns,
+  },
+  (table) => [
+    index("break_policy_rules_policy_idx").on(table.policy_id),
+    index("break_policy_rules_type_idx").on(table.break_type_id),
+    index("break_policy_rules_shift_hours_idx").on(table.min_shift_hours),
+  ]
+);
+
+// ============================================================================
 // PRINTING
 // ============================================================================
 
@@ -2756,6 +2931,16 @@ export type Break = InferSelectModel<typeof breaks>;
 export type NewBreak = InferInsertModel<typeof breaks>;
 export type TimeCorrection = InferSelectModel<typeof timeCorrections>;
 export type NewTimeCorrection = InferInsertModel<typeof timeCorrections>;
+
+// Break Policy types
+export type BreakTypeDefinition = InferSelectModel<typeof breakTypeDefinitions>;
+export type NewBreakTypeDefinition = InferInsertModel<
+  typeof breakTypeDefinitions
+>;
+export type BreakPolicy = InferSelectModel<typeof breakPolicies>;
+export type NewBreakPolicy = InferInsertModel<typeof breakPolicies>;
+export type BreakPolicyRule = InferSelectModel<typeof breakPolicyRules>;
+export type NewBreakPolicyRule = InferInsertModel<typeof breakPolicyRules>;
 
 // Product Expiry Tracking Types
 export type ProductBatch = InferSelectModel<typeof productBatches>;

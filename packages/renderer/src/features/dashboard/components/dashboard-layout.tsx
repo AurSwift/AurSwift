@@ -7,8 +7,7 @@ import { useAuth } from "@/shared/hooks/use-auth";
 import { userHasAnyRole } from "@/shared/utils/rbac-helpers";
 import { LicenseHeaderBadge } from "./license-header-badge";
 import { WiFiStatusIcon } from "@/features/license";
-import { BreakControls } from "./break-controls";
-import { BreakStatusIndicator } from "./break-status-indicator";
+
 import { LogoutConfirmationDialog } from "./logout-confirmation-dialog";
 import { BreakReminder } from "./break-reminder";
 import { useActiveShift } from "../hooks/use-active-shift";
@@ -32,7 +31,6 @@ export function DashboardLayout({ children, subtitle }: DashboardLayoutProps) {
     activeBreak,
     refresh: refreshShift,
     workDuration,
-    breakDuration,
   } = useActiveShift(user?.id);
 
   // Check if user has had a meal break today
@@ -62,9 +60,7 @@ export function DashboardLayout({ children, subtitle }: DashboardLayoutProps) {
     await refreshShift();
   };
 
-  const handleBreakEnded = async () => {
-    await refreshShift();
-  };
+
 
   const handleCloseApp = async () => {
     try {
@@ -119,16 +115,7 @@ export function DashboardLayout({ children, subtitle }: DashboardLayoutProps) {
             <LicenseHeaderBadge />
             <div className="flex items-center gap-3 pl-3 border-l">
               <div className="flex items-center gap-2">
-                {/* Show break status if on break */}
-                {activeBreak &&
-                  activeShift &&
-                  userHasAnyRole(user, ["cashier", "manager"]) && (
-                    <BreakStatusIndicator
-                      activeBreak={activeBreak}
-                      breakDuration={breakDuration}
-                      onBreakEnded={handleBreakEnded}
-                    />
-                  )}
+      
 
                 {/* Show clocked in status and break button if shift active but not on break */}
                 {activeShift &&
@@ -141,11 +128,7 @@ export function DashboardLayout({ children, subtitle }: DashboardLayoutProps) {
                           Clocked In
                         </span>
                       </div>
-                      <BreakControls
-                        shiftId={activeShift.id}
-                        userId={user!.id}
-                        onBreakStarted={handleBreakStarted}
-                      />
+                
                     </>
                   )}
               </div>
