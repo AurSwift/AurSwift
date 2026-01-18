@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.32.0](https://github.com/AurSwift/AurSwift/compare/v1.31.0...v1.32.0) (2026-01-18)
+
+
+### feat
+
+* add mock implementation for verifyPin in productAPI for testing ([](https://github.com/AurSwift/AurSwift/commit/93cdd91f62ffc81e80aa02efd86256454f9c6a4a))
+* add test mode functionality to license activation flow ([](https://github.com/AurSwift/AurSwift/commit/5736a6b3a81bb36dd3c4f420c976319b6d40652b))
+* enhance License Activation Screen with keyboard handling and layout improvements ([](https://github.com/AurSwift/AurSwift/commit/05ed1e1671bc8f30468fa2c08f52913e8eec33c8))
+* enhance LockScreen component with improved PIN entry and layout adjustments ([](https://github.com/AurSwift/AurSwift/commit/437aa679e780b7b037df55c3d006f5c32df965a9))
+* enhance time tracking and reporting features ([](https://github.com/AurSwift/AurSwift/commit/85ffa6606664015d5a3b3b0bef8e1d29e8bd85f8))
+* implement auto-completion of expired schedules and enhance shift cleanup logging ([](https://github.com/AurSwift/AurSwift/commit/2bbbdab89c127c11a16cb4b49052b816113889e9))
+* implement break policy management features ([](https://github.com/AurSwift/AurSwift/commit/f9fb64b341e1cdb88cd5ff718395eec03c5069f2))
+* introduce DashboardHeader component for improved layout and user experience ([](https://github.com/AurSwift/AurSwift/commit/433c2a21bf76a9a717b1e9a3df89fc79cc6b4c4a))
+
+
+### fix
+
+* define types for user management and scheduling features ([](https://github.com/AurSwift/AurSwift/commit/2ae76a4dbf8fdcf539c9af5315b8eeda58ad098a))
+* remove obsolete unit tests for ScheduleValidator, ShiftRequirementResolver, and TransactionValidator ([](https://github.com/AurSwift/AurSwift/commit/9c87a0a8946547852f11455d9e9c0b8754c647bf))
+* update adaptive keyboard styles for improved responsiveness and layout consistency ([](https://github.com/AurSwift/AurSwift/commit/7f0a0197e347256003716628003c63e525715f8d))
+* update license key placeholder format in License Activation Screen ([](https://github.com/AurSwift/AurSwift/commit/8c99cbdfc00e71e5673a71acd97301ac9350abac))
+* update userManager and scheduleValidator for improved type handling and stability ([](https://github.com/AurSwift/AurSwift/commit/83dfba41223900d6fd1c1327e21f688a4672a5eb))
+* update vitest configuration for improved coverage reporting ([](https://github.com/AurSwift/AurSwift/commit/38f1d601224f42c094dca9955811cc8d469283ad))
+
+
+### refactor
+
+* clean up PinEntryScreen by removing unused schedule information components ([](https://github.com/AurSwift/AurSwift/commit/fd479ee3c01137e2ca6a32752cfa77a037295218))
+* enhance DashboardLayout and CashierDashboardView for improved functionality and styling ([](https://github.com/AurSwift/AurSwift/commit/5e72e6902f1ce36f28f73618bbd20b4fe8d3ea7f))
+* improve AddUserDrawer and AddUserForm layout and styling ([](https://github.com/AurSwift/AurSwift/commit/e6576eb03aa5bd8568dd4aafdcf24650f66ec772))
+* remove Business ID display from user dialogs and improve role selection UI ([](https://github.com/AurSwift/AurSwift/commit/e620c1fe1673f1a1d149b6cda7f1603fe6cf3117))
+* simplify PinEntryScreen by removing unused state and effect hooks ([](https://github.com/AurSwift/AurSwift/commit/fb08723dd8befc0e06c964a32b0306543162a71d))
+
 # [1.31.0](https://github.com/AurSwift/AurSwift/compare/v1.30.2...v1.31.0) (2026-01-16)
 
 
