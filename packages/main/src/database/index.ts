@@ -135,10 +135,10 @@ export async function getDatabase(): Promise<DatabaseManagers> {
         logger.error(`   Stack: ${errorStack}`);
       }
       logger.error(
-        "   ⚠️  Warning: Database may be partially initialized. Some default data may be missing."
+        "   ⚠️  Warning: Database may be partially initialized. Some default data may be missing.",
       );
       logger.error(
-        "   💡 You may need to manually seed the database or restart the application."
+        "   💡 You may need to manually seed the database or restart the application.",
       );
 
       // Don't throw - allow app to continue even if seeding fails
@@ -163,7 +163,7 @@ export async function getDatabase(): Promise<DatabaseManagers> {
       uuid,
       sessions,
       timeTracking,
-      schedules
+      schedules,
     );
     const businesses = new BusinessManager(drizzle, uuid);
     const products = new ProductManager(drizzle, uuid);
@@ -268,15 +268,11 @@ export async function getDatabase(): Promise<DatabaseManagers> {
           throw new Error("Database not initialized");
         }
 
-        // SAFETY CHECK: Prevent running this in production
-        if (!isDevelopmentMode()) {
-          logger.error(
-            "🛑 Blocked attempt to empty all tables in production mode"
-          );
-          throw new Error(
-            "OPERATION DENIED: emptyAllTables may only be used in development mode."
-          );
-        }
+        // Note: This operation is now allowed in production for database management purposes
+        // A backup is always created before emptying via the IPC handler
+        logger.warn(
+          "⚠️ emptyAllTables called - this will delete all data except license info",
+        );
 
         const rawDb = dbManagerInstance.getDb();
 
@@ -363,7 +359,7 @@ export async function getDatabase(): Promise<DatabaseManagers> {
                 "unknown";
               logger.warn(
                 `⚠️  Warning: Failed to empty table ${tableName}:`,
-                error instanceof Error ? error.message : String(error)
+                error instanceof Error ? error.message : String(error),
               );
               // Continue with other tables even if one fails
             }
@@ -373,7 +369,7 @@ export async function getDatabase(): Promise<DatabaseManagers> {
           rawDb.prepare("PRAGMA foreign_keys = ON").run();
 
           logger.info(
-            `✅ Successfully emptied ${tablesEmptied.length} of ${tablesToEmpty.length} tables`
+            `✅ Successfully emptied ${tablesEmptied.length} of ${tablesToEmpty.length} tables`,
           );
           return {
             success: true,
@@ -400,15 +396,11 @@ export async function getDatabase(): Promise<DatabaseManagers> {
           throw new Error("Database not initialized");
         }
 
-        // SAFETY CHECK: Prevent running this in production
-        if (!isDevelopmentMode()) {
-          logger.error(
-            "🛑 Blocked attempt to reseed database in production mode"
-          );
-          throw new Error(
-            "OPERATION DENIED: reseedDatabase may only be used in development mode."
-          );
-        }
+        // Note: This operation is now allowed in production for database management purposes
+        // It creates default admin user and essential data after emptying
+        logger.warn(
+          "⚠️ reseedDatabase called - this will create default admin and seed data",
+        );
 
         try {
           logger.info("🌱 Reseeding database with default data...");
