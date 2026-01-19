@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.33.0](https://github.com/AurSwift/AurSwift/compare/v1.32.0...v1.33.0) (2026-01-19)
+
+
+### chore
+
+* update baseline-browser-mapping dependency to version 2.9.15 ([](https://github.com/AurSwift/AurSwift/commit/40fca85f567e064174b4e4676e5ee361a9e72c0c))
+* update repository references in configuration and UI details ([](https://github.com/AurSwift/AurSwift/commit/a9dfaeb935b7196449531efbf5bab9b1aa3c5631))
+
+
+### feat
+
+* implement PIN management features for user accounts ([](https://github.com/AurSwift/AurSwift/commit/309c798feb5b7de3b071d018dce22146dbb53200))
+
+
+### refactor
+
+* update break policy descriptions for clarity ([](https://github.com/AurSwift/AurSwift/commit/680027d1cca37f2ce57aa5ecbfdfcb8ca9581352))
+
 # [1.32.0](https://github.com/AurSwift/AurSwift/compare/v1.31.0...v1.32.0) (2026-01-18)
 
 
