@@ -181,9 +181,9 @@ export function NewTransactionView({
     useState<number | undefined>(undefined);
 
   // Receipt printing flow - enhanced with status and error states
-  const { 
-    isShowingStatus, 
-    startPrintingFlow, 
+  const {
+    isShowingStatus,
+    startPrintingFlow,
     handleSkipReceipt,
     handleRetryPrint,
     handleCancelPrint,
@@ -203,17 +203,17 @@ export function NewTransactionView({
       }
       return result;
     },
-    [connectPrinterInternal]
+    [connectPrinterInternal],
   );
 
   // Shared state for current category (used by both products and categories hooks)
   const [currentCategoryId, setCurrentCategoryId] = useState<string | null>(
-    null
+    null,
   );
 
   // Products hook - use paginated version for large datasets
   const legacyProducts = useProducts(
-    USE_VIRTUALIZED_PRODUCTS ? undefined : user?.businessId
+    USE_VIRTUALIZED_PRODUCTS ? undefined : user?.businessId,
   );
   const paginatedProducts = usePaginatedProducts({
     businessId: USE_VIRTUALIZED_PRODUCTS ? user?.businessId : undefined,
@@ -291,7 +291,7 @@ export function NewTransactionView({
         setCurrentCategoryId(category.id);
       }
     },
-    [virtualCategories, legacyCategories]
+    [virtualCategories, legacyCategories],
   );
 
   const wrappedBreadcrumbClick = useCallback(
@@ -307,7 +307,7 @@ export function NewTransactionView({
         setCurrentCategoryId(targetId);
       }
     },
-    [virtualCategories, legacyCategories]
+    [virtualCategories, legacyCategories],
   );
 
   // Unified categories interface with wrapped handlers
@@ -403,7 +403,7 @@ export function NewTransactionView({
             const batchResult = await autoSelectBatches(
               product,
               1, // Check batch has >= 1 item available (quantity check, not weight)
-              false // Don't allow partial - need exactly 1 item
+              false, // Don't allow partial - need exactly 1 item
             );
 
             if (batchResult.success && batchResult.primaryBatch) {
@@ -415,7 +415,7 @@ export function NewTransactionView({
                 undefined,
                 ageVerified,
                 undefined,
-                batchResult.primaryBatch
+                batchResult.primaryBatch,
               );
 
               // Show success message
@@ -440,7 +440,7 @@ export function NewTransactionView({
             } else {
               // No batches available - show error
               toast.error(
-                batchResult.error || "No batches available for this product"
+                batchResult.error || "No batches available for this product",
               );
               weightInput.resetWeightInput();
               setShowScaleDisplay(false);
@@ -489,7 +489,7 @@ export function NewTransactionView({
                 undefined,
                 false,
                 undefined,
-                batchResult.primaryBatch
+                batchResult.primaryBatch,
               );
             }
           } else if (batchResult.shouldShowModal) {
@@ -500,7 +500,7 @@ export function NewTransactionView({
           } else {
             // No batches available - show error
             toast.error(
-              batchResult.error || "No batches available for this product"
+              batchResult.error || "No batches available for this product",
             );
           }
         } else if (requiresAgeVerification) {
@@ -520,7 +520,7 @@ export function NewTransactionView({
       cart,
       weightInput,
       categoryPriceInput,
-    ]
+    ],
   );
 
   // Handle generic item click
@@ -537,7 +537,7 @@ export function NewTransactionView({
       setPendingGenericProduct(product);
       setShowGenericPriceModal(true);
     },
-    [isOperationsDisabled, salesMode.requiresShift]
+    [isOperationsDisabled, salesMode.requiresShift],
   );
 
   // Handle basket QR code scan
@@ -552,7 +552,7 @@ export function NewTransactionView({
       if (cart.cartItems.length > 0) {
         // Ask user to confirm replacement
         const confirmed = window.confirm(
-          "You have items in your cart. Do you want to replace them with the saved basket?"
+          "You have items in your cart. Do you want to replace them with the saved basket?",
         );
         if (!confirmed) {
           return;
@@ -565,7 +565,7 @@ export function NewTransactionView({
         toast.success("Basket loaded successfully");
       }
     },
-    [cart, user?.businessId]
+    [cart, user?.businessId],
   );
 
   // Barcode scanner hook - handles keyboard events from barcode scanner
@@ -610,7 +610,7 @@ export function NewTransactionView({
             if (!auditResponse.success) {
               logger.error(
                 "Failed to create age verification record:",
-                auditResponse.message
+                auditResponse.message,
               );
               // Continue even if audit fails - we don't want to block sales
             }
@@ -618,7 +618,7 @@ export function NewTransactionView({
 
           // Check if this is a weighted product
           const isWeighted = isWeightedProduct(
-            pendingProductForAgeVerification
+            pendingProductForAgeVerification,
           );
 
           if (isWeighted && pendingWeightForAgeVerification === undefined) {
@@ -648,7 +648,7 @@ export function NewTransactionView({
                 undefined,
                 true,
                 undefined,
-                pendingBatchDataForAgeVerification || undefined
+                pendingBatchDataForAgeVerification || undefined,
               );
             } else {
               await cart.addToCart(
@@ -657,7 +657,7 @@ export function NewTransactionView({
                 undefined,
                 true,
                 undefined,
-                pendingBatchDataForAgeVerification || undefined
+                pendingBatchDataForAgeVerification || undefined,
               );
             }
 
@@ -706,7 +706,7 @@ export function NewTransactionView({
       weightInput,
       categoryPriceInput,
       user,
-    ]
+    ],
   );
 
   // Handle generic price complete
@@ -719,7 +719,7 @@ export function NewTransactionView({
       setShowGenericPriceModal(false);
       setPendingGenericProduct(null);
     },
-    [pendingGenericProduct, cart]
+    [pendingGenericProduct, cart],
   );
 
   // Handle batch selection complete - adds item with specific batch info
@@ -765,7 +765,7 @@ export function NewTransactionView({
               batchId: batchData.batchId,
               batchNumber: batchData.batchNumber,
               expiryDate: batchData.expiryDate,
-            }
+            },
           );
         } else {
           await cart.addToCart(
@@ -778,14 +778,14 @@ export function NewTransactionView({
               batchId: batchData.batchId,
               batchNumber: batchData.batchNumber,
               expiryDate: batchData.expiryDate,
-            }
+            },
           );
         }
 
         toast.success(
           `Added ${product.name}${
             isWeighted && weight ? ` (${weight.toFixed(2)}kg)` : ""
-          } from batch ${batchData.batchNumber}`
+          } from batch ${batchData.batchNumber}`,
         );
 
         // Clear age verification for this product after use
@@ -807,7 +807,7 @@ export function NewTransactionView({
       pendingWeightForBatchSelection,
       ageVerifiedForProduct,
       cart,
-    ]
+    ],
   );
 
   // Handle auto-select batch (FEFO) - This is now the default behavior, but kept for manual override
@@ -823,7 +823,7 @@ export function NewTransactionView({
     const batchResult = await autoSelectBatches(
       product,
       1, // Check batch has >= 1 item available (quantity check, not weight)
-      false // Don't allow partial - need exactly 1 item
+      false, // Don't allow partial - need exactly 1 item
     );
 
     if (batchResult.success && batchResult.primaryBatch) {
@@ -853,7 +853,7 @@ export function NewTransactionView({
             undefined,
             false,
             undefined,
-            batchResult.primaryBatch
+            batchResult.primaryBatch,
           );
         } else {
           // For unit items: quantity = 1 (will deduct 1 from batch during transaction)
@@ -863,7 +863,7 @@ export function NewTransactionView({
             undefined,
             false,
             undefined,
-            batchResult.primaryBatch
+            batchResult.primaryBatch,
           );
         }
       }
@@ -907,7 +907,7 @@ export function NewTransactionView({
       setShowQuantityModal(false);
       // Keep the item selected after quantity update
     },
-    [selectedCartItem, cart]
+    [selectedCartItem, cart],
   );
 
   // Handle line void - remove selected item (EPOS-style)
@@ -984,7 +984,7 @@ export function NewTransactionView({
   useEffect(() => {
     if (selectedCartItem) {
       const itemStillInCart = cart.cartItems.some(
-        (item) => item.id === selectedCartItem.id
+        (item) => item.id === selectedCartItem.id,
       );
       if (!itemStillInCart) {
         setSelectedCartItem(null);
@@ -1007,7 +1007,7 @@ export function NewTransactionView({
       cart
         .initializeCartSession()
         .catch((error) =>
-          logger.error("Failed to initialize cart session", error)
+          logger.error("Failed to initialize cart session", error),
         );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1030,7 +1030,9 @@ export function NewTransactionView({
 
           const status = await window.printerAPI.getStatus();
           if (!status.connected) {
-            const iface = String((config as unknown as { interface?: unknown })?.interface || "");
+            const iface = String(
+              (config as unknown as { interface?: unknown })?.interface || "",
+            );
             if (!iface) return;
 
             // Avoid noisy auto-connect attempts when the saved port isn't currently present
@@ -1045,20 +1047,29 @@ export function NewTransactionView({
             }
 
             try {
-              const available = await window.printerAPI.getAvailableInterfaces();
+              const available =
+                await window.printerAPI.getAvailableInterfaces();
               const isAvailable = Array.isArray(available)
-                ? available.some((p: { address?: string }) => p.address === iface)
+                ? available.some(
+                    (p: { address?: string }) => p.address === iface,
+                  )
                 : false;
 
               if (isAvailable) {
                 await connectPrinter(config);
               } else {
-                logger.info("Skipping printer auto-connect: saved interface not available", {
-                  interface: iface,
-                });
+                logger.info(
+                  "Skipping printer auto-connect: saved interface not available",
+                  {
+                    interface: iface,
+                  },
+                );
               }
             } catch (error) {
-              logger.warn("Skipping printer auto-connect: failed to scan interfaces", error);
+              logger.warn(
+                "Skipping printer auto-connect: failed to scan interfaces",
+                error,
+              );
             }
           }
         }
@@ -1107,8 +1118,8 @@ export function NewTransactionView({
   const displayProducts = USE_VIRTUALIZED_PRODUCTS
     ? products.products // Server-side filtering already applied
     : searchQuery
-    ? legacyProducts.getFilteredProducts(searchQuery)
-    : categories.getCurrentCategoryProducts();
+      ? legacyProducts.getFilteredProducts(searchQuery)
+      : categories.getCurrentCategoryProducts();
 
   return (
     <>
@@ -1127,7 +1138,6 @@ export function NewTransactionView({
           />
         </>
       )}
-
 
       {/* Main Layout */}
       <div className="flex p-2 sm:p-3 lg:p-4 flex-col lg:flex-row gap-2 sm:gap-3 h-screen overflow-hidden">
@@ -1210,7 +1220,7 @@ export function NewTransactionView({
                           weightInput.selectedWeightProduct.pricePerKg,
                         unitOfMeasure: getEffectiveSalesUnit(
                           weightInput.selectedWeightProduct.salesUnit || "KG",
-                          salesUnitSettings
+                          salesUnitSettings,
                         ),
                       }}
                       onWeightConfirmed={async (weight, scaleReading) => {
@@ -1230,7 +1240,7 @@ export function NewTransactionView({
                           const batchResult = await autoSelectBatches(
                             product,
                             1, // Check batch has >= 1 item available (quantity check, not weight)
-                            false // Don't allow partial - need exactly 1 item
+                            false, // Don't allow partial - need exactly 1 item
                           );
 
                           if (batchResult.success && batchResult.primaryBatch) {
@@ -1246,7 +1256,7 @@ export function NewTransactionView({
                               ageVerified,
                               undefined,
                               batchResult.primaryBatch,
-                              scaleReading
+                              scaleReading,
                             );
 
                             // Show success message
@@ -1272,7 +1282,7 @@ export function NewTransactionView({
                             // No batches available - show error
                             toast.error(
                               batchResult.error ||
-                                "No batches available for this product"
+                                "No batches available for this product",
                             );
                             weightInput.resetWeightInput();
                             setShowScaleDisplay(false);
@@ -1289,7 +1299,7 @@ export function NewTransactionView({
                             ageVerified, // Use the tracked age verification status
                             undefined,
                             null,
-                            scaleReading || null
+                            scaleReading || null,
                           );
                           weightInput.resetWeightInput();
                           // Clear age verification for this product after use
@@ -1415,7 +1425,7 @@ export function NewTransactionView({
                   ) {
                     await handleProductClick(
                       weightInput.selectedWeightProduct,
-                      weightValue
+                      weightValue,
                     );
                     setShowScaleDisplay(false); // Reset scale display after adding via keypad
                   }
@@ -1432,7 +1442,7 @@ export function NewTransactionView({
                   ) {
                     await cart.addCategoryToCart(
                       categoryPriceInput.pendingCategory!,
-                      priceValue
+                      priceValue,
                     );
                     categoryPriceInput.resetPriceInput();
                   }

@@ -21,7 +21,11 @@ import { getLogger } from "@/shared/utils/logger";
 
 const logger = getLogger("printer-setup-dialog");
 
-type PrinterInterface = { type: "usb" | "bluetooth"; name: string; address: string };
+type PrinterInterface = {
+  type: "usb" | "bluetooth";
+  name: string;
+  address: string;
+};
 
 export interface PrinterSetupDialogProps {
   open: boolean;
@@ -46,7 +50,7 @@ export function PrinterSetupDialog({
 
   const selected = useMemo(
     () => interfaces.find((i) => i.address === selectedInterface) || null,
-    [interfaces, selectedInterface]
+    [interfaces, selectedInterface],
   );
 
   const refreshInterfaces = useCallback(async () => {
@@ -66,15 +70,15 @@ export function PrinterSetupDialog({
         const platform = navigator.platform.toLowerCase();
         if (platform.includes("mac")) {
           toast.warning(
-            "No thermal printer found. Connect the Metapace T-3 via USB and check System Information > USB."
+            "No thermal printer found. Connect the Metapace T-3 via USB and check System Information > USB.",
           );
         } else if (platform.includes("win")) {
           toast.warning(
-            "No printer ports found. Make sure the printer is connected and check Device Manager for a COM port."
+            "No printer ports found. Make sure the printer is connected and check Device Manager for a COM port.",
           );
         } else {
           toast.warning(
-            "No printer ports found. Make sure the printer is connected via USB."
+            "No printer ports found. Make sure the printer is connected via USB.",
           );
         }
       }
@@ -134,9 +138,9 @@ export function PrinterSetupDialog({
         <DialogHeader>
           <DialogTitle>Connect Receipt Printer</DialogTitle>
           <DialogDescription>
-            Select the printer port for your Metapace T-3 thermal printer.
-            On Windows, it typically appears as COM3/COM4. On macOS, look for 
-            a USB serial port. The selection will be saved for auto-connect.
+            Select the printer port for your Metapace T-3 thermal printer. On
+            Windows, it typically appears as COM3/COM4. On macOS, look for a USB
+            serial port. The selection will be saved for auto-connect.
           </DialogDescription>
         </DialogHeader>
 
@@ -183,4 +187,3 @@ export function PrinterSetupDialog({
     </Dialog>
   );
 }
-

@@ -142,55 +142,66 @@ export class ThermalPrinterService {
       return await this.initializePrinter(config);
     });
 
-    ipcMain.handle("printer:printReceipt", async (_event, transactionData: any) => {
-      const jobId = `receipt_${Date.now()}`;
-      try {
-        const buffer = await this.buildReceiptBuffer(transactionData);
-        const result = await this.enqueuePrint(buffer, jobId, 15000);
-        return result.success
-          ? { success: true }
-          : { success: false, error: result.error || "Print failed" };
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Print failed";
-        return { success: false, error: message };
-      }
-    });
-
-    ipcMain.handle("printer:previewReceipt", async (_event, transactionData: any) => {
-      try {
-        const receiptLatin1 = await this.buildReceiptLatin1(transactionData);
-        const receiptNumber = String((transactionData as any)?.receiptNumber || "").trim();
-        let barcodePngBase64: string | undefined;
-
-        // For UI preview we return a PNG barcode (same approach as email receipts).
-        // The actual thermal printer uses ESC/POS barcode commands, not PNG.
-        if (receiptNumber) {
-          try {
-            const barcodePngBuffer = await bwipjs.toBuffer({
-              bcid: "code128",
-              text: receiptNumber,
-              scale: 3,
-              height: 12,
-              includetext: false,
-              backgroundcolor: "ffffff",
-            });
-            barcodePngBase64 = barcodePngBuffer.toString("base64");
-          } catch (error) {
-            logger.warn("Failed to generate barcode PNG for preview:", error);
-          }
+    ipcMain.handle(
+      "printer:printReceipt",
+      async (_event, transactionData: any) => {
+        const jobId = `receipt_${Date.now()}`;
+        try {
+          const buffer = await this.buildReceiptBuffer(transactionData);
+          const result = await this.enqueuePrint(buffer, jobId, 15000);
+          return result.success
+            ? { success: true }
+            : { success: false, error: result.error || "Print failed" };
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : "Print failed";
+          return { success: false, error: message };
         }
+      },
+    );
 
-        return {
-          success: true,
-          text: stripEscposToPlainText(receiptLatin1),
-          barcodePngBase64,
-        };
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Failed to generate preview";
-        return { success: false, error: message };
-      }
-    });
+    ipcMain.handle(
+      "printer:previewReceipt",
+      async (_event, transactionData: any) => {
+        try {
+          const receiptLatin1 = await this.buildReceiptLatin1(transactionData);
+          const receiptNumber = String(
+            (transactionData as any)?.receiptNumber || "",
+          ).trim();
+          let barcodePngBase64: string | undefined;
+
+          // For UI preview we return a PNG barcode (same approach as email receipts).
+          // The actual thermal printer uses ESC/POS barcode commands, not PNG.
+          if (receiptNumber) {
+            try {
+              const barcodePngBuffer = await bwipjs.toBuffer({
+                bcid: "code128",
+                text: receiptNumber,
+                scale: 3,
+                height: 12,
+                includetext: false,
+                backgroundcolor: "ffffff",
+              });
+              barcodePngBase64 = barcodePngBuffer.toString("base64");
+            } catch (error) {
+              logger.warn("Failed to generate barcode PNG for preview:", error);
+            }
+          }
+
+          return {
+            success: true,
+            text: stripEscposToPlainText(receiptLatin1),
+            barcodePngBase64,
+          };
+        } catch (error) {
+          const message =
+            error instanceof Error
+              ? error.message
+              : "Failed to generate preview";
+          return { success: false, error: message };
+        }
+      },
+    );
 
     ipcMain.handle("printer:cancelPrint", async () => {
       this.cancelPrint("Cancelled by user");
@@ -206,7 +217,7 @@ export class ThermalPrinterService {
       "printer:initialize",
       async (event, config: PrinterConfig) => {
         return await this.initializePrinter(config);
-      }
+      },
     );
 
     // Print receipt
@@ -214,7 +225,7 @@ export class ThermalPrinterService {
       "printer:print",
       async (event, printData: Buffer, jobId: string) => {
         return await this.enqueuePrint(printData, jobId, 15000);
-      }
+      },
     );
 
     // Get printer status
@@ -242,13 +253,14 @@ export class ThermalPrinterService {
   private async loadThermalLib(): Promise<ThermalPrinterModule> {
     if (this.thermalLib) return this.thermalLib;
     try {
-      const mod = (await import("node-thermal-printer")) as unknown as ThermalPrinterModule;
+      const mod =
+        (await import("node-thermal-printer")) as unknown as ThermalPrinterModule;
       this.thermalLib = mod;
       return mod;
     } catch (error) {
       logger.error("Failed to import node-thermal-printer", error);
       throw new Error(
-        "Thermal printer library not available. Please ensure node-thermal-printer is installed."
+        "Thermal printer library not available. Please ensure node-thermal-printer is installed.",
       );
     }
   }
@@ -265,11 +277,16 @@ export class ThermalPrinterService {
     return trimmed;
   }
 
-  private mapPrinterType(type: string, printerTypes?: Record<string, any>): any {
+  private mapPrinterType(
+    type: string,
+    printerTypes?: Record<string, any>,
+  ): any {
     const t = (type || "epson").toLowerCase();
     if (!printerTypes) return type;
-    if (t.includes("star")) return printerTypes.STAR || printerTypes.star || type;
-    if (t.includes("generic")) return printerTypes.EPSON || printerTypes.epson || type;
+    if (t.includes("star"))
+      return printerTypes.STAR || printerTypes.star || type;
+    if (t.includes("generic"))
+      return printerTypes.EPSON || printerTypes.epson || type;
     return printerTypes.EPSON || printerTypes.epson || type;
   }
 
@@ -277,7 +294,7 @@ export class ThermalPrinterService {
    * Initialize printer with given configuration
    */
   async initializePrinter(
-    config: PrinterConfig
+    config: PrinterConfig,
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const thermalPrinterLib = await this.loadThermalLib();
@@ -336,7 +353,7 @@ export class ThermalPrinterService {
   async enqueuePrint(
     data: Buffer,
     jobId: string = `job_${Date.now()}`,
-    timeoutMs: number = 15000
+    timeoutMs: number = 15000,
   ): Promise<PrintResponse> {
     if (!this.printer || !this.isInitialized) {
       return {
@@ -408,20 +425,29 @@ export class ThermalPrinterService {
             timestamp: new Date().toISOString(),
           });
         } catch (error) {
-          const message = error instanceof Error ? error.message : "Print failed";
+          const message =
+            error instanceof Error ? error.message : "Print failed";
           const attempts = item.attempts + 1;
 
           if (attempts <= this.MAX_RETRIES && !this.cancelRequested) {
             const delay =
-              this.RETRY_DELAYS_MS[Math.min(attempts - 1, this.RETRY_DELAYS_MS.length - 1)] ||
-              1500;
-            logger.warn(`Print failed, retrying (${attempts}/${this.MAX_RETRIES})`, {
-              jobId: request.jobId,
-              error: message,
-              delayMs: delay,
-            });
+              this.RETRY_DELAYS_MS[
+                Math.min(attempts - 1, this.RETRY_DELAYS_MS.length - 1)
+              ] || 1500;
+            logger.warn(
+              `Print failed, retrying (${attempts}/${this.MAX_RETRIES})`,
+              {
+                jobId: request.jobId,
+                error: message,
+                delayMs: delay,
+              },
+            );
             await new Promise((r) => setTimeout(r, delay));
-            this.printQueue.unshift({ request, attempts, resolve: item.resolve });
+            this.printQueue.unshift({
+              request,
+              attempts,
+              resolve: item.resolve,
+            });
             continue;
           }
 
@@ -473,7 +499,7 @@ export class ThermalPrinterService {
     const timeoutPromise = new Promise<boolean>((_, reject) => {
       setTimeout(
         () => reject(new Error("Print timeout")),
-        request.timeout || 10000
+        request.timeout || 10000,
       );
     });
 
@@ -656,45 +682,46 @@ export class ThermalPrinterService {
         /debug/i,
         /wlan/i,
         /Bluetooth-Incoming/i,
-        /\.SOC$/i,    // System-on-chip debug
-        /MALS$/i,     // Mobile Asset Lock
-        /BLTH$/i,     // Bluetooth debug
+        /\.SOC$/i, // System-on-chip debug
+        /MALS$/i, // Mobile Asset Lock
+        /BLTH$/i, // Bluetooth debug
       ];
 
       // Check if a port looks like a real thermal printer port
       const isLikelyRealPrinter = (port: any): boolean => {
         const path = (port.path || port.comName || "").toLowerCase();
-        
+
         // On macOS, filter out virtual/debug ports
         if (process.platform === "darwin") {
           // Exclude ports matching debug patterns
           for (const pattern of macOSVirtualPortPatterns) {
             if (pattern.test(path)) return false;
           }
-          
+
           // USB serial adapters typically have "usb" in the path
           // or have vendorId/productId
-          if (path.includes("usbserial") || path.includes("usbmodem")) return true;
+          if (path.includes("usbserial") || path.includes("usbmodem"))
+            return true;
           if (port.vendorId && port.productId) return true;
-          
+
           // cu.* ports are callout devices, tty.* are dial-in
           // For printers, cu.* is typically used
           if (path.includes("/dev/cu.")) return true;
-          
+
           // Exclude generic tty.* that aren't USB
           if (path.includes("/dev/tty.") && !path.includes("usb")) return false;
         }
-        
+
         // On Windows, all COM ports are potentially valid
         if (process.platform === "win32") return true;
-        
+
         // On Linux, look for USB serial
         if (process.platform === "linux") {
           if (path.includes("ttyusb") || path.includes("ttyacm")) return true;
           // Also allow serial ports with vendor info
           if (port.vendorId && port.productId) return true;
         }
-        
+
         return true; // Default: include
       };
 
@@ -707,14 +734,19 @@ export class ThermalPrinterService {
         ports.forEach((port: any) => {
           const path = port.path || port.comName;
           if (!path) return;
-          
+
           // Filter out virtual/debug ports
           if (!isLikelyRealPrinter(port)) {
             logger.debug(`Filtered out virtual port: ${path}`);
             return;
           }
-          
-          const parts = [port.manufacturer, port.vendorId, port.productId, port.serialNumber]
+
+          const parts = [
+            port.manufacturer,
+            port.vendorId,
+            port.productId,
+            port.serialNumber,
+          ]
             .filter(Boolean)
             .join(" ");
           interfaces.push({
@@ -734,7 +766,9 @@ export class ThermalPrinterService {
 
       // If no ports found, provide helpful message
       if (interfaces.length === 0) {
-        logger.info("No thermal printer ports detected. Make sure the printer is connected via USB.");
+        logger.info(
+          "No thermal printer ports detected. Make sure the printer is connected via USB.",
+        );
       }
 
       return { interfaces };
@@ -798,7 +832,7 @@ export class ThermalPrinterService {
     if (l.length + r.length >= width) {
       return `${l.slice(0, Math.max(0, width - r.length - 1))} ${r}`.slice(
         0,
-        width
+        width,
       );
     }
     return `${l}${this.repeat(" ", space)}${r}`;
@@ -838,19 +872,21 @@ export class ThermalPrinterService {
           db.businesses?.getBusinessById?.(businessIdForReceipt);
         if (business) {
           storeName =
-            business.businessName ||
-            tx.businessName ||
-            (storeName || "Business");
+            business.businessName || tx.businessName || storeName || "Business";
 
           // Address: support multi-line address by splitting into header lines
           const rawAddress = String(business.address || "").trim();
           const addressParts = rawAddress
-            ? rawAddress.split(/\r?\n/).map((l: string) => l.trim()).filter(Boolean)
+            ? rawAddress
+                .split(/\r?\n/)
+                .map((l: string) => l.trim())
+                .filter(Boolean)
             : [];
           storeAddress = addressParts[0] || "";
 
           const extraHeaderLines: string[] = [];
-          if (addressParts.length > 1) extraHeaderLines.push(...addressParts.slice(1));
+          if (addressParts.length > 1)
+            extraHeaderLines.push(...addressParts.slice(1));
 
           const cityPostal = [business.city, business.postalCode]
             .map((v: any) => String(v || "").trim())
@@ -874,7 +910,9 @@ export class ThermalPrinterService {
     }
 
     const effectiveTimestamp =
-      (dbTransaction as any)?.timestamp ?? tx.timestamp ?? new Date().toISOString();
+      (dbTransaction as any)?.timestamp ??
+      tx.timestamp ??
+      new Date().toISOString();
     const dateObj = new Date(effectiveTimestamp);
     const date = dateObj.toLocaleDateString("en-GB");
     const time = dateObj.toLocaleTimeString("en-GB", {
@@ -943,7 +981,8 @@ export class ThermalPrinterService {
             last4: (dbTransaction as any)?.vivaWalletCardLast4 ?? undefined,
             type: (dbTransaction as any)?.vivaWalletCardType ?? undefined,
             authCode: (dbTransaction as any)?.vivaWalletAuthCode ?? undefined,
-            terminalId: (dbTransaction as any)?.vivaWalletTerminalId ?? undefined,
+            terminalId:
+              (dbTransaction as any)?.vivaWalletTerminalId ?? undefined,
             terminalTransactionId:
               (dbTransaction as any)?.vivaWalletTransactionId ?? undefined,
           }
@@ -973,7 +1012,9 @@ export class ThermalPrinterService {
             ? item.weight
             : undefined;
         const unit =
-          item.itemType === "WEIGHT" && item.unitOfMeasure ? item.unitOfMeasure : undefined;
+          item.itemType === "WEIGHT" && item.unitOfMeasure
+            ? item.unitOfMeasure
+            : undefined;
         return {
           name,
           quantity,
@@ -989,7 +1030,9 @@ export class ThermalPrinterService {
       paymentMethod,
       cashAmount: paymentMethodUpper === "cash" ? tx.amountPaid : undefined,
       cardAmount:
-        paymentMethodUpper !== "cash" ? tx.paymentMethods?.[0]?.amount ?? total : undefined,
+        paymentMethodUpper !== "cash"
+          ? (tx.paymentMethods?.[0]?.amount ?? total)
+          : undefined,
       change: paymentMethodUpper === "cash" ? tx.change : undefined,
       customerCopyLine: "*CUSTOMER COPY* - PLEASE RETAIN RECEIPT",
       cardSlip,

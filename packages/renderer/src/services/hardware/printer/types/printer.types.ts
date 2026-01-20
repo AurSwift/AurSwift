@@ -9,18 +9,24 @@
 export type PrintStatus =
   | "idle"
   | "checking-connection" // Checking current printer status
-  | "connecting"          // Attempting to connect to printer
-  | "connection-failed"   // Connection attempt failed
-  | "printing"            // Actively sending data to printer
-  | "success"             // Print completed successfully
-  | "error"               // Print operation failed
-  | "cancelled";          // Print was cancelled by user
+  | "connecting" // Attempting to connect to printer
+  | "connection-failed" // Connection attempt failed
+  | "printing" // Actively sending data to printer
+  | "success" // Print completed successfully
+  | "error" // Print operation failed
+  | "cancelled"; // Print was cancelled by user
 
 /**
  * Detailed error information for printer operations
  */
 export interface PrinterError {
-  code: "NOT_FOUND" | "PORT_BUSY" | "TIMEOUT" | "DISCONNECTED" | "PRINT_FAILED" | "UNKNOWN";
+  code:
+    | "NOT_FOUND"
+    | "PORT_BUSY"
+    | "TIMEOUT"
+    | "DISCONNECTED"
+    | "PRINT_FAILED"
+    | "UNKNOWN";
   message: string;
   details?: string;
 }
@@ -53,4 +59,3 @@ export interface PrintStatusIndicatorProps {
   onSetupPrinter?: () => void;
   printerName?: string;
 }
-

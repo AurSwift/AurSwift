@@ -19,5 +19,7 @@ export type {
 } from "./types/printer.types";
 
 export { PrinterSetupDialog } from "./components/printer-setup-dialog";
-export { PrintStatusIndicator, PrintStatusBadge } from "./components/print-status-indicator";
-
+export {
+  PrintStatusIndicator,
+  PrintStatusBadge,
+} from "./components/print-status-indicator";

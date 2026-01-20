@@ -1,7 +1,7 @@
 /**
  * Receipt options modal component
  * Shown after successful transaction completion for all payment types
- * 
+ *
  * Enhanced with print status indicator showing:
  * - Connecting to printer state
  * - Printing state
@@ -23,8 +23,8 @@ import { toast } from "sonner";
 import type { TransactionData } from "@/types/domain/transaction";
 import { EmailReceiptModal } from "../modals/email-receipt-modal";
 import { ReceiptPreviewModal } from "../modals/receipt-preview-modal";
-import { 
-  PrinterSetupDialog, 
+import {
+  PrinterSetupDialog,
   PrintStatusIndicator,
   type PrintStatus,
   type PrinterError,
@@ -67,15 +67,19 @@ export function ReceiptOptionsModal({
   const [showPrinterSetup, setShowPrinterSetup] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [localPrinterConnected, setLocalPrinterConnected] = useState(
-    printerStatus.connected
+    printerStatus.connected,
   );
   const [localPrinterError, setLocalPrinterError] = useState<string | null>(
-    printerStatus.error
+    printerStatus.error,
   );
   const [isPrinting, setIsPrinting] = useState(false);
 
   // Determine if print operation is in progress
-  const isActivePrintOperation = ["checking-connection", "connecting", "printing"].includes(printStatus);
+  const isActivePrintOperation = [
+    "checking-connection",
+    "connecting",
+    "printing",
+  ].includes(printStatus);
 
   // Keep local status in sync with parent, but allow live refresh after setup.
   // (Parent state is only captured at transaction completion today.)
@@ -157,7 +161,7 @@ export function ReceiptOptionsModal({
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           toast.warning(
-            "Please select an option or click the X to skip receipt"
+            "Please select an option or click the X to skip receipt",
           );
         }
       }}
@@ -267,7 +271,9 @@ export function ReceiptOptionsModal({
                     </div>
                     <span>{isPrinting ? "Printing..." : "Print Receipt"}</span>
                   </div>
-                  {!isPrinting && <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />}
+                  {!isPrinting && (
+                    <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
+                  )}
                 </Button>
 
                 <Button
@@ -281,8 +287,8 @@ export function ReceiptOptionsModal({
                 {!localPrinterConnected && !isPrinting && (
                   <div className="space-y-2">
                     <p className="text-[10px] sm:text-xs text-amber-600 text-center px-2">
-                      ⚠️ Printer is not connected. You can download the receipt or
-                      print later from transaction history.
+                      ⚠️ Printer is not connected. You can download the receipt
+                      or print later from transaction history.
                       {localPrinterError ? ` (${localPrinterError})` : ""}
                     </p>
                     <Button
