@@ -1017,12 +1017,49 @@ export function NewTransactionView({
   useEffect(() => {
     const initPrinter = async () => {
       try {
+        if (!window.printerAPI) return;
+
         const savedConfig = localStorage.getItem("printer_config");
         if (savedConfig) {
-          const config = JSON.parse(savedConfig);
+          let config: PrinterConfig;
+          try {
+            config = JSON.parse(savedConfig) as PrinterConfig;
+          } catch {
+            return;
+          }
+
           const status = await window.printerAPI.getStatus();
           if (!status.connected) {
-            await connectPrinter(config);
+            const iface = String((config as unknown as { interface?: unknown })?.interface || "");
+            if (!iface) return;
+
+            // Avoid noisy auto-connect attempts when the saved port isn't currently present
+            // (e.g. printer unplugged). For non-port interfaces like tcp:// or printer:Name,
+            // we still attempt to connect.
+            const isNonPortInterface =
+              iface.startsWith("tcp://") || iface.startsWith("printer:");
+
+            if (isNonPortInterface) {
+              await connectPrinter(config);
+              return;
+            }
+
+            try {
+              const available = await window.printerAPI.getAvailableInterfaces();
+              const isAvailable = Array.isArray(available)
+                ? available.some((p: { address?: string }) => p.address === iface)
+                : false;
+
+              if (isAvailable) {
+                await connectPrinter(config);
+              } else {
+                logger.info("Skipping printer auto-connect: saved interface not available", {
+                  interface: iface,
+                });
+              }
+            } catch (error) {
+              logger.warn("Skipping printer auto-connect: failed to scan interfaces", error);
+            }
           }
         }
       } catch (error) {

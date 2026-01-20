@@ -182,13 +182,22 @@ export const useThermalPrinter = () => {
         }
 
         const result = await window.printerAPI.connect(config);
-        if (result.success) {
-          await checkPrinterStatus();
-          toast.success("Printer connected successfully");
-          return true;
-        } else {
+        if (!result.success) {
           throw new Error(result.error || "Connection failed");
         }
+
+        // Verify the connection actually became active (connect can succeed while status remains disconnected).
+        const statusAfter = await window.printerAPI.getStatus();
+        setPrinterInfo(statusAfter);
+        setIsConnected(statusAfter.connected);
+
+        if (!statusAfter.connected) {
+          toast.error("Failed to connect printer: Printer not detected");
+          return false;
+        }
+
+        toast.success("Printer connected successfully");
+        return true;
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error";

@@ -304,6 +304,19 @@ export class ThermalPrinterService {
       this.isInitialized = true;
       this.cancelRequested = false;
 
+      // Validate the printer is actually reachable before reporting success.
+      // (Avoids false-positive "connected" UX when the port/device is missing.)
+      const connected = await this.isPrinterConnectedSafe();
+      if (!connected) {
+        this.isInitialized = false;
+        // Keep currentConfig for status/debugging, but drop the instance.
+        this.printer = null;
+        return {
+          success: false,
+          error: "Printer not connected",
+        };
+      }
+
       return { success: true };
     } catch (error) {
       this.isInitialized = false;
