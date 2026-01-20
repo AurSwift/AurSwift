@@ -41,13 +41,10 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
   const [progress, setProgress] = useState<DownloadProgress | null>(null);
   const [error, setError] = useState<UpdateError | null>(null);
   const [postponeCount, setPostponeCount] = useState(0);
-  const [currentVersion, setCurrentVersion] = useState("1.0.0"); // Default, will be updated from IPC
+  const [currentVersion, setCurrentVersion] = useState("1.0.0");
 
-  // Suppress update notifications during activation / onboarding UI.
-  // This is controlled by the App shell (not by license status itself),
-  // so "Test Mode" can still show update toasts.
+  // Simple flag: don't show toasts on license activation screen
   const { suppressUpdateToasts } = useAppFlow();
-  const prevSuppressUpdateToastsRef = useRef(suppressUpdateToasts);
 
   // Fetch app version on mount
   useEffect(() => {
@@ -59,37 +56,61 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
             setCurrentVersion(result.version);
           }
         }
-      } catch (error) {
-        logger.error("Failed to fetch app version:", error);
-        // Keep default version on error
+      } catch (err) {
+        logger.error("Failed to fetch app version:", err);
       }
     };
-
     fetchVersion();
   }, []);
 
-  const activeToastIdRef = useRef<string | number | null>(null);
-  const updateAvailableToastIdRef = useRef<string | number | null>(null);
-  const downloadProgressToastIdRef = useRef<string | number | null>(null);
-  const updateReadyToastIdRef = useRef<string | number | null>(null);
-
-  // Use refs to store latest function versions to avoid dependency issues
-  const downloadUpdateRef = useRef<(() => Promise<void>) | undefined>(
-    undefined
-  );
+  // Refs for callback functions (to avoid stale closures in event handlers)
+  const downloadUpdateRef = useRef<(() => Promise<void>) | undefined>(undefined);
   const installUpdateRef = useRef<(() => Promise<void>) | undefined>(undefined);
   const postponeUpdateRef = useRef<(() => void) | undefined>(undefined);
-  const checkForUpdatesRef = useRef<(() => Promise<void>) | undefined>(
-    undefined
-  );
+  const checkForUpdatesRef = useRef<(() => Promise<void>) | undefined>(undefined);
   const dismissErrorRef = useRef<(() => void) | undefined>(undefined);
-  const cancelDownloadRef = useRef<(() => Promise<void>) | undefined>(
-    undefined
-  );
+  const cancelDownloadRef = useRef<(() => Promise<void>) | undefined>(undefined);
+  const activeToastIdRef = useRef<string | number | null>(null);
+
+  // Helper to dismiss all update toasts
+  const dismissAllUpdateToasts = useCallback(() => {
+    toast.dismiss("update-available");
+    toast.dismiss("download-progress");
+    toast.dismiss("update-ready");
+  }, []);
+
+  // Helper to show appropriate toast based on current state
+  const showToastForCurrentState = useCallback(() => {
+    dismissAllUpdateToasts();
+
+    if (state === "downloading" && progress) {
+      showDownloadProgressToast(progress, () => cancelDownloadRef.current?.());
+    } else if (state === "downloaded" && updateInfo) {
+      showUpdateReadyToast(
+        updateInfo,
+        () => installUpdateRef.current?.(),
+        () => postponeUpdateRef.current?.()
+      );
+    } else if (state === "available" && updateInfo) {
+      showUpdateAvailableToast(
+        updateInfo,
+        currentVersion,
+        () => downloadUpdateRef.current?.(),
+        () => postponeUpdateRef.current?.()
+      );
+    }
+  }, [currentVersion, dismissAllUpdateToasts, progress, state, updateInfo]);
+
+  // When suppression ends (user leaves activation screen), show any pending update toast
+  useEffect(() => {
+    if (!suppressUpdateToasts && (state === "available" || state === "downloaded" || state === "downloading")) {
+      showToastForCurrentState();
+    }
+  }, [suppressUpdateToasts, showToastForCurrentState, state]);
 
   // Cleanup listeners on unmount
   useEffect(() => {
-    const cleanup = () => {
+    return () => {
       if (window.updateAPI) {
         window.updateAPI.removeAllListeners("update:available");
         window.updateAPI.removeAllListeners("update:download-progress");
@@ -100,8 +121,6 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
         window.updateAPI.removeAllListeners("update:download-cancelled");
       }
     };
-
-    return cleanup;
   }, []);
 
   // Listen for update available
@@ -113,111 +132,20 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
       setUpdateInfo(info);
       setError(null);
 
-      // Suppress update notifications during activation UI
-      // This keeps the activation screen focused on its primary task.
-      // Note: we still store update state so we can show it after activation.
-      if (suppressUpdateToasts) {
-        return;
-      }
+      if (suppressUpdateToasts) return;
 
-      // Dismiss any existing toasts FIRST to prevent overlapping
-      toast.dismiss("update-available");
-      toast.dismiss("download-progress");
-      toast.dismiss("update-ready");
-
-      // Clear refs
-      if (updateAvailableToastIdRef.current) {
-        updateAvailableToastIdRef.current = null;
-      }
-      if (downloadProgressToastIdRef.current) {
-        downloadProgressToastIdRef.current = null;
-      }
-      if (updateReadyToastIdRef.current) {
-        updateReadyToastIdRef.current = null;
-      }
-
-      // Small delay to ensure previous toast is fully dismissed
-      setTimeout(() => {
-        updateAvailableToastIdRef.current = showUpdateAvailableToast(
-          info,
-          currentVersion,
-          () => downloadUpdateRef.current?.(),
-          () => postponeUpdateRef.current?.()
-        );
-      }, 100);
+      dismissAllUpdateToasts();
+      showUpdateAvailableToast(
+        info,
+        currentVersion,
+        () => downloadUpdateRef.current?.(),
+        () => postponeUpdateRef.current?.()
+      );
     };
 
     window.updateAPI.onUpdateAvailable(handleUpdateAvailable);
-
-    return () => {
-      if (window.updateAPI) {
-        window.updateAPI.removeAllListeners("update:available");
-      }
-    };
-  }, [currentVersion, suppressUpdateToasts]);
-
-  // If an update event happened during activation UI, show it immediately
-  // once activation UI ends (so the notification isn't lost).
-  useEffect(() => {
-    const wasSuppressing = prevSuppressUpdateToastsRef.current;
-    prevSuppressUpdateToastsRef.current = suppressUpdateToasts;
-
-    // Only run when suppression flips from true -> false
-    if (!wasSuppressing || suppressUpdateToasts) {
-      return;
-    }
-
-    // Dismiss any existing toasts FIRST to prevent overlapping
-    toast.dismiss("update-available");
-    toast.dismiss("download-progress");
-    toast.dismiss("update-ready");
-
-    // Clear refs
-    if (updateAvailableToastIdRef.current) {
-      updateAvailableToastIdRef.current = null;
-    }
-    if (downloadProgressToastIdRef.current) {
-      downloadProgressToastIdRef.current = null;
-    }
-    if (updateReadyToastIdRef.current) {
-      updateReadyToastIdRef.current = null;
-    }
-
-    // Show the most appropriate toast for the last known update state
-    if (state === "downloading" && progress) {
-      downloadProgressToastIdRef.current = showDownloadProgressToast(
-        progress,
-        () => cancelDownloadRef.current?.()
-      );
-      return;
-    }
-
-    if (!updateInfo) {
-      return;
-    }
-
-    if (state === "downloaded") {
-      setTimeout(() => {
-        updateReadyToastIdRef.current = showUpdateReadyToast(
-          updateInfo,
-          () => installUpdateRef.current?.(),
-          () => postponeUpdateRef.current?.()
-        );
-      }, 100);
-      return;
-    }
-
-    if (state === "available") {
-      setTimeout(() => {
-        updateAvailableToastIdRef.current = showUpdateAvailableToast(
-          updateInfo,
-          currentVersion,
-          () => downloadUpdateRef.current?.(),
-          () => postponeUpdateRef.current?.()
-        );
-      }, 100);
-    }
-  }, [currentVersion, progress, state, suppressUpdateToasts, updateInfo]);
+    return () => window.updateAPI?.removeAllListeners("update:available");
+  }, [currentVersion, dismissAllUpdateToasts, suppressUpdateToasts]);
 
   // Listen for download progress
   useEffect(() => {
@@ -227,35 +155,15 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
       setState("downloading");
       setProgress(progressData);
 
-      // Suppress download progress notifications during activation UI
-      if (suppressUpdateToasts) {
-        return;
-      }
+      if (suppressUpdateToasts) return;
 
-      // Dismiss other toasts first to prevent overlapping
       toast.dismiss("update-available");
       toast.dismiss("update-ready");
-      if (updateAvailableToastIdRef.current) {
-        updateAvailableToastIdRef.current = null;
-      }
-      if (updateReadyToastIdRef.current) {
-        updateReadyToastIdRef.current = null;
-      }
-
-      // Always use the fixed ID to replace/update the same toast
-      downloadProgressToastIdRef.current = showDownloadProgressToast(
-        progressData,
-        () => cancelDownloadRef.current?.()
-      );
+      showDownloadProgressToast(progressData, () => cancelDownloadRef.current?.());
     };
 
     window.updateAPI.onDownloadProgress(handleDownloadProgress);
-
-    return () => {
-      if (window.updateAPI) {
-        window.updateAPI.removeAllListeners("update:download-progress");
-      }
-    };
+    return () => window.updateAPI?.removeAllListeners("update:download-progress");
   }, [suppressUpdateToasts]);
 
   // Listen for download cancelled
@@ -265,14 +173,7 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
     const handleDownloadCancelled = () => {
       setState("idle");
       setProgress(null);
-
-      // Dismiss progress toast
       toast.dismiss("download-progress");
-      if (downloadProgressToastIdRef.current) {
-        downloadProgressToastIdRef.current = null;
-      }
-
-      // Show cancellation confirmation
       toast.info("Download cancelled", {
         description: "The update download has been cancelled.",
         duration: 3000,
@@ -280,12 +181,7 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
     };
 
     window.updateAPI.onDownloadCancelled(handleDownloadCancelled);
-
-    return () => {
-      if (window.updateAPI) {
-        window.updateAPI.removeAllListeners("update:download-cancelled");
-      }
-    };
+    return () => window.updateAPI?.removeAllListeners("update:download-cancelled");
   }, []);
 
   // Listen for update downloaded
@@ -297,45 +193,19 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
       setUpdateInfo(info);
       setProgress(null);
 
-      // Suppress update ready notifications during activation UI
-      if (suppressUpdateToasts) {
-        return;
-      }
+      if (suppressUpdateToasts) return;
 
-      // Dismiss all existing toasts FIRST to prevent overlapping
-      toast.dismiss("update-available");
-      toast.dismiss("download-progress");
-      toast.dismiss("update-ready");
-
-      // Clear refs
-      if (updateAvailableToastIdRef.current) {
-        updateAvailableToastIdRef.current = null;
-      }
-      if (downloadProgressToastIdRef.current) {
-        downloadProgressToastIdRef.current = null;
-      }
-      if (updateReadyToastIdRef.current) {
-        updateReadyToastIdRef.current = null;
-      }
-
-      // Small delay to ensure previous toast is fully dismissed
-      setTimeout(() => {
-        updateReadyToastIdRef.current = showUpdateReadyToast(
-          info,
-          () => installUpdateRef.current?.(),
-          () => postponeUpdateRef.current?.()
-        );
-      }, 100);
+      dismissAllUpdateToasts();
+      showUpdateReadyToast(
+        info,
+        () => installUpdateRef.current?.(),
+        () => postponeUpdateRef.current?.()
+      );
     };
 
     window.updateAPI.onUpdateDownloaded(handleUpdateDownloaded);
-
-    return () => {
-      if (window.updateAPI) {
-        window.updateAPI.removeAllListeners("update:downloaded");
-      }
-    };
-  }, [suppressUpdateToasts]);
+    return () => window.updateAPI?.removeAllListeners("update:downloaded");
+  }, [dismissAllUpdateToasts, suppressUpdateToasts]);
 
   // Listen for errors
   useEffect(() => {
@@ -345,23 +215,14 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
       setState("error");
       setError(errorData);
 
-      // Dismiss existing toasts when error occurs
       if (errorData.type === "download") {
         toast.dismiss("download-progress");
-        if (downloadProgressToastIdRef.current) {
-          downloadProgressToastIdRef.current = null;
-        }
       }
       if (errorData.type === "check") {
         toast.dismiss("update-available");
-        if (updateAvailableToastIdRef.current) {
-          updateAvailableToastIdRef.current = null;
-        }
       }
 
-      // Show error toast with retry option for download/check errors
-      const canRetry =
-        errorData.type === "download" || errorData.type === "check";
+      const canRetry = errorData.type === "download" || errorData.type === "check";
       showUpdateErrorToast(
         errorData,
         canRetry
@@ -378,12 +239,7 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
     };
 
     window.updateAPI.onUpdateError(handleError);
-
-    return () => {
-      if (window.updateAPI) {
-        window.updateAPI.removeAllListeners("update:error");
-      }
-    };
+    return () => window.updateAPI?.removeAllListeners("update:error");
   }, []);
 
   // Listen for install request (from notification)
@@ -397,10 +253,7 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
     };
 
     window.updateAPI.onInstallRequest(handleInstallRequest);
-
-    return () => {
-      window.updateAPI?.removeAllListeners("update:install-request");
-    };
+    return () => window.updateAPI?.removeAllListeners("update:install-request");
   }, [state, updateInfo]);
 
   // Download update
@@ -460,12 +313,7 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
       setState("idle");
       setUpdateInfo(null);
 
-      // Dismiss the update available toast (using fixed ID)
       toast.dismiss("update-available");
-      if (updateAvailableToastIdRef.current) {
-        updateAvailableToastIdRef.current = null;
-      }
-
       toast.info("Update postponed. We'll remind you later.", {
         duration: 3000,
       });
