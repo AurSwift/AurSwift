@@ -14,7 +14,10 @@ export type {
   PrintStatus,
   PrinterInfo,
   PrintJob,
+  PrinterError,
+  PrintStatusIndicatorProps,
 } from "./types/printer.types";
 
 export { PrinterSetupDialog } from "./components/printer-setup-dialog";
+export { PrintStatusIndicator, PrintStatusBadge } from "./components/print-status-indicator";
 

@@ -4,8 +4,6 @@
  */
 
 import React, {
-  createContext,
-  useContext,
   useState,
   useEffect,
   useCallback,
@@ -25,27 +23,13 @@ import {
   showUpdateErrorToast,
 } from "../components";
 import { getLogger } from "@/shared/utils/logger";
-import { useLicenseContext } from "@/features/license";
+import { useAppFlow } from "@/app/context/app-flow-context";
+import {
+  UpdateToastContext,
+  type UpdateContextValue,
+} from "./update-toast-context-types";
 
 const logger = getLogger("UpdateToastContext");
-
-interface UpdateContextValue {
-  state: UpdateState;
-  updateInfo: UpdateInfo | null;
-  progress: DownloadProgress | null;
-  error: UpdateError | null;
-  currentVersion: string;
-  postponeCount: number;
-
-  // Actions
-  downloadUpdate: () => Promise<void>;
-  installUpdate: () => Promise<void>;
-  postponeUpdate: () => void;
-  checkForUpdates: () => Promise<void>;
-  dismissError: () => void;
-}
-
-const UpdateToastContext = createContext<UpdateContextValue | null>(null);
 
 interface UpdateToastProviderProps {
   children: React.ReactNode;
@@ -59,11 +43,11 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
   const [postponeCount, setPostponeCount] = useState(0);
   const [currentVersion, setCurrentVersion] = useState("1.0.0"); // Default, will be updated from IPC
 
-  // Check if license is activated - suppress update notifications during activation
-  // Note: UpdateToastProvider is inside LicenseProvider, so context should be available
-  // We call the hook unconditionally (React rules) - UpdateToastProvider is nested inside LicenseProvider
-  const licenseContext = useLicenseContext();
-  const isLicenseActivated = licenseContext.isActivated;
+  // Suppress update notifications during activation / onboarding UI.
+  // This is controlled by the App shell (not by license status itself),
+  // so "Test Mode" can still show update toasts.
+  const { suppressUpdateToasts } = useAppFlow();
+  const prevSuppressUpdateToastsRef = useRef(suppressUpdateToasts);
 
   // Fetch app version on mount
   useEffect(() => {
@@ -129,9 +113,10 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
       setUpdateInfo(info);
       setError(null);
 
-      // Suppress update notifications during license activation
-      // This keeps the activation screen focused on its primary task
-      if (!isLicenseActivated) {
+      // Suppress update notifications during activation UI
+      // This keeps the activation screen focused on its primary task.
+      // Note: we still store update state so we can show it after activation.
+      if (suppressUpdateToasts) {
         return;
       }
 
@@ -169,7 +154,70 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
         window.updateAPI.removeAllListeners("update:available");
       }
     };
-  }, [currentVersion, isLicenseActivated]);
+  }, [currentVersion, suppressUpdateToasts]);
+
+  // If an update event happened during activation UI, show it immediately
+  // once activation UI ends (so the notification isn't lost).
+  useEffect(() => {
+    const wasSuppressing = prevSuppressUpdateToastsRef.current;
+    prevSuppressUpdateToastsRef.current = suppressUpdateToasts;
+
+    // Only run when suppression flips from true -> false
+    if (!wasSuppressing || suppressUpdateToasts) {
+      return;
+    }
+
+    // Dismiss any existing toasts FIRST to prevent overlapping
+    toast.dismiss("update-available");
+    toast.dismiss("download-progress");
+    toast.dismiss("update-ready");
+
+    // Clear refs
+    if (updateAvailableToastIdRef.current) {
+      updateAvailableToastIdRef.current = null;
+    }
+    if (downloadProgressToastIdRef.current) {
+      downloadProgressToastIdRef.current = null;
+    }
+    if (updateReadyToastIdRef.current) {
+      updateReadyToastIdRef.current = null;
+    }
+
+    // Show the most appropriate toast for the last known update state
+    if (state === "downloading" && progress) {
+      downloadProgressToastIdRef.current = showDownloadProgressToast(
+        progress,
+        () => cancelDownloadRef.current?.()
+      );
+      return;
+    }
+
+    if (!updateInfo) {
+      return;
+    }
+
+    if (state === "downloaded") {
+      setTimeout(() => {
+        updateReadyToastIdRef.current = showUpdateReadyToast(
+          updateInfo,
+          () => installUpdateRef.current?.(),
+          () => postponeUpdateRef.current?.()
+        );
+      }, 100);
+      return;
+    }
+
+    if (state === "available") {
+      setTimeout(() => {
+        updateAvailableToastIdRef.current = showUpdateAvailableToast(
+          updateInfo,
+          currentVersion,
+          () => downloadUpdateRef.current?.(),
+          () => postponeUpdateRef.current?.()
+        );
+      }, 100);
+    }
+  }, [currentVersion, progress, state, suppressUpdateToasts, updateInfo]);
 
   // Listen for download progress
   useEffect(() => {
@@ -179,8 +227,8 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
       setState("downloading");
       setProgress(progressData);
 
-      // Suppress download progress notifications during license activation
-      if (!isLicenseActivated) {
+      // Suppress download progress notifications during activation UI
+      if (suppressUpdateToasts) {
         return;
       }
 
@@ -208,7 +256,7 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
         window.updateAPI.removeAllListeners("update:download-progress");
       }
     };
-  }, [isLicenseActivated]);
+  }, [suppressUpdateToasts]);
 
   // Listen for download cancelled
   useEffect(() => {
@@ -249,8 +297,8 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
       setUpdateInfo(info);
       setProgress(null);
 
-      // Suppress update ready notifications during license activation
-      if (!isLicenseActivated) {
+      // Suppress update ready notifications during activation UI
+      if (suppressUpdateToasts) {
         return;
       }
 
@@ -287,7 +335,7 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
         window.updateAPI.removeAllListeners("update:downloaded");
       }
     };
-  }, [isLicenseActivated]);
+  }, [suppressUpdateToasts]);
 
   // Listen for errors
   useEffect(() => {
@@ -537,12 +585,4 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
       {children}
     </UpdateToastContext.Provider>
   );
-}
-
-export function useUpdateToast() {
-  const context = useContext(UpdateToastContext);
-  if (!context) {
-    throw new Error("useUpdateToast must be used within UpdateToastProvider");
-  }
-  return context;
 }

@@ -622,6 +622,7 @@ export class ThermalPrinterService {
 
   /**
    * Get available printer interfaces (COM ports, Bluetooth devices)
+   * Filters out virtual/debug ports on macOS that aren't actual printers
    */
   async getAvailableInterfaces(): Promise<{
     interfaces: Array<{
@@ -637,6 +638,53 @@ export class ThermalPrinterService {
         address: string;
       }> = [];
 
+      // Patterns for macOS virtual/debug ports to exclude
+      const macOSVirtualPortPatterns = [
+        /debug/i,
+        /wlan/i,
+        /Bluetooth-Incoming/i,
+        /\.SOC$/i,    // System-on-chip debug
+        /MALS$/i,     // Mobile Asset Lock
+        /BLTH$/i,     // Bluetooth debug
+      ];
+
+      // Check if a port looks like a real thermal printer port
+      const isLikelyRealPrinter = (port: any): boolean => {
+        const path = (port.path || port.comName || "").toLowerCase();
+        
+        // On macOS, filter out virtual/debug ports
+        if (process.platform === "darwin") {
+          // Exclude ports matching debug patterns
+          for (const pattern of macOSVirtualPortPatterns) {
+            if (pattern.test(path)) return false;
+          }
+          
+          // USB serial adapters typically have "usb" in the path
+          // or have vendorId/productId
+          if (path.includes("usbserial") || path.includes("usbmodem")) return true;
+          if (port.vendorId && port.productId) return true;
+          
+          // cu.* ports are callout devices, tty.* are dial-in
+          // For printers, cu.* is typically used
+          if (path.includes("/dev/cu.")) return true;
+          
+          // Exclude generic tty.* that aren't USB
+          if (path.includes("/dev/tty.") && !path.includes("usb")) return false;
+        }
+        
+        // On Windows, all COM ports are potentially valid
+        if (process.platform === "win32") return true;
+        
+        // On Linux, look for USB serial
+        if (process.platform === "linux") {
+          if (path.includes("ttyusb") || path.includes("ttyacm")) return true;
+          // Also allow serial ports with vendor info
+          if (port.vendorId && port.productId) return true;
+        }
+        
+        return true; // Default: include
+      };
+
       // Prefer real OS-reported serial ports
       const { SerialPort } = await import("serialport").catch(() => ({
         SerialPort: null as any,
@@ -646,6 +694,13 @@ export class ThermalPrinterService {
         ports.forEach((port: any) => {
           const path = port.path || port.comName;
           if (!path) return;
+          
+          // Filter out virtual/debug ports
+          if (!isLikelyRealPrinter(port)) {
+            logger.debug(`Filtered out virtual port: ${path}`);
+            return;
+          }
+          
           const parts = [port.manufacturer, port.vendorId, port.productId, port.serialNumber]
             .filter(Boolean)
             .join(" ");
@@ -662,6 +717,11 @@ export class ThermalPrinterService {
         for (let i = 1; i <= 20; i++) {
           interfaces.push({ type: "usb", name: `COM${i}`, address: `COM${i}` });
         }
+      }
+
+      // If no ports found, provide helpful message
+      if (interfaces.length === 0) {
+        logger.info("No thermal printer ports detected. Make sure the printer is connected via USB.");
       }
 
       return { interfaces };

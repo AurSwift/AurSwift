@@ -180,9 +180,16 @@ export function NewTransactionView({
   const [pendingWeightForBatchSelection, setPendingWeightForBatchSelection] =
     useState<number | undefined>(undefined);
 
-  // Receipt printing flow
-  const { isShowingStatus, startPrintingFlow, handleSkipReceipt } =
-    useReceiptPrintingFlow();
+  // Receipt printing flow - enhanced with status and error states
+  const { 
+    isShowingStatus, 
+    startPrintingFlow, 
+    handleSkipReceipt,
+    handleRetryPrint,
+    handleCancelPrint,
+    printStatus,
+    printerError,
+  } = useReceiptPrintingFlow();
 
   // Thermal printer
   const { connectPrinter: connectPrinterInternal } = useThermalPrinter();
@@ -1552,6 +1559,11 @@ export function NewTransactionView({
           onClose={payment.handleCloseReceiptOptions}
           onCancel={payment.handleCancelPayment}
           printerStatus={payment.printerStatus}
+          // Enhanced print status props
+          printStatus={printStatus}
+          printerError={printerError}
+          onRetryPrint={handleRetryPrint}
+          onCancelPrint={handleCancelPrint}
         />
       )}
 

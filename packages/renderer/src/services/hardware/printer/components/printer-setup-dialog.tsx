@@ -62,9 +62,21 @@ export function PrinterSetupDialog({
         setSelectedInterface(list[0]!.address);
       }
       if (list.length === 0) {
-        toast.warning(
-          "No printer ports found. Make sure the printer is connected and check Windows Device Manager for a COM port."
-        );
+        // Platform-specific help message
+        const platform = navigator.platform.toLowerCase();
+        if (platform.includes("mac")) {
+          toast.warning(
+            "No thermal printer found. Connect the Metapace T-3 via USB and check System Information > USB."
+          );
+        } else if (platform.includes("win")) {
+          toast.warning(
+            "No printer ports found. Make sure the printer is connected and check Device Manager for a COM port."
+          );
+        } else {
+          toast.warning(
+            "No printer ports found. Make sure the printer is connected via USB."
+          );
+        }
       }
     } catch (error) {
       logger.error("Failed to load printer interfaces", error);
@@ -122,8 +134,9 @@ export function PrinterSetupDialog({
         <DialogHeader>
           <DialogTitle>Connect Receipt Printer</DialogTitle>
           <DialogDescription>
-            Select the printer COM port (Metapace T-3 on Windows usually appears
-            as COM3/COM4/etc). This will be saved for auto-connect next time.
+            Select the printer port for your Metapace T-3 thermal printer.
+            On Windows, it typically appears as COM3/COM4. On macOS, look for 
+            a USB serial port. The selection will be saved for auto-connect.
           </DialogDescription>
         </DialogHeader>
 

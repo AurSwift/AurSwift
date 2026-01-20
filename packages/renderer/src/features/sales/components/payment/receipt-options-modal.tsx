@@ -1,9 +1,14 @@
 /**
  * Receipt options modal component
  * Shown after successful transaction completion for all payment types
+ * 
+ * Enhanced with print status indicator showing:
+ * - Connecting to printer state
+ * - Printing state
+ * - Success/error states with retry options
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   CheckCircle,
@@ -12,17 +17,23 @@ import {
   Mail,
   X,
   ChevronRight,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { TransactionData } from "@/types/domain/transaction";
 import { EmailReceiptModal } from "../modals/email-receipt-modal";
 import { ReceiptPreviewModal } from "../modals/receipt-preview-modal";
-import { PrinterSetupDialog } from "@/services/hardware/printer";
+import { 
+  PrinterSetupDialog, 
+  PrintStatusIndicator,
+  type PrintStatus,
+  type PrinterError,
+} from "@/services/hardware/printer";
 
 interface ReceiptOptionsModalProps {
   isOpen: boolean;
   transactionData: TransactionData | null;
-  onPrint: () => void;
+  onPrint: () => Promise<boolean>;
   onDownload: () => void;
   onEmail: () => void;
   onClose: () => void;
@@ -31,6 +42,11 @@ interface ReceiptOptionsModalProps {
     connected: boolean;
     error: string | null;
   };
+  // New props for enhanced status display
+  printStatus?: PrintStatus;
+  printerError?: PrinterError | null;
+  onRetryPrint?: () => Promise<boolean>;
+  onCancelPrint?: () => void;
 }
 
 export function ReceiptOptionsModal({
@@ -42,6 +58,10 @@ export function ReceiptOptionsModal({
   onClose,
   onCancel,
   printerStatus = { connected: true, error: null },
+  printStatus = "idle",
+  printerError = null,
+  onRetryPrint,
+  onCancelPrint,
 }: ReceiptOptionsModalProps) {
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showPrinterSetup, setShowPrinterSetup] = useState(false);
@@ -52,6 +72,10 @@ export function ReceiptOptionsModal({
   const [localPrinterError, setLocalPrinterError] = useState<string | null>(
     printerStatus.error
   );
+  const [isPrinting, setIsPrinting] = useState(false);
+
+  // Determine if print operation is in progress
+  const isActivePrintOperation = ["checking-connection", "connecting", "printing"].includes(printStatus);
 
   // Keep local status in sync with parent, but allow live refresh after setup.
   // (Parent state is only captured at transaction completion today.)
@@ -59,6 +83,11 @@ export function ReceiptOptionsModal({
     setLocalPrinterConnected(printerStatus.connected);
     setLocalPrinterError(printerStatus.error);
   }, [printerStatus.connected, printerStatus.error]);
+
+  // Update isPrinting based on printStatus
+  useEffect(() => {
+    setIsPrinting(isActivePrintOperation);
+  }, [isActivePrintOperation]);
 
   const refreshPrinterStatus = async () => {
     try {
@@ -71,6 +100,32 @@ export function ReceiptOptionsModal({
       setLocalPrinterError(e instanceof Error ? e.message : "Unknown error");
     }
   };
+
+  /**
+   * Handle print button click with loading state
+   */
+  const handlePrintClick = useCallback(async () => {
+    setIsPrinting(true);
+    try {
+      const result = await onPrint();
+      if (result) {
+        // Success will auto-close after delay via parent
+      }
+    } finally {
+      // Let printStatus control the loading state now
+    }
+  }, [onPrint]);
+
+  /**
+   * Handle retry from the status indicator
+   */
+  const handleRetry = useCallback(async () => {
+    if (onRetryPrint) {
+      await onRetryPrint();
+    } else {
+      await handlePrintClick();
+    }
+  }, [onRetryPrint, handlePrintClick]);
 
   if (!isOpen || !transactionData) return null;
 
@@ -180,49 +235,83 @@ export function ReceiptOptionsModal({
               How would you like to receive the receipt?
             </p>
 
-            {/* Print Receipt Button */}
-            <div className="space-y-2">
-              <Button
-                onClick={onPrint}
-                disabled={!localPrinterConnected}
-                className="w-full min-h-[44px] h-14 sm:h-16 bg-linear-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed text-white flex items-center justify-between px-4 sm:px-6 text-sm sm:text-base font-semibold shadow-md hover:shadow-lg transition-all touch-manipulation"
-              >
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="p-1.5 sm:p-2 bg-white/20 rounded-lg shrink-0">
-                    <Printer className="h-4 w-4 sm:h-5 sm:w-5" />
-                  </div>
-                  <span>Print Receipt</span>
-                </div>
-                <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
-              </Button>
+            {/* Print Status Indicator - shown when print is in progress or has result */}
+            {printStatus !== "idle" && (
+              <div className="mb-4">
+                <PrintStatusIndicator
+                  status={printStatus}
+                  error={printerError}
+                  onRetry={handleRetry}
+                  onCancel={onCancelPrint}
+                  onSetupPrinter={() => setShowPrinterSetup(true)}
+                  printerName="Metapace T-3"
+                />
+              </div>
+            )}
 
-              <Button
-                onClick={() => setShowPreviewModal(true)}
-                variant="outline"
-                className="w-full"
-              >
-                Preview Receipt
-              </Button>
-              {!localPrinterConnected && (
-                <div className="space-y-2">
-                  <p className="text-[10px] sm:text-xs text-amber-600 text-center px-2">
-                    ⚠️ Printer is not connected. You can download the receipt or
-                    print later from transaction history.
-                    {localPrinterError ? ` (${localPrinterError})` : ""}
-                  </p>
-                  <Button
-                    variant="outline"
-                    onClick={async () => {
-                      await refreshPrinterStatus();
-                      setShowPrinterSetup(true);
-                    }}
-                    className="w-full"
-                  >
-                    Connect Printer
-                  </Button>
-                </div>
-              )}
-            </div>
+            {/* Print Receipt Button - only show when status is idle (no active operation or result) */}
+            {printStatus === "idle" && (
+              <div className="space-y-2">
+                <Button
+                  onClick={handlePrintClick}
+                  disabled={!localPrinterConnected || isPrinting}
+                  className="w-full min-h-[44px] h-14 sm:h-16 bg-linear-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed text-white flex items-center justify-between px-4 sm:px-6 text-sm sm:text-base font-semibold shadow-md hover:shadow-lg transition-all touch-manipulation"
+                >
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="p-1.5 sm:p-2 bg-white/20 rounded-lg shrink-0">
+                      {isPrinting ? (
+                        <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                      ) : (
+                        <Printer className="h-4 w-4 sm:h-5 sm:w-5" />
+                      )}
+                    </div>
+                    <span>{isPrinting ? "Printing..." : "Print Receipt"}</span>
+                  </div>
+                  {!isPrinting && <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />}
+                </Button>
+
+                <Button
+                  onClick={() => setShowPreviewModal(true)}
+                  variant="outline"
+                  className="w-full"
+                  disabled={isPrinting}
+                >
+                  Preview Receipt
+                </Button>
+                {!localPrinterConnected && !isPrinting && (
+                  <div className="space-y-2">
+                    <p className="text-[10px] sm:text-xs text-amber-600 text-center px-2">
+                      ⚠️ Printer is not connected. You can download the receipt or
+                      print later from transaction history.
+                      {localPrinterError ? ` (${localPrinterError})` : ""}
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={async () => {
+                        await refreshPrinterStatus();
+                        setShowPrinterSetup(true);
+                      }}
+                      className="w-full"
+                    >
+                      Connect Printer
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Success state - show "Continue" button */}
+            {printStatus === "success" && (
+              <div className="space-y-3">
+                <Button
+                  onClick={onClose}
+                  className="w-full h-14 sm:h-16 bg-green-600 hover:bg-green-700 text-white font-semibold"
+                >
+                  <CheckCircle className="h-5 w-5 mr-2" />
+                  Continue to Next Customer
+                </Button>
+              </div>
+            )}
 
             {/* Download Receipt Button */}
             <Button

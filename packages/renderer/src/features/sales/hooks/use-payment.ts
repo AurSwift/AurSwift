@@ -883,27 +883,29 @@ export function usePayment({
 
   /**
    * Handler for printing receipt
+   * Returns a Promise<boolean> indicating success/failure
+   * Status is now handled by PrintStatusIndicator in the modal
    */
-  const handlePrintReceipt = useCallback(async () => {
-    if (!completedTransactionData) return;
+  const handlePrintReceipt = useCallback(async (): Promise<boolean> => {
+    if (!completedTransactionData) return false;
 
     try {
-      toast.info("Printing receipt...");
+      // startPrintingFlow now handles all status updates via the hook
+      // It will show: checking-connection → connecting → printing → success/error
       const printResult = await startPrintingFlow(completedTransactionData);
 
       if (printResult) {
-        toast.success("Receipt printed successfully!");
+        // Auto-close after successful print (delay allows user to see success state)
         setTimeout(() => {
           handleCloseReceiptOptions();
-        }, 1500);
-      } else {
-        toast.error(
-          "Failed to print receipt. Please check printer connection."
-        );
+        }, 2000);
+        return true;
       }
+      // Error state is shown by PrintStatusIndicator
+      return false;
     } catch (error) {
       logger.error("Print error:", error);
-      toast.error("Failed to print receipt");
+      return false;
     }
   }, [completedTransactionData, startPrintingFlow, handleCloseReceiptOptions]);
 

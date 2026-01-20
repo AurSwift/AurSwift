@@ -18,6 +18,7 @@ import { ProtectedAppShell } from "@/navigation/components/protected-app-shell";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { sanitizeUserFacingMessage } from "@/shared/utils/user-facing-errors";
+import { useAppFlow } from "@/app/context/app-flow-context";
 
 /**
  * System notification listener
@@ -117,6 +118,7 @@ function AppWithLicenseCheck() {
   const { isLoading, isActivated, refreshStatus } = useLicenseContext();
   const [showActivation, setShowActivation] = useState(false);
   const [testMode, setTestMode] = useState(false);
+  const { setSuppressUpdateToasts } = useAppFlow();
 
   // Listen for system notifications
   useSystemNotifications();
@@ -127,6 +129,13 @@ function AppWithLicenseCheck() {
       setShowActivation(!isActivated);
     }
   }, [isLoading, isActivated]);
+
+  // Suppress update toasts ONLY while activation screen is the primary UI.
+  // If the user enters Test Mode, we should allow updates to behave normally.
+  useEffect(() => {
+    const shouldSuppress = !testMode && (isLoading || (!isActivated && showActivation));
+    setSuppressUpdateToasts(shouldSuppress);
+  }, [isActivated, isLoading, setSuppressUpdateToasts, showActivation, testMode]);
 
   // Show loading screen while checking license
   if (isLoading) {
