@@ -8,6 +8,19 @@ const logger = getLogger("timeTrackingHandlers");
 // let db: any = null; // Removed: Always get fresh DB reference
 
 export function registerTimeTrackingHandlers() {
+  const serialize = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
+  const sanitizeUser = (user: any) => {
+    if (!user) return null;
+    const {
+      passwordHash: _passwordHash,
+      pinHash: _pinHash,
+      salt: _salt,
+      email: _email,
+      ...safe
+    } = user;
+    return safe;
+  };
+
   // Time Tracking IPC Handlers
   ipcMain.handle("timeTracking:clockIn", async (event, data) => {
     try {
@@ -415,4 +428,413 @@ export function registerTimeTrackingHandlers() {
       };
     }
   });
+
+  // ============================================================================
+  // Reporting (Admin/Manager)
+  // ============================================================================
+
+  ipcMain.handle(
+    "timeTracking:reports:getRealTimeDashboard",
+    async (event, businessId: string) => {
+      try {
+        const db = await getDatabase();
+        const data = db.timeTrackingReports.getRealTimeDashboard(businessId);
+        return { success: true, data: serialize(data) };
+      } catch (error) {
+        logger.error("Get real-time dashboard IPC error:", error);
+        return {
+          success: false,
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to load real-time dashboard",
+        };
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "timeTracking:reports:getBreakCompliance",
+    async (
+      event,
+      args: { businessId: string; startDate: string; endDate: string }
+    ) => {
+      try {
+        const db = await getDatabase();
+        const data = db.timeTrackingReports.getBreakComplianceReport(
+          args.businessId,
+          args.startDate,
+          args.endDate
+        );
+        return { success: true, data: serialize(data) };
+      } catch (error) {
+        logger.error("Get break compliance IPC error:", error);
+        return {
+          success: false,
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to load break compliance report",
+        };
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "timeTracking:reports:getPayrollSummary",
+    async (
+      event,
+      args: {
+        businessId: string;
+        startDate: string;
+        endDate: string;
+        hourlyRate?: number;
+      }
+    ) => {
+      try {
+        const db = await getDatabase();
+        const data = db.timeTrackingReports.getPayrollSummary(
+          args.businessId,
+          args.startDate,
+          args.endDate,
+          args.hourlyRate
+        );
+        return { success: true, data: serialize(data) };
+      } catch (error) {
+        logger.error("Get payroll summary IPC error:", error);
+        return {
+          success: false,
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to load payroll summary",
+        };
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "timeTracking:reports:getShiftDetails",
+    async (event, shiftId: string) => {
+      try {
+        const db = await getDatabase();
+        const shift = db.timeTracking.getShiftById(shiftId);
+        if (!shift) {
+          return { success: false, message: "Shift not found" };
+        }
+
+        const user = shift.user_id
+          ? sanitizeUser(db.users.getUserById(shift.user_id))
+          : null;
+        const clockInEvent = shift.clock_in_id
+          ? db.timeTracking.getClockEventById(shift.clock_in_id)
+          : null;
+        const clockOutEvent = shift.clock_out_id
+          ? db.timeTracking.getClockEventById(shift.clock_out_id)
+          : null;
+        const breaks = db.timeTracking.getBreaksByShift(shift.id);
+
+        return {
+          success: true,
+          data: serialize({
+            shift,
+            user,
+            clockInEvent,
+            clockOutEvent,
+            breaks,
+          }),
+        };
+      } catch (error) {
+        logger.error("Get shift details IPC error:", error);
+        return {
+          success: false,
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to load shift details",
+        };
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "timeTracking:reports:getShifts",
+    async (
+      event,
+      args: {
+        businessId: string;
+        startDate: string;
+        endDate: string;
+        filters?: {
+          userIds?: string[];
+          status?: "active" | "ended";
+          complianceOnly?: boolean;
+        };
+      }
+    ) => {
+      try {
+        const db = await getDatabase();
+
+        const shifts = db.timeTracking.getShiftsByBusinessAndDateRange(
+          args.businessId,
+          args.startDate,
+          args.endDate
+        );
+
+        const filters = args.filters || {};
+        const userIdSet =
+          Array.isArray(filters.userIds) && filters.userIds.length > 0
+            ? new Set(filters.userIds)
+            : null;
+
+        const rows = shifts
+          .filter((s) => (filters.status ? s.status === filters.status : true))
+          .filter((s) => (userIdSet ? userIdSet.has(s.user_id) : true))
+          .map((shift) => {
+            const user = shift.user_id
+              ? sanitizeUser(db.users.getUserById(shift.user_id))
+              : null;
+            const clockInEvent = shift.clock_in_id
+              ? db.timeTracking.getClockEventById(shift.clock_in_id)
+              : null;
+            const clockOutEvent = shift.clock_out_id
+              ? db.timeTracking.getClockEventById(shift.clock_out_id)
+              : null;
+            const breaks = db.timeTracking.getBreaksByShift(shift.id) || [];
+
+            const completedBreaks = breaks.filter(
+              (b: any) => b && (b.status === "completed" || b.end_time)
+            );
+            const totalBreakSeconds = completedBreaks.reduce(
+              (sum: number, b: any) =>
+                sum + (typeof b.duration_seconds === "number" ? b.duration_seconds : 0),
+              0
+            );
+            const paidBreakSeconds = completedBreaks.reduce(
+              (sum: number, b: any) =>
+                sum +
+                (b.is_paid && typeof b.duration_seconds === "number" ? b.duration_seconds : 0),
+              0
+            );
+            const unpaidBreakSeconds = totalBreakSeconds - paidBreakSeconds;
+            const breakCount = completedBreaks.length;
+
+            const hasAnyMealBreak = completedBreaks.some((b: any) => b.type === "meal");
+            const hasShortRequiredBreak = completedBreaks.some(
+              (b: any) => Boolean(b.is_required) && Boolean(b.is_short)
+            );
+
+            const totalHours =
+              typeof (shift as any).total_hours === "number" ? (shift as any).total_hours : 0;
+            const complianceIssue =
+              totalHours >= 6 && (!hasAnyMealBreak || hasShortRequiredBreak);
+
+            return {
+              shift: {
+                ...shift,
+                clockInEvent,
+                clockOutEvent,
+              },
+              user,
+              breaksSummary: {
+                totalBreakSeconds,
+                paidBreakSeconds,
+                unpaidBreakSeconds,
+                breakCount,
+                hasAnyMealBreak,
+                hasShortRequiredBreak,
+                complianceIssue,
+              },
+            };
+          })
+          .filter((r) => (filters.complianceOnly ? r.breaksSummary.complianceIssue : true));
+
+        return { success: true, data: serialize(rows) };
+      } catch (error) {
+        logger.error("Get shifts report IPC error:", error);
+        return {
+          success: false,
+          message:
+            error instanceof Error ? error.message : "Failed to load shifts report",
+        };
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "timeTracking:reports:getPendingTimeCorrections",
+    async (event, businessId: string) => {
+      try {
+        const db = await getDatabase();
+        const corrections = db.timeTracking.getPendingTimeCorrections(businessId);
+
+        const rows = (corrections || []).map((c: any) => {
+          const user = c.user_id ? sanitizeUser(db.users.getUserById(c.user_id)) : null;
+          const requestedBy = c.requested_by
+            ? sanitizeUser(db.users.getUserById(c.requested_by))
+            : null;
+          return {
+            ...c,
+            user,
+            requestedBy,
+          };
+        });
+
+        return { success: true, data: serialize(rows) };
+      } catch (error) {
+        logger.error("Get pending time corrections IPC error:", error);
+        return {
+          success: false,
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to load time corrections",
+        };
+      }
+    }
+  );
+
+  // ============================================================================
+  // Manager overrides (reason required)
+  // ============================================================================
+
+  ipcMain.handle(
+    "timeTracking:manager:forceClockOut",
+    async (event, args: { userId: string; managerId: string; reason: string }) => {
+      try {
+        const db = await getDatabase();
+        const result = await db.timeTracking.forceClockOut(
+          args.userId,
+          args.managerId,
+          args.reason
+        );
+
+        try {
+          await db.audit.createAuditLog({
+            action: "manager_force_clock_out",
+            entityType: "user",
+            entityId: args.userId,
+            userId: args.managerId,
+            details: {
+              reason: args.reason,
+              shiftId: result.shift?.id,
+              clockEventId: result.clockEvent?.id,
+            },
+          });
+        } catch (auditError) {
+          logger.warn("[forceClockOut] Failed to audit log (non-blocking):", auditError);
+        }
+
+        return { success: true, data: serialize(result) };
+      } catch (error) {
+        logger.error("Force clock-out IPC error:", error);
+        return {
+          success: false,
+          message:
+            error instanceof Error ? error.message : "Failed to force clock-out",
+        };
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "timeTracking:manager:updateBreak",
+    async (
+      event,
+      args: {
+        breakId: string;
+        managerId: string;
+        reason: string;
+        patch: {
+          startTime?: string;
+          endTime?: string | null;
+          type?: "meal" | "rest" | "other";
+          isPaid?: boolean;
+          notes?: string | null;
+        };
+      }
+    ) => {
+      try {
+        const db = await getDatabase();
+        const updatedBreak = await db.timeTracking.updateBreakByManager({
+          breakId: args.breakId,
+          startTime: args.patch.startTime,
+          endTime: args.patch.endTime,
+          type: args.patch.type,
+          isPaid: args.patch.isPaid,
+          notes: args.patch.notes,
+        });
+
+        try {
+          await db.audit.createAuditLog({
+            action: "manager_update_break",
+            entityType: "break",
+            entityId: args.breakId,
+            userId: args.managerId,
+            details: {
+              reason: args.reason,
+              patch: args.patch,
+            },
+          });
+        } catch (auditError) {
+          logger.warn("[updateBreak] Failed to audit log (non-blocking):", auditError);
+        }
+
+        return { success: true, data: serialize(updatedBreak) };
+      } catch (error) {
+        logger.error("Update break IPC error:", error);
+        return {
+          success: false,
+          message: error instanceof Error ? error.message : "Failed to update break",
+        };
+      }
+    }
+  );
+
+  ipcMain.handle(
+    "timeTracking:manager:processTimeCorrection",
+    async (
+      event,
+      args: { correctionId: string; managerId: string; approved: boolean }
+    ) => {
+      try {
+        const db = await getDatabase();
+        const updated = await db.timeTracking.processTimeCorrection(
+          args.correctionId,
+          args.managerId,
+          args.approved
+        );
+
+        try {
+          await db.audit.createAuditLog({
+            action: args.approved
+              ? "manager_approved_time_correction"
+              : "manager_rejected_time_correction",
+            entityType: "time_correction",
+            entityId: args.correctionId,
+            userId: args.managerId,
+            details: {
+              approved: args.approved,
+            },
+          });
+        } catch (auditError) {
+          logger.warn(
+            "[processTimeCorrection] Failed to audit log (non-blocking):",
+            auditError
+          );
+        }
+
+        return { success: true, data: serialize(updated) };
+      } catch (error) {
+        logger.error("Process time correction IPC error:", error);
+        return {
+          success: false,
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to process time correction",
+        };
+      }
+    }
+  );
 }

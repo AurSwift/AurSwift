@@ -17,6 +17,7 @@ import {
 import { ProtectedAppShell } from "@/navigation/components/protected-app-shell";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { sanitizeUserFacingMessage } from "@/shared/utils/user-facing-errors";
 
 /**
  * System notification listener
@@ -31,21 +32,22 @@ function useSystemNotifications() {
 
     const cleanup = window.systemNotificationsAPI.onNotification(
       (data: { type: string; message: string }) => {
+        const message = sanitizeUserFacingMessage(data.message, "Something went wrong");
         switch (data.type) {
           case "warning":
-            toast.warning(data.message, { duration: 5000 });
+            toast.warning(message, { duration: 5000 });
             break;
           case "error":
-            toast.error(data.message, { duration: 5000 });
+            toast.error(message, { duration: 5000 });
             break;
           case "info":
-            toast.info(data.message, { duration: 5000 });
+            toast.info(message, { duration: 5000 });
             break;
           case "success":
-            toast.success(data.message, { duration: 5000 });
+            toast.success(message, { duration: 5000 });
             break;
           default:
-            toast(data.message, { duration: 5000 });
+            toast(message, { duration: 5000 });
         }
       }
     );

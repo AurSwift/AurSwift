@@ -23,6 +23,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { useAuth } from "@/shared/hooks/use-auth";
+import { getLogger } from "@/shared/utils/logger";
+import {
+  getUserFacingErrorMessage,
+  sanitizeUserFacingMessage,
+} from "@/shared/utils/user-facing-errors";
+
+const logger = getLogger("StaffTimeCorrectionsView");
 
 interface StaffTimeCorrectionsViewProps {
   onBack: () => void;
@@ -71,12 +78,13 @@ export default function StaffTimeCorrectionsView({
         setRows(resp.data || []);
       } else {
         toast.error("Failed to load time corrections", {
-          description: resp.message || "Please try again",
+          description: sanitizeUserFacingMessage(resp.message, "Please try again"),
         });
       }
     } catch (error) {
+      logger.error("Failed to load pending time corrections", error);
       toast.error("Failed to load time corrections", {
-        description: error instanceof Error ? error.message : "Unknown error",
+        description: getUserFacingErrorMessage(error, "Please try again"),
       });
     } finally {
       setIsLoading(false);
@@ -95,12 +103,13 @@ export default function StaffTimeCorrectionsView({
       const resp = await window.authAPI.verifyPin(managerId, trimmed);
       if (resp?.success) return true;
       toast.error("PIN verification failed", {
-        description: resp?.message || "Invalid PIN",
+        description: sanitizeUserFacingMessage(resp?.message, "Invalid PIN"),
       });
       return false;
     } catch (error) {
+      logger.error("PIN verification failed", error);
       toast.error("PIN verification failed", {
-        description: error instanceof Error ? error.message : "Unknown error",
+        description: getUserFacingErrorMessage(error, "Invalid PIN"),
       });
       return false;
     }
@@ -136,12 +145,13 @@ export default function StaffTimeCorrectionsView({
         await load();
       } else {
         toast.error("Failed to process correction", {
-          description: resp.message || "Please try again",
+          description: sanitizeUserFacingMessage(resp.message, "Please try again"),
         });
       }
     } catch (error) {
+      logger.error("Failed to process time correction", error);
       toast.error("Failed to process correction", {
-        description: error instanceof Error ? error.message : "Unknown error",
+        description: getUserFacingErrorMessage(error, "Please try again"),
       });
     } finally {
       setIsProcessing(false);
