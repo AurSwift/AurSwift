@@ -8,7 +8,6 @@ interface NumericKeypadProps {
 }
 
 export function NumericKeypad({ onInput, keysOverride }: NumericKeypadProps) {
-  // Remove all Back keys from the grid
   // Color classes matching the main interface (slate/sky)
   const keyBase =
     "min-h-[44px] py-2 sm:py-3 lg:py-4 font-semibold text-sm sm:text-base lg:text-lg rounded transition-colors select-none focus:outline-none touch-manipulation";
@@ -16,6 +15,8 @@ export function NumericKeypad({ onInput, keysOverride }: NumericKeypadProps) {
     "bg-slate-100 text-slate-700 hover:bg-sky-100 active:bg-sky-200";
   const keyEnter = "bg-sky-600 text-white hover:bg-sky-700 active:bg-sky-800";
   const keyClear =
+    "bg-slate-200 text-slate-700 hover:bg-slate-300 active:bg-slate-400";
+  const keyBackspace =
     "bg-slate-200 text-slate-700 hover:bg-slate-300 active:bg-slate-400";
 
   // Example: Replace with your actual conditional button logic
@@ -35,7 +36,9 @@ export function NumericKeypad({ onInput, keysOverride }: NumericKeypadProps) {
   );
 
   const keys: (string | React.ReactNode)[][] = keysOverride
-    ? keysOverride.map((row) => row.map((key) => (key === "Back" ? "" : key)))
+    ? keysOverride.map((row) =>
+        row.map((key) => (key === "Back" ? "Backspace" : key))
+      )
     : [
         ["7", "8", "9", "Enter"],
         ["4", "5", "6", "Clear"],
@@ -45,8 +48,13 @@ export function NumericKeypad({ onInput, keysOverride }: NumericKeypadProps) {
 
   // Determine the max number of columns in any row
   const colCount = Math.max(...keys.map((row) => row.length));
+
+  // Tailwind needs static classnames; map dynamic column counts safely.
+  const gridColsClass =
+    colCount <= 2 ? "grid-cols-2" : colCount === 3 ? "grid-cols-3" : "grid-cols-4";
+
   return (
-    <div className={`grid grid-cols-${colCount} mt-2 gap-1.5 sm:gap-2`}>
+    <div className={cn("grid mt-2 gap-1.5 sm:gap-2", gridColsClass)}>
       {keys.map((row, rowIdx) =>
         row.map((key, colIdx) => {
           if (!key)
@@ -68,9 +76,12 @@ export function NumericKeypad({ onInput, keysOverride }: NumericKeypadProps) {
 
           const isEnter = key === "Enter";
           const isClear = key === "Clear";
+          const isBackspace =
+            key === "Backspace" || key === "<-" || key === "←" || key === "⌫";
           let keyClass = keyNumber;
           if (isEnter) keyClass = keyEnter;
           else if (isClear) keyClass = keyClear;
+          else if (isBackspace) keyClass = keyBackspace;
 
           return (
             <button

@@ -109,7 +109,7 @@ export function ReceiptOptionsModal({
     >
       <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 sm:mx-auto overflow-hidden max-h-[calc(100vh-2rem)] overflow-y-auto">
         {/* Header */}
-        <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-4 sm:p-6 relative">
+        <div className="bg-linear-to-r from-green-500 to-emerald-600 p-4 sm:p-6 relative">
           <button
             onClick={onCancel}
             className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white transition-all hover:rotate-90 duration-200 touch-manipulation"
@@ -136,7 +136,7 @@ export function ReceiptOptionsModal({
         {/* Content */}
         <div className="p-4 sm:p-6">
           {/* Transaction Summary */}
-          <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-4 sm:p-5 mb-4 sm:mb-6 border border-slate-200">
+          <div className="bg-linear-to-br from-slate-50 to-slate-100 rounded-xl p-4 sm:p-5 mb-4 sm:mb-6 border border-slate-200">
             <div className="flex justify-between items-center mb-3">
               <span className="text-slate-600 font-medium text-sm sm:text-base">
                 Total Paid:
@@ -185,7 +185,7 @@ export function ReceiptOptionsModal({
               <Button
                 onClick={onPrint}
                 disabled={!localPrinterConnected}
-                className="w-full min-h-[44px] h-14 sm:h-16 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed text-white flex items-center justify-between px-4 sm:px-6 text-sm sm:text-base font-semibold shadow-md hover:shadow-lg transition-all touch-manipulation"
+                className="w-full min-h-[44px] h-14 sm:h-16 bg-linear-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed text-white flex items-center justify-between px-4 sm:px-6 text-sm sm:text-base font-semibold shadow-md hover:shadow-lg transition-all touch-manipulation"
               >
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="p-1.5 sm:p-2 bg-white/20 rounded-lg shrink-0">

@@ -1330,7 +1330,7 @@ export function NewTransactionView({
 
           {/* Transaction Complete Message */}
           {payment.transactionComplete && !payment.showReceiptOptions && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-fade-in">
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-70 p-4 animate-fade-in">
               <div className="bg-white p-4 sm:p-6 rounded-lg text-center w-full max-w-sm animate-modal-enter">
                 <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 text-green-500 mx-auto mb-3 sm:mb-4" />
                 <h2 className="text-lg sm:text-xl font-bold mb-2 text-slate-800">

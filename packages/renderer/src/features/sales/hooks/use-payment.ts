@@ -751,7 +751,8 @@ export function usePayment({
       });
 
       if (method === "cash") {
-        setCashAmount(total);
+        // Start empty (cashier will enter received cash in the modal)
+        setCashAmount(0);
         return;
       }
 

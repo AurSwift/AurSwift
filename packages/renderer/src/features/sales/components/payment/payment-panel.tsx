@@ -7,12 +7,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreditCard } from "lucide-react";
 import { PaymentMethodSelector } from "./payment-method-selector";
-import { CashPaymentForm } from "./cash-payment-form";
 import { PaymentActions } from "./payment-actions";
 import { VivaWalletStatus } from "./viva-wallet-status";
+import { CashPaymentModal } from "./cash-payment-modal";
 import { useVivaWallet } from "../../hooks/use-viva-wallet";
 import { useVivaWalletTransaction } from "../../hooks/use-viva-wallet-transaction";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { PaymentMethod } from "@/types/domain/payment";
 
 interface PaymentPanelProps {
@@ -45,6 +45,7 @@ export function PaymentPanel({
   onCancel,
 }: PaymentPanelProps) {
   const { selectedTerminal, connectionStatus } = useVivaWallet();
+  const [cashModalOpen, setCashModalOpen] = useState(false);
   const {
     transactionStatus,
     isProcessing,
@@ -52,6 +53,15 @@ export function PaymentPanel({
     cancelTransaction,
     resetTransaction,
   } = useVivaWalletTransaction();
+
+  // Open cash modal only when cash is newly selected (don't auto-reopen after we close it).
+  useEffect(() => {
+    if (paymentMethod?.type === "cash") {
+      setCashModalOpen(true);
+    } else {
+      setCashModalOpen(false);
+    }
+  }, [paymentMethod?.type]);
 
   // Handle Viva Wallet transaction initiation when payment method is selected
   useEffect(() => {
@@ -183,20 +193,32 @@ export function PaymentPanel({
             />
           ) : (
             <div>
-              {paymentMethod.type === "cash" && (
-                <CashPaymentForm
+              {paymentMethod.type === "cash" ? (
+                <CashPaymentModal
+                  open={cashModalOpen}
                   total={total}
                   cashAmount={cashAmount}
+                  currency={currency}
                   onCashAmountChange={onCashAmountChange}
+                  onComplete={() => {
+                    // Close the modal immediately so success/receipt overlays can render above it.
+                    setCashModalOpen(false);
+                    onCompleteTransaction();
+                  }}
+                  onCancel={() => {
+                    setCashModalOpen(false);
+                    onCancel();
+                  }}
+                />
+              ) : (
+                <PaymentActions
+                  paymentMethod={paymentMethod}
+                  cashAmount={cashAmount}
+                  total={total}
+                  onComplete={onCompleteTransaction}
+                  onCancel={onCancel}
                 />
               )}
-              <PaymentActions
-                paymentMethod={paymentMethod}
-                cashAmount={cashAmount}
-                total={total}
-                onComplete={onCompleteTransaction}
-                onCancel={onCancel}
-              />
             </div>
           )}
         </CardContent>
