@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.35.0](https://github.com/AurSwift/AurSwift/compare/v1.34.0...v1.35.0) (2026-01-20)
+
+
+### feat
+
+* enhance payment panel with cash payment modal and state management ([](https://github.com/AurSwift/AurSwift/commit/737f2d4dffb7e603c1a457d5287187ea67b5ed8d))
+* enhance thermal printer service and receipt options with improved status handling ([](https://github.com/AurSwift/AurSwift/commit/439b537a0906b3ce73b4690c0d1796a47cee231a))
+* improve printer connection handling and status verification ([](https://github.com/AurSwift/AurSwift/commit/3007e360a1c5df9ca732ea2b0f11ac41d5e1c511))
+
+
+### fix
+
+* clean up and standardize code formatting in thermal printer service and related components ([](https://github.com/AurSwift/AurSwift/commit/53bd76b2c42bab38208899de5468359a89407ee9))
+
 # [1.34.0](https://github.com/AurSwift/AurSwift/compare/v1.33.0...v1.34.0) (2026-01-20)
 
 
