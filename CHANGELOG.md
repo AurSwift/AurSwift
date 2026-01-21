@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.35.1](https://github.com/AurSwift/AurSwift/compare/v1.35.0...v1.35.1) (2026-01-21)
+
+
+### fix
+
+* simplify update toast handling and improve state management ([](https://github.com/AurSwift/AurSwift/commit/88715fbf3d536be2741ff95038592958658e7cb8))
+
+
+### refactor
+
+* remove obsolete database migration and logging files ([](https://github.com/AurSwift/AurSwift/commit/c47819ab8e9c83e31eb36591faf642d6e1457916))
+* streamline license activation screen layout and styling ([](https://github.com/AurSwift/AurSwift/commit/7a95926e4d16ff4345390e3ced8992a7b63f82d4))
+
 # [1.35.0](https://github.com/AurSwift/AurSwift/compare/v1.34.0...v1.35.0) (2026-01-20)
 
 
