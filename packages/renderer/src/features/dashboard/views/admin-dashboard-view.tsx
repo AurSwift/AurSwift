@@ -86,6 +86,13 @@ const AdminDashboardView = ({
           `Import progress: ${progress.stage} - ${progress.percent}%`,
         );
         setImportProgress(progress);
+
+        // Handle error state
+        if (progress.stage === "error") {
+          logger.error("Import failed:", progress.message);
+          setIsImporting(false);
+          setImportProgress(null);
+        }
       },
     );
 
@@ -102,7 +109,7 @@ const AdminDashboardView = ({
   }, [isImporting]);
 
   // Backup/Export Database Handler
-  const handleBackupDatabase = async () => {
+  const handleBackupDatabase = useCallback(async () => {
     setIsBackupDialogOpen(false);
     setIsBackingUp(true);
 
@@ -142,12 +149,12 @@ const AdminDashboardView = ({
       toast.error("Failed to backup database", {
         id: "backup",
         description:
-          error instanceof Error ? error.message : "Unknown error occurred",
+          error instanceof Error ? error.message : "An unknown error occurred",
       });
     } finally {
       setIsBackingUp(false);
     }
-  };
+  }, []);
 
   // Import Database Handler - shows confirmation dialog first
   const handleImportDatabase = useCallback(() => {
@@ -203,10 +210,8 @@ const AdminDashboardView = ({
       // This ensures we wait for the database to be fully reinitialized
       // Fallback timeout in case ready signal doesn't arrive
       setTimeout(() => {
-        if (isImporting) {
-          logger.warn("Ready signal not received, forcing reload");
-          window.location.reload();
-        }
+        logger.warn("Ready signal not received, forcing reload");
+        window.location.reload();
       }, 10000);
     } catch (error) {
       logger.error("Import error:", error);
@@ -214,6 +219,7 @@ const AdminDashboardView = ({
         id: "import",
         description:
           error instanceof Error ? error.message : "An unknown error occurred",
+        duration: 6000,
       });
       setIsImporting(false);
       setImportProgress(null);
@@ -221,11 +227,11 @@ const AdminDashboardView = ({
   }, [isImporting]);
 
   // Empty Database Handler
-  const handleEmptyDatabase = () => {
+  const handleEmptyDatabase = useCallback(() => {
     setIsEmptyDialogOpen(true);
-  };
+  }, []);
 
-  const confirmEmptyDatabase = async () => {
+  const confirmEmptyDatabase = useCallback(async () => {
     setIsEmptyDialogOpen(false);
     setIsEmptying(true);
 
@@ -269,53 +275,63 @@ const AdminDashboardView = ({
     } finally {
       setIsEmptying(false);
     }
-  };
+  }, []);
 
   // Handle feature action clicks
-  const handleActionClick = (featureId: string, actionId: string) => {
-    // Prevent database operations while another is in progress
-    const isDatabaseOperationInProgress =
-      isImporting || isBackingUp || isEmptying;
+  const handleActionClick = useCallback(
+    (featureId: string, actionId: string) => {
+      // Prevent database operations while another is in progress
+      const isDatabaseOperationInProgress =
+        isImporting || isBackingUp || isEmptying;
 
-    logger.info(
-      `[handleActionClick] Feature: ${featureId}, Action: ${actionId}`,
-    );
+      logger.info(
+        `[handleActionClick] Feature: ${featureId}, Action: ${actionId}`,
+      );
 
-    // Use navigation handler if provided (for actions that map to views)
-    if (onActionClick) {
-      onActionClick(featureId, actionId);
-    }
+      // Use navigation handler if provided (for actions that map to views)
+      if (onActionClick) {
+        onActionClick(featureId, actionId);
+      }
 
-    // Handle actions that don't map to views (modals, dialogs, etc.)
-    switch (featureId) {
-      // Actions that map to views are handled by onActionClick (navigation handler)
-      // Only handle actions that don't map to views (modals, dialogs, etc.)
+      // Handle actions that don't map to views (modals, dialogs, etc.)
+      switch (featureId) {
+        // Actions that map to views are handled by onActionClick (navigation handler)
+        // Only handle actions that don't map to views (modals, dialogs, etc.)
 
-      case "database-management":
-        if (isDatabaseOperationInProgress) {
-          toast.warning(
-            "Please wait for the current database operation to complete",
+        case "database-management":
+          if (isDatabaseOperationInProgress) {
+            toast.warning(
+              "Please wait for the current database operation to complete",
+            );
+            return;
+          }
+          if (actionId === "import-database") {
+            handleImportDatabase();
+          } else if (actionId === "backup-database") {
+            setIsBackupDialogOpen(true);
+          } else if (actionId === "empty-database") {
+            handleEmptyDatabase();
+          }
+          break;
+
+        // system-settings actions are handled by onActionClick (navigation handler)
+
+        default:
+          logger.warn(
+            `[handleActionClick] Unhandled feature: ${featureId}, action: ${actionId}`,
           );
-          return;
-        }
-        if (actionId === "import-database") {
-          handleImportDatabase();
-        } else if (actionId === "backup-database") {
-          setIsBackupDialogOpen(true);
-        } else if (actionId === "empty-database") {
-          handleEmptyDatabase();
-        }
-        break;
-
-      // system-settings actions are handled by onActionClick (navigation handler)
-
-      default:
-        logger.warn(
-          `[handleActionClick] Unhandled feature: ${featureId}, action: ${actionId}`,
-        );
-        break;
-    }
-  };
+          break;
+      }
+    },
+    [
+      isImporting,
+      isBackingUp,
+      isEmptying,
+      onActionClick,
+      handleImportDatabase,
+      handleEmptyDatabase,
+    ],
+  );
 
   return (
     <>
@@ -324,8 +340,25 @@ const AdminDashboardView = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-background rounded-lg p-6 sm:p-8 max-w-md w-[90vw] shadow-xl border">
             <div className="space-y-4">
+              {/* Header with spinner or success icon */}
               <div className="flex items-center gap-3">
-                <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
+                {importProgress?.stage === "complete" ? (
+                  <div className="h-5 w-5 text-green-500">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                ) : (
+                  <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
+                )}
                 <h3 className="text-lg font-semibold">Importing Database</h3>
               </div>
 
@@ -345,6 +378,13 @@ const AdminDashboardView = ({
                   <p className="text-sm text-muted-foreground">
                     {importProgress.message}
                   </p>
+
+                  {/* Show reloading message when complete */}
+                  {importProgress.stage === "complete" && (
+                    <p className="text-sm font-medium text-green-600">
+                      Reloading application...
+                    </p>
+                  )}
                 </>
               )}
 
