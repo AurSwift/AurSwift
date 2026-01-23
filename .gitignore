@@ -8,7 +8,7 @@ thumbs.db
 .eslintcache
 
 # Documentation directories (at any level)
-**/docs/
+#**/docs/
 
 bookerdata
 test-results

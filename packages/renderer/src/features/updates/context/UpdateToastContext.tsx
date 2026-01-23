@@ -3,12 +3,7 @@
  * Manages update state and provides update functionality to components
  */
 
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-} from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import type {
   UpdateInfo,
   DownloadProgress,
@@ -64,12 +59,18 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
   }, []);
 
   // Refs for callback functions (to avoid stale closures in event handlers)
-  const downloadUpdateRef = useRef<(() => Promise<void>) | undefined>(undefined);
+  const downloadUpdateRef = useRef<(() => Promise<void>) | undefined>(
+    undefined,
+  );
   const installUpdateRef = useRef<(() => Promise<void>) | undefined>(undefined);
   const postponeUpdateRef = useRef<(() => void) | undefined>(undefined);
-  const checkForUpdatesRef = useRef<(() => Promise<void>) | undefined>(undefined);
+  const checkForUpdatesRef = useRef<(() => Promise<void>) | undefined>(
+    undefined,
+  );
   const dismissErrorRef = useRef<(() => void) | undefined>(undefined);
-  const cancelDownloadRef = useRef<(() => Promise<void>) | undefined>(undefined);
+  const cancelDownloadRef = useRef<(() => Promise<void>) | undefined>(
+    undefined,
+  );
   const activeToastIdRef = useRef<string | number | null>(null);
 
   // Helper to dismiss all update toasts
@@ -89,21 +90,26 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
       showUpdateReadyToast(
         updateInfo,
         () => installUpdateRef.current?.(),
-        () => postponeUpdateRef.current?.()
+        () => postponeUpdateRef.current?.(),
       );
     } else if (state === "available" && updateInfo) {
       showUpdateAvailableToast(
         updateInfo,
         currentVersion,
         () => downloadUpdateRef.current?.(),
-        () => postponeUpdateRef.current?.()
+        () => postponeUpdateRef.current?.(),
       );
     }
   }, [currentVersion, dismissAllUpdateToasts, progress, state, updateInfo]);
 
   // When suppression ends (user leaves activation screen), show any pending update toast
   useEffect(() => {
-    if (!suppressUpdateToasts && (state === "available" || state === "downloaded" || state === "downloading")) {
+    if (
+      !suppressUpdateToasts &&
+      (state === "available" ||
+        state === "downloaded" ||
+        state === "downloading")
+    ) {
       showToastForCurrentState();
     }
   }, [suppressUpdateToasts, showToastForCurrentState, state]);
@@ -139,7 +145,7 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
         info,
         currentVersion,
         () => downloadUpdateRef.current?.(),
-        () => postponeUpdateRef.current?.()
+        () => postponeUpdateRef.current?.(),
       );
     };
 
@@ -159,11 +165,14 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
 
       toast.dismiss("update-available");
       toast.dismiss("update-ready");
-      showDownloadProgressToast(progressData, () => cancelDownloadRef.current?.());
+      showDownloadProgressToast(progressData, () =>
+        cancelDownloadRef.current?.(),
+      );
     };
 
     window.updateAPI.onDownloadProgress(handleDownloadProgress);
-    return () => window.updateAPI?.removeAllListeners("update:download-progress");
+    return () =>
+      window.updateAPI?.removeAllListeners("update:download-progress");
   }, [suppressUpdateToasts]);
 
   // Listen for download cancelled
@@ -181,7 +190,8 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
     };
 
     window.updateAPI.onDownloadCancelled(handleDownloadCancelled);
-    return () => window.updateAPI?.removeAllListeners("update:download-cancelled");
+    return () =>
+      window.updateAPI?.removeAllListeners("update:download-cancelled");
   }, []);
 
   // Listen for update downloaded
@@ -199,7 +209,7 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
       showUpdateReadyToast(
         info,
         () => installUpdateRef.current?.(),
-        () => postponeUpdateRef.current?.()
+        () => postponeUpdateRef.current?.(),
       );
     };
 
@@ -222,7 +232,8 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
         toast.dismiss("update-available");
       }
 
-      const canRetry = errorData.type === "download" || errorData.type === "check";
+      const canRetry =
+        errorData.type === "download" || errorData.type === "check";
       showUpdateErrorToast(
         errorData,
         canRetry
@@ -234,7 +245,7 @@ export function UpdateToastProvider({ children }: UpdateToastProviderProps) {
               }
             }
           : undefined,
-        () => dismissErrorRef.current?.()
+        () => dismissErrorRef.current?.(),
       );
     };
 
