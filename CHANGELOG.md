@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.36.2](https://github.com/AurSwift/AurSwift/compare/v1.36.1...v1.36.2) (2026-01-24)
+
+
+### fix
+
+* **test:** increase performance threshold for VirtualizedProductTable ([](https://github.com/AurSwift/AurSwift/commit/aafa7494feb822edb4d5db37c3353487782e2e52))
+* remove AuthHeroSection component from authentication flow ([](https://github.com/AurSwift/AurSwift/commit/879ab49b5a33b905a242536f74f8c4a87f8f6979))
+
 ## [1.36.1](https://github.com/AurSwift/AurSwift/compare/v1.36.0...v1.36.1) (2026-01-24)
 
 
