@@ -32,12 +32,12 @@ import {
   mkdirSync,
   readdirSync,
   statSync,
-  unlinkSync,
 } from "node:fs";
 import { app } from "electron";
 import Database from "better-sqlite3";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import * as schema from "./schema.js";
+import { cleanupAllBackups } from "./utils/backup-cleanup.js";
 
 import { getLogger } from "../utils/logger.js";
 const logger = getLogger("drizzle-migrator");
@@ -68,7 +68,7 @@ function getMigrationsFolder(): string {
     if (!existsSync(devPath)) {
       throw new Error(
         `Development migrations folder not found: ${devPath}\n` +
-          "Make sure migrations folder exists in packages/main/src/database/"
+          "Make sure migrations folder exists in packages/main/src/database/",
       );
     }
     return devPath;
@@ -86,11 +86,11 @@ function getMigrationsFolder(): string {
   if (resourcesPath) {
     const resourcesMigrationsPath = join(resourcesPath, "migrations");
     checkedPaths.push(
-      `1. ${resourcesMigrationsPath} (extraResources - recommended)`
+      `1. ${resourcesMigrationsPath} (extraResources - recommended)`,
     );
     if (existsSync(resourcesMigrationsPath)) {
       logger.info(
-        `   📁 Found migrations in extraResources: ${resourcesMigrationsPath}`
+        `   📁 Found migrations in extraResources: ${resourcesMigrationsPath}`,
       );
       return resourcesMigrationsPath;
     }
@@ -112,7 +112,7 @@ function getMigrationsFolder(): string {
     "@app",
     "main",
     "dist",
-    "migrations"
+    "migrations",
   );
   checkedPaths.push(`3. ${appMigrationsPath} (app path)`);
   if (existsSync(appMigrationsPath)) {
@@ -125,7 +125,7 @@ function getMigrationsFolder(): string {
   checkedPaths.push(`4. ${asarMigrationsPath} (legacy)`);
   if (existsSync(asarMigrationsPath)) {
     logger.info(
-      `   📁 Found migrations in legacy location: ${asarMigrationsPath}`
+      `   📁 Found migrations in legacy location: ${asarMigrationsPath}`,
     );
     return asarMigrationsPath;
   }
@@ -155,7 +155,7 @@ function getMigrationsFolder(): string {
  */
 function checkDatabaseIntegrity(
   rawDb: Database.Database,
-  isProduction: boolean = false
+  isProduction: boolean = false,
 ): boolean {
   try {
     // 1. Quick check (faster for large databases)
@@ -191,13 +191,13 @@ function checkDatabaseIntegrity(
       }>;
       if (fkCheck.length > 0) {
         logger.error(
-          `   ❌ Foreign key violations found: ${fkCheck.length} violation(s)`
+          `   ❌ Foreign key violations found: ${fkCheck.length} violation(s)`,
         );
         if (!isProduction) {
           // In development, show details
           fkCheck.slice(0, 5).forEach((violation) => {
             logger.error(
-              `      - Table: ${violation.table}, Row: ${violation.rowid}, Parent: ${violation.parent}`
+              `      - Table: ${violation.table}, Row: ${violation.rowid}, Parent: ${violation.parent}`,
             );
           });
         }
@@ -217,131 +217,6 @@ function checkDatabaseIntegrity(
 }
 
 /**
- * Backup retention configuration
- * Different backup types have different retention policies
- */
-interface BackupRetentionConfig {
-  /** Regular migration backups - created on every migration */
-  migration: number;
-  /** Repair backups - created before repair attempts */
-  repair: number;
-  /** Fresh start backups - created when starting fresh */
-  freshStart: number;
-  /** Path migration backups - created during path migration */
-  pathMigration: number;
-}
-
-/**
- * All backup prefixes used by the system
- */
-const BACKUP_PREFIXES = {
-  migration: "aurswift-backup-",
-  repair: "aurswift-repair-backup-",
-  freshStart: "aurswift-fresh-start-backup-",
-  pathMigration: "aurswift-path-migration-backup-",
-} as const;
-
-/**
- * Cleanup old backups, keeping only the most recent N backups for each type
- * This handles ALL backup types created by the system:
- * - aurswift-backup-* (migration backups)
- * - aurswift-repair-backup-* (repair backups)
- * - aurswift-fresh-start-backup-* (fresh start backups)
- * - aurswift-path-migration-backup-* (path migration backups)
- *
- * @param backupDir - Directory containing backups
- * @param maxBackups - Maximum number of migration backups to keep (default: 10)
- *                     Repair/fresh-start backups keep 3x this value
- */
-function cleanupOldBackups(backupDir: string, maxBackups: number = 10): void {
-  try {
-    if (!existsSync(backupDir)) {
-      return;
-    }
-
-    // Configure retention per backup type
-    // Repair and path migration backups are more important - keep more
-    const retention: BackupRetentionConfig = {
-      migration: maxBackups,
-      repair: Math.max(3, Math.floor(maxBackups / 2)),
-      freshStart: Math.max(3, Math.floor(maxBackups / 2)),
-      pathMigration: Math.max(3, Math.floor(maxBackups / 2)),
-    };
-
-    let totalFreed = 0;
-    const allFiles = readdirSync(backupDir);
-
-    // Process each backup type
-    for (const [type, prefix] of Object.entries(BACKUP_PREFIXES)) {
-      const typeRetention = retention[type as keyof BackupRetentionConfig];
-
-      const backups = allFiles
-        .filter((f) => f.startsWith(prefix) && f.endsWith(".db"))
-        .map((f) => {
-          const filePath = join(backupDir, f);
-          try {
-            const stats = statSync(filePath);
-            return {
-              name: f,
-              path: filePath,
-              mtime: stats.mtime,
-              size: stats.size,
-            };
-          } catch {
-            return null;
-          }
-        })
-        .filter((f): f is NonNullable<typeof f> => f !== null)
-        .sort((a, b) => b.mtime.getTime() - a.mtime.getTime()); // Newest first
-
-      if (backups.length > typeRetention) {
-        const toDelete = backups.slice(typeRetention);
-
-        for (const backup of toDelete) {
-          try {
-            totalFreed += backup.size;
-            unlinkSync(backup.path);
-            logger.info(`   🗑️  Removed old backup: ${backup.name}`);
-          } catch (error) {
-            logger.warn(`   ⚠️  Failed to remove backup ${backup.name}:`, {
-              error,
-            });
-          }
-        }
-      }
-    }
-
-    // Also clean up any .old files that accumulate from failed operations
-    const oldFiles = allFiles.filter(
-      (f) => f.includes(".old.") && f.endsWith(".db")
-    );
-    for (const oldFile of oldFiles) {
-      try {
-        const filePath = join(backupDir, oldFile);
-        const stats = statSync(filePath);
-        // Only remove .old files older than 7 days
-        const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-        if (stats.mtimeMs < sevenDaysAgo) {
-          totalFreed += stats.size;
-          unlinkSync(filePath);
-          logger.info(`   🗑️  Removed old file: ${oldFile}`);
-        }
-      } catch {
-        // Ignore errors for individual .old files
-      }
-    }
-
-    if (totalFreed > 0) {
-      const freedMB = (totalFreed / (1024 * 1024)).toFixed(2);
-      logger.info(`   💾 Freed ${freedMB} MB by cleaning up old backups`);
-    }
-  } catch (error) {
-    logger.warn(`   ⚠️  Failed to cleanup old backups`, { error });
-    // Don't throw - backup cleanup failure shouldn't block migrations
-  }
-}
-
-/**
  * Check if any migrations are pending
  * Reads the migrations folder and compares with __drizzle_migrations table
  *
@@ -351,7 +226,7 @@ function cleanupOldBackups(backupDir: string, maxBackups: number = 10): void {
  */
 function checkPendingMigrations(
   rawDb: Database.Database,
-  migrationsFolder: string
+  migrationsFolder: string,
 ): { hasPending: boolean; pendingCount: number; appliedCount: number } {
   try {
     // Get list of migration files
@@ -362,7 +237,7 @@ function checkPendingMigrations(
     // Check if __drizzle_migrations table exists
     const tableExists = rawDb
       .prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='__drizzle_migrations'"
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='__drizzle_migrations'",
       )
       .get();
 
@@ -455,7 +330,7 @@ function shouldSkipBackup(backupDir: string, isProduction: boolean): boolean {
 async function rollbackMigration(
   dbPath: string,
   backupPath: string,
-  rawDb: Database.Database
+  rawDb: Database.Database,
 ): Promise<boolean> {
   try {
     logger.info("   🔄 Attempting to rollback migration...");
@@ -498,7 +373,7 @@ async function rollbackMigration(
 export async function runDrizzleMigrations(
   db: BetterSQLite3Database<typeof schema>,
   rawDb: Database.Database,
-  dbPath: string
+  dbPath: string,
 ): Promise<boolean> {
   let backupPath = "";
   const isProduction = app.isPackaged;
@@ -518,13 +393,13 @@ export async function runDrizzleMigrations(
     if (!existsSync(migrationsFolder)) {
       logger.error(`   ❌ Migrations folder not found: ${migrationsFolder}`);
       logger.error(
-        "   💡 Make sure migrations are bundled with the app in production"
+        "   💡 Make sure migrations are bundled with the app in production",
       );
       logger.error(`   📍 Current __dirname: ${__dirname}`);
       logger.error(
         `   📍 App path: ${
           app.isPackaged ? app.getAppPath() : "N/A (dev mode)"
-        }`
+        }`,
       );
       logger.error(`   📍 Resources path: ${process.resourcesPath || "N/A"}`);
 
@@ -533,11 +408,11 @@ export async function runDrizzleMigrations(
         try {
           const distContents = readdirSync(__dirname);
           logger.error(
-            `   📂 Contents of dist directory: ${distContents.join(", ")}`
+            `   📂 Contents of dist directory: ${distContents.join(", ")}`,
           );
           if (!distContents.includes("migrations")) {
             logger.error(
-              "   ⚠️  'migrations' folder not found in dist directory"
+              "   ⚠️  'migrations' folder not found in dist directory",
             );
           }
         } catch (e) {
@@ -552,15 +427,15 @@ export async function runDrizzleMigrations(
           const resourcesContents = readdirSync(process.resourcesPath);
           logger.error(
             `   📂 Contents of resources directory: ${resourcesContents.join(
-              ", "
-            )}`
+              ", ",
+            )}`,
           );
           if (!resourcesContents.includes("migrations")) {
             logger.error(
-              "   ⚠️  'migrations' folder not found in resources directory"
+              "   ⚠️  'migrations' folder not found in resources directory",
             );
             logger.error(
-              "   💡 Add migrations to extraResources in electron-builder.mjs"
+              "   💡 Add migrations to extraResources in electron-builder.mjs",
             );
           }
         } catch (e) {
@@ -574,7 +449,7 @@ export async function runDrizzleMigrations(
     // Verify we have a valid raw database instance
     if (!rawDb || typeof rawDb.prepare !== "function") {
       throw new Error(
-        "Invalid raw database instance - cannot perform integrity checks"
+        "Invalid raw database instance - cannot perform integrity checks",
       );
     }
 
@@ -604,7 +479,7 @@ export async function runDrizzleMigrations(
         String(now.getMinutes()).padStart(2, "0"),
         String(now.getSeconds()).padStart(2, "0"),
       ].join("");
-    cleanupOldBackups(backupDir, isProduction ? 10 : 5);
+    cleanupAllBackups(dbPath, undefined, isProduction);
 
     // Smart backup strategy: Check if backup is really needed
     const pendingStatus = checkPendingMigrations(rawDb, migrationsFolder);
@@ -613,16 +488,16 @@ export async function runDrizzleMigrations(
 
     if (pendingStatus.pendingCount === 0) {
       logger.info(
-        `   ℹ️  No pending migrations (${pendingStatus.appliedCount} already applied)`
+        `   ℹ️  No pending migrations (${pendingStatus.appliedCount} already applied)`,
       );
       if (!isProduction) {
         logger.info(
-          `   📊 Backup decision: skipBackup=${skipBackup}, recentBackupExists=${recentBackupExists}`
+          `   📊 Backup decision: skipBackup=${skipBackup}, recentBackupExists=${recentBackupExists}`,
         );
       }
     } else if (pendingStatus.pendingCount > 0) {
       logger.info(
-        `   📋 ${pendingStatus.pendingCount} pending migration(s) to apply`
+        `   📋 ${pendingStatus.pendingCount} pending migration(s) to apply`,
       );
     }
 
@@ -631,12 +506,12 @@ export async function runDrizzleMigrations(
     // Verify database file exists before backing up
     if (!existsSync(dbPath)) {
       logger.info(
-        "   ℹ️  Database file doesn't exist yet - creating new database"
+        "   ℹ️  Database file doesn't exist yet - creating new database",
       );
     } else if (skipBackup) {
       // Skip backup creation in development when no migrations pending and recent backup exists
       logger.info(
-        "   ⏭️  Skipping backup - no pending migrations and recent backup exists"
+        "   ⏭️  Skipping backup - no pending migrations and recent backup exists",
       );
       backupPath = ""; // Clear backup path since we didn't create one
     } else {
@@ -666,12 +541,12 @@ export async function runDrizzleMigrations(
 
       if (sourceStats.size !== backupStats.size) {
         throw new Error(
-          `Backup size mismatch: source ${sourceStats.size} bytes vs backup ${backupStats.size} bytes`
+          `Backup size mismatch: source ${sourceStats.size} bytes vs backup ${backupStats.size} bytes`,
         );
       }
 
       logger.info(
-        `   ✅ Backup verified: ${(backupStats.size / 1024).toFixed(2)} KB`
+        `   ✅ Backup verified: ${(backupStats.size / 1024).toFixed(2)} KB`,
       );
     }
 
@@ -680,7 +555,7 @@ export async function runDrizzleMigrations(
       // Verify backup was created successfully (only if we tried to create one)
       if (existsSync(dbPath) && backupPath && !existsSync(backupPath)) {
         throw new Error(
-          "Backup creation failed - aborting migration for safety"
+          "Backup creation failed - aborting migration for safety",
         );
       }
 
@@ -723,7 +598,7 @@ export async function runDrizzleMigrations(
         `   📋 Stack trace:\n${errorStack
           .split("\n")
           .map((line) => `      ${line}`)
-          .join("\n")}`
+          .join("\n")}`,
       );
     }
 
@@ -733,7 +608,7 @@ export async function runDrizzleMigrations(
       const rollbackSuccess = await rollbackMigration(
         dbPath,
         backupPath,
-        rawDb
+        rawDb,
       );
       if (rollbackSuccess) {
         logger.error("   ✅ Migration rolled back successfully");
@@ -744,7 +619,7 @@ export async function runDrizzleMigrations(
       }
     } else {
       logger.error(
-        "   💡 Drizzle automatically rolled back the failed migration"
+        "   💡 Drizzle automatically rolled back the failed migration",
       );
       if (backupPath) {
         logger.error(`   📦 Backup available at: ${backupPath}`);

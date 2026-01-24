@@ -35,6 +35,11 @@ import { BreakPolicyManager } from "./managers/breakPolicyManager.js";
 import { initializeDrizzle, resetDrizzle } from "./drizzle.js";
 import { getDatabaseInfo } from "./utils/dbInfo.js";
 import { isDevelopmentMode } from "./utils/environment.js";
+import {
+  cleanupAllBackups,
+  getBackupStorageInfo,
+  logStorageInfo,
+} from "./utils/backup-cleanup.js";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import * as schema from "./schema.js";
@@ -201,6 +206,25 @@ export async function getDatabase(): Promise<DatabaseManagers> {
       auditLogs.cleanupOldLogs(90);
     } catch (error) {
       logger.warn("Failed to cleanup old audit logs:", error);
+    }
+
+    // Cleanup old database backups on startup
+    try {
+      const dbInfo = getDatabaseInfo();
+      const isProduction = !isDevelopmentMode();
+
+      // Get storage info and check for warnings
+      const storageInfo = getBackupStorageInfo(dbInfo.path, 500); // 500 MB threshold
+
+      if (storageInfo.exceedsThreshold || storageInfo.warnings.length > 0) {
+        logger.warn("⚠️  Backup storage warnings detected:");
+        logStorageInfo(storageInfo);
+      }
+
+      // Run cleanup
+      cleanupAllBackups(dbInfo.path, undefined, isProduction);
+    } catch (error) {
+      logger.warn("Failed to cleanup old database backups:", error);
     }
 
     // RBAC managers

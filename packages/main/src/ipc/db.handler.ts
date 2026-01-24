@@ -5,6 +5,11 @@ import path from "path";
 import Database from "better-sqlite3";
 import { getDatabase, closeDatabase } from "../database/index.js";
 import { getLogger } from "../utils/logger.js";
+import {
+  cleanupAllBackups,
+  getBackupStorageInfo,
+} from "../database/utils/backup-cleanup.js";
+import { isDevelopmentMode } from "../database/utils/environment.js";
 
 const logger = getLogger("dbHandlers");
 
@@ -36,7 +41,8 @@ function extractLicenseData(dbPath: string): LicenseBackupData | null {
     const tableNames = tables.map((t) => t.name);
     let licenseActivation = null;
     let licenseValidationLogs: any[] = [];
-    let receiptEmailSettings: Array<{ key: string; value: string }> | null = null;
+    let receiptEmailSettings: Array<{ key: string; value: string }> | null =
+      null;
 
     // Extract license activation (only active one)
     if (tableNames.includes("license_activation")) {
@@ -81,13 +87,13 @@ function extractLicenseData(dbPath: string): LicenseBackupData | null {
       try {
         const rows = db
           .prepare(
-            "SELECT key, value FROM app_settings WHERE key LIKE 'receipt_email:%' ORDER BY key ASC"
+            "SELECT key, value FROM app_settings WHERE key LIKE 'receipt_email:%' ORDER BY key ASC",
           )
           .all() as Array<{ key: string; value: string }>;
         receiptEmailSettings = rows.length > 0 ? rows : null;
         if (receiptEmailSettings) {
           logger.info(
-            `Extracted ${receiptEmailSettings.length} receipt email setting(s) from app_settings`
+            `Extracted ${receiptEmailSettings.length} receipt email setting(s) from app_settings`,
           );
         }
       } catch (err) {
@@ -275,29 +281,35 @@ function restoreLicenseData(
       }
 
       // Restore receipt email settings (if available)
-      if (backupData.receiptEmailSettings && backupData.receiptEmailSettings.length > 0) {
+      if (
+        backupData.receiptEmailSettings &&
+        backupData.receiptEmailSettings.length > 0
+      ) {
         const appSettingsExists = db
           .prepare(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='app_settings'"
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='app_settings'",
           )
           .get();
 
         if (appSettingsExists) {
           const now = Date.now();
           const upsert = db.prepare(
-            "INSERT OR REPLACE INTO app_settings (key, value, created_at, updated_at) VALUES (?, ?, ?, ?)"
+            "INSERT OR REPLACE INTO app_settings (key, value, created_at, updated_at) VALUES (?, ?, ?, ?)",
           );
 
           for (const row of backupData.receiptEmailSettings) {
             try {
               upsert.run(row.key, row.value, now, now);
             } catch (err) {
-              logger.warn(`Failed to restore app_settings key ${row.key}:`, err);
+              logger.warn(
+                `Failed to restore app_settings key ${row.key}:`,
+                err,
+              );
             }
           }
 
           logger.info(
-            `Restored ${backupData.receiptEmailSettings.length} receipt email setting(s) to app_settings`
+            `Restored ${backupData.receiptEmailSettings.length} receipt email setting(s) to app_settings`,
           );
         }
       }
@@ -405,9 +417,8 @@ export function registerDbHandlers() {
       const info = db.getDatabaseInfo();
 
       // Preserve receipt email settings across empty operations
-      const preservedReceiptEmailSettings = db.settings.getSettingsByPrefix(
-        "receipt_email:"
-      );
+      const preservedReceiptEmailSettings =
+        db.settings.getSettingsByPrefix("receipt_email:");
 
       // Create automatic backup before emptying
       const timestamp = new Date()
@@ -430,6 +441,20 @@ export function registerDbHandlers() {
       // Get backup file stats
       const backupStats = await fs.stat(backupPath);
       const backupSize = backupStats.size;
+
+      // Cleanup old empty operation backups (keep last 3)
+      try {
+        cleanupAllBackups(
+          info.path,
+          { emptyOperation: 3 },
+          !isDevelopmentMode(),
+        );
+      } catch (cleanupError) {
+        logger.warn(
+          "Failed to cleanup old empty operation backups:",
+          cleanupError,
+        );
+      }
 
       // Empty all tables using the public method
       const result = await db.emptyAllTables();
@@ -454,12 +479,12 @@ export function registerDbHandlers() {
             } catch (err) {
               logger.warn(
                 `Failed to restore preserved email setting ${s.key}:`,
-                err
+                err,
               );
             }
           }
           logger.info(
-            `✅ Restored ${preservedReceiptEmailSettings.length} receipt email setting(s) after empty`
+            `✅ Restored ${preservedReceiptEmailSettings.length} receipt email setting(s) after empty`,
           );
         }
       } catch (seedError) {
@@ -691,6 +716,20 @@ export function registerDbHandlers() {
           logger.info(`Current database backed up to: ${backupPath}`);
           backupCreated = true;
 
+          // Cleanup old import operation backups (keep last 3)
+          try {
+            cleanupAllBackups(
+              info.path,
+              { importOperation: 3 },
+              !isDevelopmentMode(),
+            );
+          } catch (cleanupError) {
+            logger.warn(
+              "Failed to cleanup old import operation backups:",
+              cleanupError,
+            );
+          }
+
           // 🔐 CRITICAL: Extract license data BEFORE replacing database
           // This ensures license persists across database imports
           sendProgress("backing-up", 45, "Extracting license data...");
@@ -704,7 +743,9 @@ export function registerDbHandlers() {
             logger.info("No active license found in current database");
           }
           if (licenseBackup?.receiptEmailSettings?.length) {
-            logger.info("✅ Receipt email settings extracted - will be restored after import");
+            logger.info(
+              "✅ Receipt email settings extracted - will be restored after import",
+            );
           }
         } catch (backupError) {
           logger.error("Failed to create backup:", backupError);
@@ -849,7 +890,9 @@ export function registerDbHandlers() {
           }
         } else if (licenseBackup?.receiptEmailSettings?.length) {
           // Even if there is no license, we may still want to restore receipt email settings.
-          logger.info("Restoring receipt email settings to imported database...");
+          logger.info(
+            "Restoring receipt email settings to imported database...",
+          );
           const restored = restoreLicenseData(info.path, licenseBackup);
           if (restored) {
             logger.info("✅ Receipt email settings restored successfully");
@@ -937,6 +980,115 @@ export function registerDbHandlers() {
         success: false,
         version: "unknown",
         error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  });
+
+  // Manual Backup Cleanup IPC Handler - Clean up old backup files
+  ipcMain.handle(
+    "database:cleanup-backups",
+    async (
+      event,
+      options?: {
+        customPolicy?: Record<string, number>;
+        dryRun?: boolean;
+      },
+    ) => {
+      try {
+        const db = await getDatabase();
+        const info = db.getDatabaseInfo();
+        const isProduction = !isDevelopmentMode();
+
+        logger.info("🧹 Manual backup cleanup requested");
+
+        if (options?.dryRun) {
+          logger.info("   Running in dry-run mode (no files will be deleted)");
+        }
+
+        // If dry run, just get storage info
+        if (options?.dryRun) {
+          const storageInfo = getBackupStorageInfo(info.path, 500);
+
+          return {
+            success: true,
+            dryRun: true,
+            storageInfo: {
+              totalSize: storageInfo.totalBackupSize,
+              totalCount: storageInfo.totalBackupCount,
+              backupsByType: Object.fromEntries(storageInfo.backupsByType),
+              warnings: storageInfo.warnings,
+              exceedsThreshold: storageInfo.exceedsThreshold,
+            },
+            message: "Dry run completed - no files deleted",
+          };
+        }
+
+        // Run actual cleanup
+        const summary = cleanupAllBackups(
+          info.path,
+          options?.customPolicy,
+          isProduction,
+        );
+
+        return {
+          success: true,
+          dryRun: false,
+          summary: {
+            totalFilesFound: summary.totalFilesFound,
+            totalFilesDeleted: summary.totalFilesDeleted,
+            totalBytesFreed: summary.totalBytesFreed,
+            byType: summary.backupTypes.map((t) => ({
+              type: t.type,
+              filesFound: t.filesFound,
+              filesDeleted: t.filesDeleted,
+              bytesFreed: t.bytesFreed,
+            })),
+            errors: summary.errors,
+            warnings: summary.warnings,
+          },
+          message: `Cleanup completed: Deleted ${summary.totalFilesDeleted} files, freed ${(summary.totalBytesFreed / (1024 * 1024)).toFixed(2)} MB`,
+        };
+      } catch (error) {
+        logger.error("Backup cleanup error:", error);
+        return {
+          success: false,
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to cleanup backups",
+        };
+      }
+    },
+  );
+
+  // Get Backup Storage Info IPC Handler - Get information about backup storage
+  ipcMain.handle("database:backup-storage-info", async () => {
+    try {
+      const db = await getDatabase();
+      const info = db.getDatabaseInfo();
+
+      const storageInfo = getBackupStorageInfo(info.path, 500);
+
+      return {
+        success: true,
+        data: {
+          totalSize: storageInfo.totalBackupSize,
+          totalSizeMB: (storageInfo.totalBackupSize / (1024 * 1024)).toFixed(2),
+          totalCount: storageInfo.totalBackupCount,
+          backupsByType: Object.fromEntries(storageInfo.backupsByType),
+          warnings: storageInfo.warnings,
+          exceedsThreshold: storageInfo.exceedsThreshold,
+          thresholdMB: 500,
+        },
+      };
+    } catch (error) {
+      logger.error("Error getting backup storage info:", error);
+      return {
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to get backup storage info",
       };
     }
   });
