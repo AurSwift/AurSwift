@@ -73,6 +73,9 @@
     "db:drop": "drizzle-kit drop",
     "db:check": "drizzle-kit check",
     "db:introspect": "drizzle-kit introspect",
+    "db:studio": "drizzle-kit studio",
+    "db:studio:stop": "lsof -ti:4983 | xargs kill -9 2>/dev/null || echo 'No Drizzle Studio process found'",
+    "db:migrate": "drizzle-kit migrate --config=drizzle.config.ts",
     "migrate:rbac": "tsx packages/main/src/scripts/migrate-rbac.ts",
     "analyze:packages": "node scripts/analyze-package-sizes.mjs",
     "analyze:bundle": "cd packages/renderer && ANALYZE=true npm run build"
