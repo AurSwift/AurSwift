@@ -23,6 +23,7 @@ This document explains how database migrations are handled during auto-updates a
 ## Overview
 
 The AurSwift desktop app uses:
+
 - **Electron Auto-Updater** for application updates
 - **Drizzle ORM** with SQLite for database management
 - **Automatic migrations** that run on app startup after updates
@@ -301,13 +302,14 @@ SELECT * FROM __drizzle_migrations;
 ## Migration Safety Features
 
 ### 1. Disk Space Check
+
 ```typescript
 // Prevents migration failure due to full disk
 function checkDiskSpace(dbPath: string) {
   const dbSize = statSync(dbPath).size;
   const required = Math.max(50MB, dbSize * 2.5);
   const available = statfsSync(dirname(dbPath)).bfree * bsize;
-  
+
   if (available < required) {
     throw new Error(`Insufficient disk space: ${available}MB < ${required}MB`);
   }
@@ -315,6 +317,7 @@ function checkDiskSpace(dbPath: string) {
 ```
 
 ### 2. Automatic Backup
+
 ```typescript
 // Backup created before every migration (in production)
 backups/
@@ -324,6 +327,7 @@ backups/
 ```
 
 ### 3. Rollback on Failure
+
 ```typescript
 // If migration fails, automatically restore from backup
 if (!migrationSuccess) {
@@ -333,6 +337,7 @@ if (!migrationSuccess) {
 ```
 
 ### 4. Retry Logic
+
 ```typescript
 // Maximum 3 initialization attempts
 if (initializationAttempts > 3) {
@@ -372,6 +377,7 @@ if (initializationAttempts > 3) {
 ```
 
 **What happens:**
+
 1. Old database renamed to `pos_system.db.old.20260124-140000`
 2. Fresh database created with all tables
 3. User starts with empty data (can manually import if needed)
@@ -520,12 +526,12 @@ export const newTable = sqliteTable("new_table", {
 
 ### Safe Migration Practices
 
-| ✅ Safe Operations | ❌ Unsafe Operations |
-|-------------------|---------------------|
-| `ADD COLUMN` with DEFAULT | `DROP COLUMN` (SQLite < 3.35) |
-| `CREATE TABLE` | `ALTER COLUMN TYPE` |
-| `CREATE INDEX` | `ADD COLUMN NOT NULL` (no default) |
-| `DROP INDEX` | `RENAME COLUMN` (SQLite < 3.25) |
+| ✅ Safe Operations        | ❌ Unsafe Operations               |
+| ------------------------- | ---------------------------------- |
+| `ADD COLUMN` with DEFAULT | `DROP COLUMN` (SQLite < 3.35)      |
+| `CREATE TABLE`            | `ALTER COLUMN TYPE`                |
+| `CREATE INDEX`            | `ADD COLUMN NOT NULL` (no default) |
+| `DROP INDEX`              | `RENAME COLUMN` (SQLite < 3.25)    |
 
 ### Testing Migrations
 
@@ -550,6 +556,7 @@ npm run dev
 **Cause:** Build didn't include migrations in extraResources.
 
 **Fix:**
+
 1. Check `electron-builder.mjs` has:
    ```javascript
    extraResources: [
@@ -568,6 +575,7 @@ npm run dev
 **Cause:** Migration file content changed after being applied to client.
 
 **Fix (for development):**
+
 ```bash
 # Reset local database
 rm data/pos_system.db
@@ -575,6 +583,7 @@ npm run dev
 ```
 
 **Fix (for production):**
+
 - User sees recovery dialog
 - User selects "Backup & Start Fresh"
 - Old data preserved in `.db.old.*` file
@@ -584,6 +593,7 @@ npm run dev
 **Cause:** Another process has the database open.
 
 **Fix:**
+
 1. Close other instances of aurswift
 2. Check for orphaned processes: `lsof | grep pos_system.db`
 3. Restart machine if needed
@@ -593,6 +603,7 @@ npm run dev
 **Cause:** Migration adds FK constraint that existing data violates.
 
 **Fix:**
+
 1. Migration rolled back automatically
 2. Clean up orphaned data in development
 3. For production: May need data migration script
@@ -602,6 +613,7 @@ npm run dev
 ## File Locations
 
 ### Development
+
 ```
 desktop/
 ├── data/
@@ -614,6 +626,7 @@ desktop/
 ```
 
 ### Production (macOS)
+
 ```
 ~/Library/Application Support/aurswift/
 ├── pos_system.db
@@ -623,6 +636,7 @@ desktop/
 ```
 
 ### Production (Windows)
+
 ```
 %LOCALAPPDATA%/aurswift/
 ├── pos_system.db
@@ -635,18 +649,18 @@ desktop/
 
 ## Summary
 
-| Stage | What Happens | User Experience |
-|-------|--------------|-----------------|
-| **Code Push** | Developer pushes feat/fix commit | N/A |
-| **CI/CD** | Build + Release created | N/A |
-| **Update Check** | App polls GitHub releases | Runs silently |
-| **Update Available** | New version found | Dialog appears |
-| **Download** | Update downloaded in background | Progress shown |
-| **Install** | App quits, installer runs | Brief interruption |
-| **App Restart** | New version starts | Splash screen |
-| **DB Migration** | Migrations applied automatically | Invisible (success) |
-| **Migration Fail** | Rollback + recovery dialog | User chooses action |
-| **Ready** | App fully operational | Normal usage |
+| Stage                | What Happens                     | User Experience     |
+| -------------------- | -------------------------------- | ------------------- |
+| **Code Push**        | Developer pushes feat/fix commit | N/A                 |
+| **CI/CD**            | Build + Release created          | N/A                 |
+| **Update Check**     | App polls GitHub releases        | Runs silently       |
+| **Update Available** | New version found                | Dialog appears      |
+| **Download**         | Update downloaded in background  | Progress shown      |
+| **Install**          | App quits, installer runs        | Brief interruption  |
+| **App Restart**      | New version starts               | Splash screen       |
+| **DB Migration**     | Migrations applied automatically | Invisible (success) |
+| **Migration Fail**   | Rollback + recovery dialog       | User chooses action |
+| **Ready**            | App fully operational            | Normal usage        |
 
 ---
 
