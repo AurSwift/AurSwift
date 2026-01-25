@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.39.1](https://github.com/AurSwift/AurSwift/compare/v1.39.0...v1.39.1) (2026-01-25)
+
+
+### fix
+
+* **logo:** enhance logo display and adjust key icon sizing on activation screen ([](https://github.com/AurSwift/AurSwift/commit/87526b4fe0ca70b4928aeb7d1d82c5a73e940b91))
+
 # [1.39.0](https://github.com/AurSwift/AurSwift/compare/v1.38.0...v1.39.0) (2026-01-25)
 
 
