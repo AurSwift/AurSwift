@@ -235,7 +235,7 @@ export function LockScreen({
                 {formatDuration(breakDuration)}
               </span>
             </div>
-            <p className="text-[10px] sm:text-xs text-amber-400 mt-2">
+            <p className="text-caption text-amber-400 mt-2">
               Break will end automatically when you unlock
             </p>
           </div>
@@ -300,7 +300,7 @@ export function LockScreen({
               type="button"
               onClick={handleClearPin}
               disabled={isUnlocking || pin.length === 0}
-              className="h-10 sm:h-12 lg:h-12 text-[10px] sm:text-xs lg:text-xs font-semibold bg-slate-700/30 hover:bg-slate-700/50 active:bg-slate-700/70 text-slate-100 border border-slate-600 rounded-lg transition-colors duration-150 disabled:opacity-50 touch-manipulation"
+              className="h-10 sm:h-12 lg:h-12 text-caption font-semibold bg-slate-700/30 hover:bg-slate-700/50 active:bg-slate-700/70 text-slate-100 border border-slate-600 rounded-lg transition-colors duration-150 disabled:opacity-50 touch-manipulation"
             >
               <XCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2 shrink-0" />
               <span className="truncate">Clear</span>
@@ -333,7 +333,7 @@ export function LockScreen({
           </Button>
         </div>
 
-        <p className="text-center text-[10px] sm:text-[11px] text-slate-500 mt-3 sm:mt-4">
+        <p className="text-center text-caption text-slate-500 mt-3 sm:mt-4">
           Aurswift Epos System © {currentTime.getFullYear()}
         </p>
       </div>

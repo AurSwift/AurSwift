@@ -286,7 +286,7 @@ export function ReceiptOptionsModal({
                 </Button>
                 {!localPrinterConnected && !isPrinting && (
                   <div className="space-y-2">
-                    <p className="text-[10px] sm:text-xs text-amber-600 text-center px-2">
+                    <p className="text-caption text-amber-600 text-center px-2">
                       ⚠️ Printer is not connected. You can download the receipt
                       or print later from transaction history.
                       {localPrinterError ? ` (${localPrinterError})` : ""}
@@ -354,7 +354,7 @@ export function ReceiptOptionsModal({
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-slate-200"></div>
               </div>
-              <div className="relative flex justify-center text-[10px] sm:text-xs">
+              <div className="relative flex justify-center text-caption">
                 <span className="bg-white px-3 text-slate-500">or</span>
               </div>
             </div>
@@ -373,7 +373,7 @@ export function ReceiptOptionsModal({
 
           {/* Footer Note */}
           <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-slate-200">
-            <p className="text-[10px] sm:text-xs text-center text-slate-500">
+            <p className="text-caption text-center text-slate-500">
               Transaction saved. You can print this receipt later from{" "}
               <span className="font-semibold">Transaction History</span>
             </p>

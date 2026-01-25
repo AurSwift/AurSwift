@@ -93,7 +93,7 @@ export function ViewUserDialog({
                       ? "default"
                       : "secondary"
                   }
-                  className="text-[10px] sm:text-xs md:text-sm lg:text-base"
+                  className="text-xs sm:text-sm md:text-base lg:text-base"
                 >
                   {getUserRoleDisplayName(user)}
                 </Badge>
@@ -107,7 +107,7 @@ export function ViewUserDialog({
               <div className="mt-1">
                 <Badge
                   variant={user.isActive ? "default" : "destructive"}
-                  className="text-[10px] sm:text-xs md:text-sm lg:text-base"
+                  className="text-xs sm:text-sm md:text-base lg:text-base"
                 >
                   {user.isActive ? "Active" : "Inactive"}
                 </Badge>

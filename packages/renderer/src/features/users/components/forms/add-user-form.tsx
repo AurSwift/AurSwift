@@ -366,7 +366,7 @@ export function AddUserForm({
                             {selectedRole.displayName}
                           </span>
                           {selectedRole.description && (
-                            <span className="text-[10px] sm:text-xs md:text-sm text-muted-foreground font-normal">
+                            <span className="text-xs sm:text-sm md:text-sm text-muted-foreground font-normal">
                               {selectedRole.description}
                             </span>
                           )}
@@ -401,7 +401,7 @@ export function AddUserForm({
                             {role.displayName}
                           </span>
                           {role.description && (
-                            <span className="text-[10px] sm:text-xs md:text-sm lg:text-base text-gray-500">
+                            <span className="text-xs sm:text-sm md:text-base lg:text-base text-gray-500">
                               {role.description}
                             </span>
                           )}

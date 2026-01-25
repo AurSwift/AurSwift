@@ -67,7 +67,7 @@ function LoadingScreen() {
     <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
       <div className="text-center space-y-4">
         <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto" />
-        <p className="text-muted-foreground">Loading aurswift...</p>
+        <p className="text-body text-muted-foreground">Loading aurswift...</p>
       </div>
     </div>
   );

@@ -1375,13 +1375,13 @@ const StaffSchedulesView: React.FC<StaffSchedulesViewProps> = ({ onBack }) => {
                   }
                 }}
               >
-                <div className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium truncate">
+                <div className="text-caption md:text-sm font-medium truncate">
                   {format(day, "EEE")}
                 </div>
                 <div className="text-sm sm:text-base md:text-lg font-semibold">
                   {format(day, "d")}
                 </div>
-                <div className="text-[9px] xs:text-[10px] sm:text-[10px] md:text-xs text-slate-500 mt-0.5 truncate">
+                <div className="text-caption md:text-xs text-slate-500 mt-0.5 truncate">
                   {getSchedulesForDate(day).length}{" "}
                   {getSchedulesForDate(day).length === 1 ? "shift" : "shifts"}
                 </div>

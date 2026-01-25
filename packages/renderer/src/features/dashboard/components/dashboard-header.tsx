@@ -99,7 +99,7 @@ export function DashboardHeader({ subtitle }: DashboardHeaderProps) {
                 <h1 className="text-lg font-bold bg-linear-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                   AurSwift
                 </h1>
-                <p className="text-[10px] text-muted-foreground/60 -mt-1">
+                <p className="text-caption text-muted-foreground/60 -mt-1">
                   EPOS System
                 </p>
               </div>

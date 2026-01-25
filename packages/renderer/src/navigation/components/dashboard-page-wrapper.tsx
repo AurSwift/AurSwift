@@ -67,8 +67,8 @@ export function DashboardPageWrapper() {
       return (
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
-            <h2 className="text-xl font-semibold mb-2">Unauthorized</h2>
-            <p className="text-muted-foreground">
+            <h2 className="text-heading-medium mb-2">Unauthorized</h2>
+            <p className="text-body text-muted-foreground">
               You don't have access to the dashboard.
             </p>
           </div>

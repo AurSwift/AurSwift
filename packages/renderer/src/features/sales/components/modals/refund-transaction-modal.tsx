@@ -857,7 +857,7 @@ const RefundView: React.FC<{
             {/* Transaction Info */}
             <div className="grid grid-cols-2 gap-2 sm:gap-3 p-2 sm:p-3 lg:p-4 bg-slate-50 rounded-lg">
               <div className="min-w-0">
-                <label className="text-[10px] sm:text-xs lg:text-sm font-medium text-slate-600">
+                <label className="text-caption lg:text-sm font-medium text-slate-600">
                   Receipt Number
                 </label>
                 <div className="font-semibold mt-0.5 sm:mt-1 text-xs sm:text-sm lg:text-base truncate">
@@ -865,15 +865,15 @@ const RefundView: React.FC<{
                 </div>
               </div>
               <div className="min-w-0">
-                <label className="text-[10px] sm:text-xs lg:text-sm font-medium text-slate-600">
+                <label className="text-caption lg:text-sm font-medium text-slate-600">
                   Date & Time
                 </label>
-                <div className="font-semibold mt-0.5 sm:mt-1 text-[10px] sm:text-xs lg:text-sm">
+                <div className="font-semibold mt-0.5 sm:mt-1 text-caption lg:text-sm">
                   {new Date(originalTransaction.timestamp).toLocaleString()}
                 </div>
               </div>
               <div className="min-w-0">
-                <label className="text-[10px] sm:text-xs lg:text-sm font-medium text-slate-600">
+                <label className="text-caption lg:text-sm font-medium text-slate-600">
                   Total Amount
                 </label>
                 <div className="font-bold text-green-600 text-sm sm:text-base lg:text-lg mt-0.5 sm:mt-1">
@@ -881,7 +881,7 @@ const RefundView: React.FC<{
                 </div>
               </div>
               <div className="min-w-0">
-                <label className="text-[10px] sm:text-xs lg:text-sm font-medium text-slate-600">
+                <label className="text-caption lg:text-sm font-medium text-slate-600">
                   Payment Method
                 </label>
                 <div className="font-semibold mt-0.5 sm:mt-1 capitalize text-xs sm:text-sm lg:text-base">
@@ -917,7 +917,7 @@ const RefundView: React.FC<{
                           <div className="font-semibold text-slate-900 text-xs sm:text-sm lg:text-base truncate">
                             {item.productName}
                           </div>
-                          <div className="text-[10px] sm:text-xs lg:text-sm text-slate-600 mt-0.5 sm:mt-1">
+                          <div className="text-caption lg:text-sm text-slate-600 mt-0.5 sm:mt-1">
                             Qty: {item.quantity} × £{item.unitPrice.toFixed(2)}
                             {item.refundedQuantity ? (
                               <span className="text-red-600 ml-1 sm:ml-2">
@@ -933,7 +933,7 @@ const RefundView: React.FC<{
                           {availableQuantity > 0 && !isSelected && (
                             <button
                               onClick={() => onAddItem(item)}
-                              className="px-2 py-1 bg-green-600 text-white text-[10px] sm:text-xs lg:text-sm rounded hover:bg-green-700 touch-manipulation whitespace-nowrap"
+                              className="px-2 py-1 bg-green-600 text-white text-caption lg:text-sm rounded hover:bg-green-700 touch-manipulation whitespace-nowrap"
                             >
                               Add to Refund
                             </button>
@@ -941,13 +941,13 @@ const RefundView: React.FC<{
                           {isSelected && (
                             <button
                               onClick={() => onRemoveItem(item.id)}
-                              className="px-2 py-1 border border-red-300 text-red-600 text-[10px] sm:text-xs lg:text-sm rounded hover:bg-red-50 touch-manipulation"
+                              className="px-2 py-1 border border-red-300 text-red-600 text-caption lg:text-sm rounded hover:bg-red-50 touch-manipulation"
                             >
                               Remove
                             </button>
                           )}
                           {availableQuantity === 0 && (
-                            <span className="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-slate-200 text-slate-600 text-[9px] sm:text-[10px] lg:text-xs rounded whitespace-nowrap">
+                            <span className="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-slate-200 text-slate-600 text-caption lg:text-xs rounded whitespace-nowrap">
                               Fully Refunded
                             </span>
                           )}
@@ -986,7 +986,7 @@ const RefundView: React.FC<{
                             <div className="font-semibold text-slate-900 text-xs sm:text-sm lg:text-base truncate">
                               {item.productName}
                             </div>
-                            <div className="text-[10px] sm:text-xs lg:text-sm text-slate-600">
+                            <div className="text-caption lg:text-sm text-slate-600">
                               £{item.unitPrice.toFixed(2)} each
                             </div>
                           </div>
@@ -997,7 +997,7 @@ const RefundView: React.FC<{
 
                         <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
                           <div>
-                            <label className="text-[10px] sm:text-xs lg:text-sm font-medium block mb-1">
+                            <label className="text-caption lg:text-sm font-medium block mb-1">
                               Quantity
                             </label>
                             <div className="flex items-center gap-1 sm:gap-2">
@@ -1044,7 +1044,7 @@ const RefundView: React.FC<{
                           </div>
 
                           <div>
-                            <label className="text-[10px] sm:text-xs lg:text-sm font-medium block mb-1">
+                            <label className="text-caption lg:text-sm font-medium block mb-1">
                               Reason
                             </label>
                             <select
@@ -1055,7 +1055,7 @@ const RefundView: React.FC<{
                                   e.target.value
                                 )
                               }
-                              className="w-full h-6 sm:h-8 border border-slate-300 rounded px-1 sm:px-2 text-[10px] sm:text-xs lg:text-sm"
+                              className="w-full h-6 sm:h-8 border border-slate-300 rounded px-1 sm:px-2 text-caption lg:text-sm"
                             >
                               {REFUND_REASONS.map((reason) => (
                                 <option key={reason} value={reason}>
@@ -1066,7 +1066,7 @@ const RefundView: React.FC<{
                           </div>
                         </div>
 
-                        <label className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs lg:text-sm">
+                        <label className="flex items-center gap-1.5 sm:gap-2 text-caption lg:text-sm">
                           <input
                             type="checkbox"
                             checked={item.restockable}
@@ -1088,7 +1088,7 @@ const RefundView: React.FC<{
 
               {/* Refund Method */}
               <div>
-                <label className="text-[10px] sm:text-xs lg:text-sm font-medium text-slate-900 block mb-1 sm:mb-2">
+                <label className="text-caption lg:text-sm font-medium text-slate-900 block mb-1 sm:mb-2">
                   Refund Method
                 </label>
                 <select
@@ -1113,7 +1113,7 @@ const RefundView: React.FC<{
 
               {/* Refund Reason */}
               <div>
-                <label className="text-[10px] sm:text-xs lg:text-sm font-medium text-slate-900 block mb-1 sm:mb-2">
+                <label className="text-caption lg:text-sm font-medium text-slate-900 block mb-1 sm:mb-2">
                   Overall Refund Reason
                 </label>
                 <textarea

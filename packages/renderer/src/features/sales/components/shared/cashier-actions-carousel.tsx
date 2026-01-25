@@ -280,7 +280,7 @@ const CarouselCard: React.FC<{
       } shrink-0`}
     />
     <span
-      className={`text-[10px] sm:text-xs lg:text-sm ${
+      className={`text-caption lg:text-sm ${
         disabled ? "text-gray-400" : ""
       } text-center line-clamp-2`}
     >

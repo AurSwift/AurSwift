@@ -52,7 +52,7 @@ export function PinEntryScreen({
         <div className="bg-gray-100 rounded-xl p-3 sm:p-4 mb-3 sm:mb-4">
           <div className="flex items-center justify-center gap-1 mb-2">
             <User className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
-            <span className="text-gray-600 text-[10px] sm:text-xs uppercase tracking-wider font-medium">
+            <span className="text-gray-600 text-caption uppercase tracking-wider font-medium">
               Enter PIN
             </span>
           </div>
@@ -71,7 +71,7 @@ export function PinEntryScreen({
             ))}
           </div>
           {loginError && (
-            <p className="text-red-500 text-[10px] sm:text-xs text-center mt-2">
+            <p className="text-red-500 text-caption text-center mt-2">
               {loginError}
             </p>
           )}

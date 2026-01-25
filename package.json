@@ -78,7 +78,8 @@
     "db:migrate": "drizzle-kit migrate --config=drizzle.config.ts",
     "migrate:rbac": "tsx packages/main/src/scripts/migrate-rbac.ts",
     "analyze:packages": "node scripts/analyze-package-sizes.mjs",
-    "analyze:bundle": "cd packages/renderer && ANALYZE=true npm run build"
+    "analyze:bundle": "cd packages/renderer && ANALYZE=true npm run build",
+    "lint:typography": "rg 'text-\\[\\d+px\\]' packages/renderer/src 2>/dev/null && (echo 'Typography: avoid text-[Npx] in UI; use scale tokens. See docs/Guides/Typography/TYPOGRAPHY.md'; exit 1) || true"
   },
   "devDependencies": {
     "@electron/rebuild": "^4.0.1",

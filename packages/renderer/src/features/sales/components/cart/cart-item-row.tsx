@@ -54,7 +54,7 @@ export function CartItemRow({
       <td className="text-center text-xs sm:text-sm" style={{ width: "120px" }}>
         £{item.unitPrice.toFixed(2)}
         {item.itemType === "WEIGHT" && item.unitOfMeasure && (
-          <span className="text-[10px] sm:text-xs text-slate-500">
+          <span className="text-caption text-slate-500">
             {" "}
             / {item.unitOfMeasure}
           </span>

@@ -320,7 +320,7 @@ const CashierDashboardView = ({
               <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-blue-500 shrink-0" />
               <span>This shift</span>
             </div>
-            <div className="text-[10px] sm:text-xs text-slate-500 mt-1">
+            <div className="text-caption text-slate-500 mt-1">
               Last hour: {hourlyStats.lastHour} transactions
             </div>
           </CardContent>
@@ -338,7 +338,7 @@ const CashierDashboardView = ({
             <div className="text-xl sm:text-2xl font-bold text-black">
               £{cashDrawerBalance.amount.toFixed(2)}
               {cashDrawerBalance.isEstimated && (
-                <span className="text-[10px] sm:text-xs text-amber-600 ml-1">
+                <span className="text-caption text-amber-600 ml-1">
                   (est.)
                 </span>
               )}
@@ -355,7 +355,7 @@ const CashierDashboardView = ({
                 {cashDrawerBalance.isEstimated && " (est.)"}
               </span>
             </div>
-            <div className="text-[10px] sm:text-xs text-slate-500 mt-1">
+            <div className="text-caption text-slate-500 mt-1">
               {cashDrawerBalance.lastCountTime ? (
                 <>
                   Last count:{" "}
@@ -396,7 +396,7 @@ const CashierDashboardView = ({
                 {shiftStats.totalVoids || 0}
               </span>
             </div>
-            <div className="text-[10px] sm:text-xs text-slate-500 mt-2">
+            <div className="text-caption text-slate-500 mt-2">
               Total adjustments:{" "}
               {(shiftStats.totalVoids || 0) +
                 ((shiftStats.totalRefunds || 0) > 0 ? 1 : 0)}
@@ -451,7 +451,7 @@ const CashierDashboardView = ({
                   <ShoppingCart className="h-6 w-6 sm:h-8 sm:w-8 mx-auto opacity-50" />
                 </div>
                 <p className="text-xs sm:text-sm">No recent transactions</p>
-                <p className="text-[10px] sm:text-xs mt-1">
+                <p className="text-caption mt-1">
                   Transactions will appear here once processed
                 </p>
               </div>
@@ -495,7 +495,7 @@ const CashierDashboardView = ({
                       <div className="font-medium text-xs sm:text-sm truncate">
                         #{transaction.receiptNumber}
                       </div>
-                      <div className="text-[10px] sm:text-xs text-slate-500 truncate">
+                      <div className="text-caption text-slate-500 truncate">
                         {new Date(transaction.timestamp).toLocaleString()} •{" "}
                         {transaction.items.length} items
                       </div>
@@ -510,7 +510,7 @@ const CashierDashboardView = ({
                     <Badge
                       variant="outline"
                       className={`
-                      text-[10px] sm:text-xs mt-1
+                      text-caption mt-1
                       ${
                         transaction.paymentMethod === "cash"
                           ? "bg-amber-50 text-amber-700"

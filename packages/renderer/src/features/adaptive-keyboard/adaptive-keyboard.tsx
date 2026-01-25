@@ -152,12 +152,7 @@ export function AdaptiveKeyboard({
             <span
               className={cn(
                 "font-medium text-teal-700 dark:text-teal-400 capitalize",
-                // Small screens
-                "text-[10px]",
-                // Medium screens
-                "md:text-xs",
-                // Large screens
-                "lg:text-xs",
+                "text-xs",
               )}
             >
               {mode}
@@ -178,12 +173,7 @@ export function AdaptiveKeyboard({
               <span
                 className={cn(
                   "font-medium text-amber-700 dark:text-amber-400",
-                  // Small screens
-                  "text-[10px]",
-                  // Medium screens
-                  "md:text-xs",
-                  // Large screens
-                  "lg:text-xs",
+                "text-xs",
                 )}
               >
                 {isCapsLock ? "CAPS" : "SHIFT"}

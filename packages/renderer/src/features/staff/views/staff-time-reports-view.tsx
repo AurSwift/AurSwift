@@ -1149,14 +1149,14 @@ export default function StaffTimeReportsView({
                               )}
                               {b.is_required && (
                                 <span className="ml-2">
-                                  <Badge variant="outline" className="text-[10px]">
+                                  <Badge variant="outline" className="text-xs">
                                     Required
                                   </Badge>
                                 </span>
                               )}
                               {b.is_short && (
                                 <span className="ml-2">
-                                  <Badge variant="destructive" className="text-[10px]">
+                                  <Badge variant="destructive" className="text-xs">
                                     Short
                                   </Badge>
                                 </span>

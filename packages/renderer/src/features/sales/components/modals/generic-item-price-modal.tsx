@@ -125,7 +125,7 @@ export const GenericItemPriceModal: React.FC<GenericItemPriceModalProps> = ({
                     variant="outline"
                     size="sm"
                     onClick={() => handleQuickPrice(amount)}
-                    className="text-[10px] sm:text-xs h-9 sm:h-10 touch-manipulation"
+                    className="text-caption h-9 sm:h-10 touch-manipulation"
                   >
                     £{amount.toFixed(2)}
                   </Button>
