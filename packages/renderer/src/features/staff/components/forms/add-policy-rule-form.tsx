@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver, type UseFormSetValue } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
@@ -57,7 +57,9 @@ export function AddPolicyRuleForm({
   const isEditMode = !!editingRule;
 
   const form = useForm<PolicyRuleFormData | PolicyRuleUpdateData>({
-    resolver: zodResolver(isEditMode ? policyRuleUpdateSchema : policyRuleCreateSchema),
+    resolver: zodResolver(
+      isEditMode ? policyRuleUpdateSchema : policyRuleCreateSchema
+    ) as Resolver<PolicyRuleFormData | PolicyRuleUpdateData>,
     mode: "onChange",
     defaultValues: editingRule
       ? {
@@ -83,21 +85,39 @@ export function AddPolicyRuleForm({
         },
   });
 
-  // Keyboard integration hook for numeric fields
+  // Keyboard integration hook for numeric fields (wrapper converts string→number for numeric fields)
+  const setValueWithCoercion: UseFormSetValue<PolicyRuleFormData | PolicyRuleUpdateData> = (
+    name,
+    value,
+    options?
+  ) => {
+    if (
+      name === "min_shift_hours" ||
+      name === "max_shift_hours" ||
+      name === "earliest_after_hours" ||
+      name === "latest_before_end_hours"
+    ) {
+      const numValue =
+        typeof value === "string"
+          ? value
+            ? parseFloat(value)
+            : name === "max_shift_hours" ||
+                name === "earliest_after_hours" ||
+                name === "latest_before_end_hours"
+              ? null
+              : 0
+          : (value as number | null);
+      form.setValue(name, numValue as never, options);
+    } else if (name === "allowed_count") {
+      const numVal =
+        typeof value === "string" ? (value ? parseInt(value, 10) : 0) : (value as number);
+      form.setValue(name, numVal as never, options);
+    } else {
+      form.setValue(name, value as never, options);
+    }
+  };
   const keyboard = useKeyboardWithRHF({
-    setValue: (name, value) => {
-      // Convert string to number for numeric fields
-      if (name === "min_shift_hours" || name === "max_shift_hours" || 
-          name === "earliest_after_hours" || name === "latest_before_end_hours") {
-        const numValue = value ? parseFloat(value) : (name === "max_shift_hours" || 
-          name === "earliest_after_hours" || name === "latest_before_end_hours" ? null : 0);
-        form.setValue(name as any, numValue as any);
-      } else if (name === "allowed_count") {
-        form.setValue(name as any, value ? parseInt(value) : 0);
-      } else {
-        form.setValue(name as any, value as any);
-      }
-    },
+    setValue: setValueWithCoercion,
     watch: form.watch,
     fieldConfigs: {
       min_shift_hours: { keyboardMode: "numeric" },

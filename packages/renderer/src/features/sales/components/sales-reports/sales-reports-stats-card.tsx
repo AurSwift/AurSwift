@@ -30,7 +30,7 @@ export function SalesReportsStatsCard({
   value,
   change,
   icon: Icon,
-  colorTheme = "default",
+  colorTheme: _colorTheme = "default",
   isLoading = false,
   className,
 }: SalesReportsStatsCardProps) {

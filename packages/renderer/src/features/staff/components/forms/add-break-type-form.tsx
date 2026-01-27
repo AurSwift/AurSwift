@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
@@ -57,7 +57,9 @@ export function AddBreakTypeForm({
   const isEditMode = !!editingBreakType;
 
   const form = useForm<BreakTypeFormData | BreakTypeUpdateData>({
-    resolver: zodResolver(isEditMode ? breakTypeUpdateSchema : breakTypeCreateSchema),
+    resolver: zodResolver(
+      isEditMode ? breakTypeUpdateSchema : breakTypeCreateSchema
+    ) as Resolver<BreakTypeFormData | BreakTypeUpdateData>,
     mode: "onChange",
     defaultValues: editingBreakType
       ? {

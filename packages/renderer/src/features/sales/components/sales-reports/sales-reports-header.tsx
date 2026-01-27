@@ -6,7 +6,7 @@
  */
 
 import { Button } from "@/components/ui/button";
-import { Download, Printer, Calendar } from "lucide-react";
+import { Download, Printer } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 
 export interface SalesReportsHeaderProps {
@@ -26,7 +26,7 @@ export interface SalesReportsHeaderProps {
 export function SalesReportsHeader({
   title = "Sales Reports",
   subtitle = "Comprehensive sales analytics and insights",
-  dateRange,
+  dateRange: _dateRange,
   onExport,
   onPrint,
   showExport = true,

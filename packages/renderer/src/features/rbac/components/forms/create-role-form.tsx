@@ -381,7 +381,7 @@ export function CreateRoleForm({
                     form.handleSubmit(handleSubmit)();
                   }
                 }}
-                initialMode={keyboard.activeFieldConfig?.keyboardMode || "qwerty"}
+                initialMode={(keyboard.activeFieldConfig as { keyboardMode?: "qwerty" | "numeric" | "symbols" } | undefined)?.keyboardMode ?? "qwerty"}
                 visible={keyboard.showKeyboard}
                 onClose={keyboard.handleCloseKeyboard}
               />

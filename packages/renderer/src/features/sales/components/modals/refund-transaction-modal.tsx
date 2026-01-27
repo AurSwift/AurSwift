@@ -505,7 +505,6 @@ const RefundTransactionModal: React.FC<RefundModalProps> = ({
           >
             <AnimatePresence
               mode="wait"
-              dataDebugId="refund-modal"
               exitAnimation="slide-left-exit"
               exitDuration={200}
             >

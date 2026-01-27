@@ -79,7 +79,7 @@ export default function RoleManagementView({ onBack }: { onBack: () => void }) {
           refetch();
           resolve();
         },
-        onError: (error) => {
+        onError: (error: unknown) => {
           reject(error);
         },
       });

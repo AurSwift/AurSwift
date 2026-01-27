@@ -18,6 +18,7 @@ import {
   getUserRoleName,
   userRequiresShift,
 } from "@/shared/utils/rbac-helpers";
+import type { User } from "@/types/domain";
 import type { Schedule } from "@/types/domain/shift";
 import { getLogger } from "@/shared/utils/logger";
 
@@ -30,7 +31,7 @@ const CHECK_INTERVAL_MS = 60_000;
  * Returns true if the current user requires shift-based access and should
  * be subject to shift-expiry auto-logout (cashier, manager, supervisor).
  */
-function shouldCheckShiftExpiry(user: { id: string } | null): boolean {
+function shouldCheckShiftExpiry(user: User | null): boolean {
   if (!user) return false;
   if (userRequiresShift(user)) return true;
   const role = getUserRoleName(user);
@@ -43,7 +44,6 @@ function shouldCheckShiftExpiry(user: { id: string } | null): boolean {
 function getScheduleEndMs(schedule: Schedule): number {
   const raw = schedule.endTime;
   if (typeof raw === "number") return raw;
-  if (raw instanceof Date) return raw.getTime();
   return new Date(raw as string).getTime();
 }
 

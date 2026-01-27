@@ -58,7 +58,6 @@ import {
   BatchSelectionModal,
   GenericItemPriceModal,
   RefundTransactionView,
-  VoidTransactionModal,
   CashDrawerCountModal,
   QuantityModal,
   SaveBasketModal,
@@ -129,7 +128,6 @@ export function NewTransactionView({
 
   // Modal states
   const [showRefundModal, setShowRefundModal] = useState(false);
-  const [showVoidModal, setShowVoidModal] = useState(false);
   const [showCountModal, setShowCountModal] = useState(false);
   const [showAgeVerificationModal, setShowAgeVerificationModal] =
     useState(false);
@@ -1194,7 +1192,6 @@ export function NewTransactionView({
         <div className="flex flex-col w-full lg:flex-[0_1_480px] lg:w-[480px] lg:max-w-[520px] gap-2 sm:gap-3 min-h-0">
           <QuickActionsCarousel
             onRefund={() => setShowRefundModal(true)}
-            onVoid={() => setShowVoidModal(true)}
             onCount={() => setShowCountModal(true)}
             onDashboard={onBack}
             onReceipts={handleReceipts}
@@ -1566,18 +1563,6 @@ export function NewTransactionView({
             toast.success("Refund processed successfully!");
           }}
           activeShiftId={salesMode.activeShift?.id || shift.activeShift?.id}
-        />
-      )}
-
-      {showVoidModal && user && (
-        <VoidTransactionModal
-          isOpen={showVoidModal}
-          onClose={() => setShowVoidModal(false)}
-          onVoidComplete={() => {
-            setShowVoidModal(false);
-            toast.success("Transaction voided successfully!");
-          }}
-          activeShiftId={user.id}
         />
       )}
 

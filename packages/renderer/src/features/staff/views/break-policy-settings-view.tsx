@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AdaptiveFormField } from "@/features/adaptive-keyboard/adaptive-form-field";
 import { AdaptiveKeyboard } from "@/features/adaptive-keyboard/adaptive-keyboard";
@@ -30,14 +29,6 @@ import {
   FormLabel,
   FormControl,
 } from "@/components/ui/form";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { AddBreakTypeDrawer } from "../components/dialogs/add-break-type-drawer";
 import { AddPolicyRuleDrawer } from "../components/dialogs/add-policy-rule-drawer";
 import type {
@@ -56,13 +47,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ChevronLeft,
@@ -98,22 +82,6 @@ const BREAK_TYPE_ICONS: Record<string, React.ElementType> = {
   clock: Clock,
 };
 
-interface BreakTypeFormData {
-  name: string;
-  code: string;
-  description: string;
-  default_duration_minutes: number;
-  min_duration_minutes: number;
-  max_duration_minutes: number;
-  is_paid: boolean;
-  is_required: boolean;
-  counts_as_worked_time: boolean;
-  allowed_window_start: string;
-  allowed_window_end: string;
-  icon: string;
-  color: string;
-}
-
 const DEFAULT_BREAK_TYPE: BreakTypeFormData = {
   name: "",
   code: "",
@@ -128,6 +96,7 @@ const DEFAULT_BREAK_TYPE: BreakTypeFormData = {
   allowed_window_end: "",
   icon: "coffee",
   color: "#6B7280",
+  business_id: "",
 };
 
 
@@ -177,7 +146,7 @@ export default function BreakPolicySettingsView({
   const [activeTab, setActiveTab] = useState("types");
 
   // Form state (kept for backward compatibility, but not used in drawer mode)
-  const [breakTypeForm, setBreakTypeForm] =
+  const [_breakTypeForm, setBreakTypeForm] =
     useState<BreakTypeFormData>(DEFAULT_BREAK_TYPE);
 
   // Load data
