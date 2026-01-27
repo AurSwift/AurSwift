@@ -654,29 +654,8 @@ export function usePayment({
           } catch (error) {
             logger.error("Failed to complete cart session:", error);
 
-            // Attempt to void the transaction to maintain data integrity
-            if (transactionId && userId) {
-              try {
-                await window.voidAPI.voidTransaction({
-                  transactionId,
-                  cashierId: userId,
-                  reason: "Cart session completion failed - automatic void",
-                });
-                logger.info(
-                  "Transaction voided successfully after cart completion failure",
-                );
-              } catch (voidError) {
-                logger.error(
-                  "Failed to void transaction after cart completion failure:",
-                  voidError,
-                );
-                // Log critical error - transaction exists but cart not completed
-                // This requires manual intervention
-              }
-            }
-
             toast.error(
-              "Transaction created but cart session update failed. Transaction has been voided. Please contact support.",
+              "Transaction was created but cart update failed. Please contact support.",
               { duration: 10000 },
             );
             // FIX #6: Cleanup timeout before returning on error
