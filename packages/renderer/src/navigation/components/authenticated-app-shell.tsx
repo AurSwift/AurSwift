@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { DashboardHeader } from "@/features/dashboard/components/dashboard-header";
+import { useShiftExpiryLogout } from "@/features/dashboard/hooks/use-shift-expiry-logout";
 import { useAuth } from "@/shared/hooks";
 import { getUserDisplayName } from "@/shared/utils/auth";
 import { useNavigation } from "../hooks/use-navigation";
@@ -15,6 +16,9 @@ import { NavigationContainer } from "./navigation-container";
 export function AuthenticatedAppShell() {
   const { user } = useAuth();
   const { currentViewId } = useNavigation();
+
+  // Auto-logout when scheduled shift end is exceeded (runs even when header hidden, e.g. New Transaction)
+  useShiftExpiryLogout();
 
   const view = useMemo(() => getView(currentViewId), [currentViewId]);
 
