@@ -95,16 +95,18 @@ export class AutoUpdater implements AppModule {
   readonly #INSTALL_DELAY = 500; // 500ms delay before install
   readonly #PROGRESS_NOTIFICATION_THRESHOLD_MIN = 50; // Show notification at 50%
   readonly #PROGRESS_NOTIFICATION_THRESHOLD_MAX = 55; // Hide notification after 55%
-  readonly #METRICS_ROLLING_WINDOW = 100; // Keep last 100 measurements
-  readonly #CACHE_HIT_RATE_WINDOW = 1000; // Use rolling window of 1000 checks for cache hit rate
-  // Phase 5.1: Performance Metrics
+  // Performance: Reduced from 100 to 20 - sufficient for meaningful averages with less memory
+  readonly #METRICS_ROLLING_WINDOW = 20;
+  // Performance: Simplified - no separate window needed, use checkCount directly
+  readonly #MAX_ERROR_COOLDOWNS = 10; // Limit error notification cooldown entries
+  // Phase 5.1: Performance Metrics (Optimized for memory efficiency)
   readonly #metrics: {
     checkCount: number;
-    checkDuration: number[];
+    checkDuration: number[]; // Rolling window of last N durations
     downloadCount: number;
-    downloadDuration: number[];
+    downloadDuration: number[]; // Rolling window of last N durations
     errorCount: number;
-    cacheHitRate: number;
+    cacheHits: number; // Simple counter for cache hit rate
     retryCount: number;
     timeoutCount: number;
   } = {
@@ -113,7 +115,7 @@ export class AutoUpdater implements AppModule {
     downloadCount: 0,
     downloadDuration: [],
     errorCount: 0,
-    cacheHitRate: 0,
+    cacheHits: 0,
     retryCount: 0,
     timeoutCount: 0,
   };
@@ -166,14 +168,9 @@ export class AutoUpdater implements AppModule {
       return;
     }
 
-    // ===== DEBUG LOGGING START =====
-    logger.info("========================================");
-    logger.info("🚀 AUTO-UPDATER ENABLING");
-    logger.info(`   NODE_ENV: ${process.env.NODE_ENV}`);
-    logger.info(`   Current Version: ${app.getVersion()}`);
-    logger.info(`   Is Packaged: ${app.isPackaged}`);
-    logger.info("========================================");
-    // ===== DEBUG LOGGING END =====
+    logger.info(
+      `🚀 AutoUpdater enabling (v${app.getVersion()}, packaged: ${app.isPackaged})`,
+    );
 
     // Set up update listeners once when enabling (not on every check)
     // This ensures listeners are always ready to receive update events
@@ -217,7 +214,7 @@ export class AutoUpdater implements AppModule {
 
   /**
    * Disable the auto-updater module
-   * Cleans up intervals, timeouts, and event listeners
+   * Cleans up intervals, timeouts, event listeners, and memory
    */
   async disable(): Promise<void> {
     if (this.#updateCheckInterval) {
@@ -240,6 +237,17 @@ export class AutoUpdater implements AppModule {
       clearTimeout(this.#checkDebounceTimer);
       this.#checkDebounceTimer = null;
     }
+
+    // Performance: Clear pending promises to prevent memory leaks
+    if (this.#pendingCheckPromises.length > 0) {
+      const error = new Error("AutoUpdater disabled");
+      this.#pendingCheckPromises.forEach((p) => p.reject(error));
+      this.#pendingCheckPromises = [];
+    }
+
+    // Performance: Clear caches and Maps
+    this.#lastErrorNotifications.clear();
+    this.#cachedReleaseNotes.clear();
 
     // Remove all event listeners
     const updater = this.getAutoUpdater();
@@ -935,59 +943,36 @@ export class AutoUpdater implements AppModule {
 
   /**
    * Broadcast event to all windows with type safety
+   * Performance: Uses setImmediate to avoid blocking the main thread
    */
   private broadcastToAllWindows<T = unknown>(channel: string, data: T): void {
-    const allWindows = BrowserWindow.getAllWindows();
-    let sentCount = 0;
+    // Performance: Defer to next tick to avoid blocking main thread during update operations
+    setImmediate(() => {
+      const allWindows = BrowserWindow.getAllWindows();
+      let sentCount = 0;
 
-    // ===== DEBUG LOGGING =====
-    if (this.#logger) {
-      this.#logger.info(
-        `📡 broadcastToAllWindows called for channel: ${channel}`,
-      );
-      this.#logger.info(`   Total windows: ${allWindows.length}`);
-    }
+      // Reduced logging - only log summary, not per-window details
+      if (this.#logger) {
+        this.#logger.info(
+          `📡 Broadcasting ${channel} to ${allWindows.length} window(s)`,
+        );
+      }
 
-    allWindows.forEach((window, index) => {
-      if (window && !window.isDestroyed()) {
-        try {
-          // Check if webContents is ready
-          const isLoading = window.webContents.isLoading();
-          if (this.#logger) {
-            this.#logger.info(
-              `   Window ${index}: id=${window.id}, loading=${isLoading}`,
-            );
-          }
-          window.webContents.send(channel, data);
-          sentCount++;
-          if (this.#logger) {
-            this.#logger.info(`   ✅ Sent to window ${window.id}`);
-          }
-        } catch (error) {
-          // Silently handle errors - toast system will handle missing events
-          if (this.#logger) {
-            this.#logger.warn(
-              `Failed to send ${channel} to window: ${this.formatErrorMessage(
-                error,
-              )}`,
-            );
+      for (const window of allWindows) {
+        if (window && !window.isDestroyed()) {
+          try {
+            window.webContents.send(channel, data);
+            sentCount++;
+          } catch {
+            // Silently handle errors - toast system will handle missing events
           }
         }
-      } else {
-        if (this.#logger) {
-          this.#logger.warn(`   Window ${index}: destroyed or null`);
-        }
+      }
+
+      if (this.#logger && sentCount === 0 && allWindows.length > 0) {
+        this.#logger.warn(`⚠️ No windows received ${channel}`);
       }
     });
-
-    if (this.#logger) {
-      this.#logger.info(
-        `📡 Broadcast complete: sent to ${sentCount}/${allWindows.length} windows`,
-      );
-      if (sentCount === 0) {
-        this.#logger.warn(`⚠️ NO WINDOWS RECEIVED THE ${channel} EVENT!`);
-      }
-    }
   }
 
   /**
@@ -1004,6 +989,7 @@ export class AutoUpdater implements AppModule {
     retryCount: number;
     timeoutCount: number;
   } {
+    // Performance: Calculate averages only when requested (lazy evaluation)
     const avgCheckDuration =
       this.#metrics.checkDuration.length > 0
         ? this.#metrics.checkDuration.reduce((a, b) => a + b, 0) /
@@ -1015,13 +1001,19 @@ export class AutoUpdater implements AppModule {
           this.#metrics.downloadDuration.length
         : 0;
 
+    // Simplified cache hit rate: cacheHits / totalChecks * 100
+    const cacheHitRate =
+      this.#metrics.checkCount > 0
+        ? (this.#metrics.cacheHits / this.#metrics.checkCount) * 100
+        : 0;
+
     return {
       checkCount: this.#metrics.checkCount,
       avgCheckDuration,
       downloadCount: this.#metrics.downloadCount,
       avgDownloadDuration,
       errorCount: this.#metrics.errorCount,
-      cacheHitRate: this.#metrics.cacheHitRate,
+      cacheHitRate,
       retryCount: this.#metrics.retryCount,
       timeoutCount: this.#metrics.timeoutCount,
     };
@@ -1362,15 +1354,18 @@ export class AutoUpdater implements AppModule {
   }
 
   /**
-   * Track check metrics (Phase 5.1)
-   * Uses rolling average to prevent overflow and maintain accuracy
+   * Track check metrics (Phase 5.1 - Optimized)
+   * Uses simple counters and small rolling windows for memory efficiency
    * @param duration - Check duration in milliseconds
    * @param cached - Whether the result was from cache
    */
   private trackCheckMetrics(duration: number, cached: boolean): void {
     this.#metrics.checkCount++;
 
-    if (!cached) {
+    if (cached) {
+      // Simple increment for cache hits
+      this.#metrics.cacheHits++;
+    } else {
       // Only track duration for actual network checks
       this.#metrics.checkDuration.push(duration);
       // Keep only last N measurements to prevent unbounded growth
@@ -1378,16 +1373,6 @@ export class AutoUpdater implements AppModule {
         this.#metrics.checkDuration.shift();
       }
     }
-
-    // Simple cache hit rate: (total checks - network requests) / total checks
-    const totalChecks = Math.min(
-      this.#metrics.checkCount,
-      this.#CACHE_HIT_RATE_WINDOW,
-    );
-    const networkRequests = this.#metrics.checkDuration.length;
-    const cacheHits = totalChecks - networkRequests;
-    this.#metrics.cacheHitRate =
-      totalChecks > 0 ? (cacheHits / totalChecks) * 100 : 0;
   }
 
   private removeUpdateListeners(updater: AppUpdater): void {
@@ -1402,22 +1387,18 @@ export class AutoUpdater implements AppModule {
     this.removeUpdateListeners(updater);
 
     const onUpdateAvailable = (info: UpdateInfo) => {
-      // ===== DEBUG LOGGING START =====
-      if (this.#logger) {
-        this.#logger.info("========================================");
-        this.#logger.info("🔔 UPDATE AVAILABLE EVENT FIRED!");
-        this.#logger.info(`   Version: ${info?.version || "MISSING"}`);
-        this.#logger.info(`   Current: ${app.getVersion()}`);
-        this.#logger.info("========================================");
-      }
-      // ===== DEBUG LOGGING END =====
-
       // Validate update info
       if (!info || !info.version) {
         if (this.#logger) {
           this.#logger.warn("Received invalid update info, ignoring");
         }
         return;
+      }
+
+      if (this.#logger) {
+        this.#logger.info(
+          `🔔 Update available: ${info.version} (current: ${app.getVersion()})`,
+        );
       }
 
       // Reset error notification count on successful update check
@@ -1466,19 +1447,6 @@ export class AutoUpdater implements AppModule {
       // or periodic checks, even if they postponed the update earlier.
       // Format notes before sending to ensure consistency with dialogs
       const formattedNotes = this.formatReleaseNotes(info);
-
-      // ===== DEBUG LOGGING START =====
-      if (this.#logger) {
-        const windows = BrowserWindow.getAllWindows();
-        this.#logger.info("📡 BROADCASTING update:available");
-        this.#logger.info(`   Windows count: ${windows.length}`);
-        windows.forEach((w, i) => {
-          this.#logger?.info(
-            `   Window ${i}: id=${w.id}, destroyed=${w.isDestroyed()}, visible=${w.isVisible()}`,
-          );
-        });
-      }
-      // ===== DEBUG LOGGING END =====
 
       // Use UpdateInfo type directly to ensure type compatibility
       this.broadcastToAllWindows<UpdateInfo>("update:available", {
