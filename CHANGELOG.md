@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.41.0](https://github.com/AurSwift/AurSwift/compare/v1.40.0...v1.41.0) (2026-01-28)
+
+
+### docs
+
+* add performance optimizations documentation for AuraSwift application ([](https://github.com/AurSwift/AurSwift/commit/5a0bc85766d500bcc27517289524edbeb9917702))
+
+
+### feat
+
+* **app:** implement lazy loading and error boundaries for improved performance and user experience ([](https://github.com/AurSwift/AurSwift/commit/4ef6713ebf54bfbb90f36110d2ba6bdd392e7fcf))
+
+
+### fix
+
+* **entry-point:** prevent default Electron menu from displaying ([](https://github.com/AurSwift/AurSwift/commit/266ac33a6e60992bddd973cc61df4ebaf340176d))
+
+
+### refactor
+
+* **vite:** enhance configuration for production mode and clean up console logs ([](https://github.com/AurSwift/AurSwift/commit/6d650f8824401453929afa294748eaeca3a7b83a))
+* **cart:** improve code readability and formatting in cart components ([](https://github.com/AurSwift/AurSwift/commit/89350ba5ffff78020aa4dead076087721ffd9c79))
+* **init:** load hardware services in parallel for improved performance ([](https://github.com/AurSwift/AurSwift/commit/b3b5f029b648acda4bf0aadd22709624382a4372))
+* **auto-updater:** optimize performance metrics and logging ([](https://github.com/AurSwift/AurSwift/commit/53860eaafa553622fc0813e2317186868a4fd203))
+
 # [1.40.0](https://github.com/AurSwift/AurSwift/compare/v1.39.1...v1.40.0) (2026-01-28)
 
 
