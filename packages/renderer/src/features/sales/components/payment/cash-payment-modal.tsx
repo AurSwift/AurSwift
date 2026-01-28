@@ -1,5 +1,5 @@
 import React from "react";
-import { Banknote, Delete } from "lucide-react";
+import { Banknote } from "lucide-react";
 
 import {
   Dialog,
@@ -280,43 +280,17 @@ export function CashPaymentModal({
             </div>
           </div>
 
-          {/* Right: keypad + right-side actions */}
-          <div className="flex gap-3 items-start">
-            <div className="flex-1">
-              <Label className="text-xs sm:text-sm text-slate-600">
-                Keypad
-              </Label>
-              <NumericKeypad
-                onInput={handleKeypadInput}
-                keysOverride={[
-                  ["7", "8", "9"],
-                  ["4", "5", "6"],
-                  ["1", "2", "3"],
-                  ["0", "00", "."],
-                ]}
-              />
-            </div>
-
-            <div className="grid grid-rows-4 gap-2 pt-6 w-20">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleBackspace}
-                className="row-span-2 min-h-[44px] h-full text-lg font-semibold touch-manipulation"
-                aria-label="Backspace"
-                title="Backspace"
-              >
-                <Delete className="h-5 w-5" />
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleClear}
-                className="row-span-2 min-h-[44px] h-full text-base font-semibold touch-manipulation"
-              >
-                Clear
-              </Button>
-            </div>
+          {/* Right: numeric field keypad (Clear and Backspace in grid) */}
+          <div>
+            <Label className="text-xs sm:text-sm text-slate-600">
+              Keypad
+            </Label>
+            <NumericKeypad
+              layout="numericField"
+              includeClear
+              includeBackspace
+              onInput={handleKeypadInput}
+            />
           </div>
         </div>
       </DialogContent>
