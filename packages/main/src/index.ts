@@ -98,23 +98,15 @@ export async function initApp(initConfig: AppInitConfig) {
   // Initialize database
   const db = await getDatabase();
 
-  // Initialize thermal printer service after database is ready
-  await import("./services/thermalPrinterService.js");
-
-  // Initialize office printer service for HP LaserJet and similar printers
-  await import("./services/officePrinterService.js");
-
-  // Initialize PDF receipt generation service
-  await import("./services/pdfReceiptService.js");
-
-  // Initialize payment service for BBPOS WisePad 3
-  await import("./services/paymentService.js");
-
-  // Initialize scale hardware service for weight measurement
-  await import("./services/scaleService.js");
-
-  // Initialize Viva Wallet service for payment terminal integration
-  await import("./services/vivaWallet/index.js");
+  // Load hardware services in parallel - they're independent
+  await Promise.all([
+    import("./services/thermalPrinterService.js"),
+    import("./services/officePrinterService.js"),
+    import("./services/pdfReceiptService.js"),
+    import("./services/paymentService.js"),
+    import("./services/scaleService.js"),
+    import("./services/vivaWallet/index.js"),
+  ]);
 
   // Initialize email service in console mode at startup.
   // We load Gmail credentials per-business (businessId) at send time.
