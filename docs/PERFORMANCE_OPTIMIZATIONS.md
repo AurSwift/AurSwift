@@ -148,21 +148,61 @@ async enable({ app }: ModuleContext): Promise<void> {
 
 ---
 
+## 4. Lazy Database Manager Initialization 🟡
+
+### Problem
+
+**File:** `packages/main/src/database/index.ts`
+
+**Issue:** All 30+ database managers were instantiated eagerly during `getDatabase()`, even though many are only used when specific features are exercised (e.g. `ageVerification`, `expiryNotifications`, `breakPolicy`, `savedBaskets`). This increased startup cost and memory use.
+
+**Impact:**
+- Unnecessary work during database initialization
+- Higher memory footprint at startup
+- Slower time-to-ready for the main process
+
+### Solution
+
+**Approach:** Lazy initialization via getters. Only **`SessionManager`** and **`AuditLogManager`** are created eagerly, because they run startup cleanups (expired sessions, old audit logs). All other managers are created on first access via `db.<manager>` and then cached.
+
+**Implementation:**
+- A host object implements `DatabaseManagers` with getters for each manager.
+- Eager instances: `sessions`, `auditLogs`; run `cleanupExpiredSessions()` and `cleanupOldLogs(90)` during init.
+- Lazy getters use a `createLazy(key, factory)` helper: create on first access, cache, return.
+- Dependency order is enforced by getters: e.g. `users` ensures `sessions`, `timeTracking`, `schedules` exist first; `inventory` ensures `stockMovements` (and thus `batches`) exist.
+
+**Benefits:**
+- Fewer managers created at startup; less-used managers created only when needed
+- Lower memory use early in the app lifecycle
+- Same public API: consumers still use `getDatabase()` and `db.<manager>` unchanged
+
+**Why This Works:**
+- Getters ensure dependencies are created before dependents, avoiding cycles
+- Caching ensures each manager is a singleton per database lifecycle
+- `closeDatabase()` discards the host and caches; next `getDatabase()` builds a fresh instance
+
+**Location:** `packages/main/src/database/index.ts`
+
+---
+
 ## Performance Impact Summary
 
 ### Before Optimizations
 - **Service Loading:** Sequential (sum of all import times)
 - **Menu Setup:** Default menu built, then replaced
+- **Database Managers:** All 30+ managers eagerly created at startup
 - **Startup Time:** Slower due to blocking operations
 
 ### After Optimizations
 - **Service Loading:** Parallel (longest import time)
 - **Menu Setup:** No default menu built
+- **Database Managers:** Only `SessionManager` and `AuditLogManager` eager; rest lazy on first access
 - **Startup Time:** Faster, more efficient initialization
 
 ### Estimated Improvements
 - **Service Loading:** ~60-80% reduction in initialization time (depending on number of services)
 - **Menu Setup:** Eliminated unnecessary default menu construction
+- **Database Managers:** Deferred creation and lower memory use for less-used managers
 - **Overall Startup:** Noticeably faster application launch
 
 ---
@@ -172,7 +212,8 @@ async enable({ app }: ModuleContext): Promise<void> {
 1. **Parallel Loading:** Use `Promise.all()` for independent async operations
 2. **Early Initialization:** Set Electron configuration before `app.whenReady()`
 3. **Avoid Unnecessary Work:** Prevent Electron from building UI elements that will be replaced
-4. **Documentation:** Document performance optimizations for future reference
+4. **Lazy Initialization:** Create managers (or other heavy objects) on first use when possible; keep a minimal eager set for startup requirements
+5. **Documentation:** Document performance optimizations for future reference
 
 ---
 
@@ -182,14 +223,16 @@ When adding new services or initialization code:
 
 1. **Evaluate Dependencies:** Determine if services can load in parallel
 2. **Check Electron Lifecycle:** Ensure configuration happens at the right time
-3. **Measure Impact:** Profile startup time before and after changes
-4. **Document Changes:** Update this document with new optimizations
+3. **Consider Lazy Init:** Prefer lazy creation for managers or services used only by specific features
+4. **Measure Impact:** Profile startup time before and after changes
+5. **Document Changes:** Update this document with new optimizations
 
 ---
 
 ## Related Files
 
 - `packages/main/src/index.ts` - Main process initialization
+- `packages/main/src/database/index.ts` - Database and manager initialization (lazy managers)
 - `packages/entry-point.mjs` - Application entry point
 - `packages/main/src/modules/WindowManager.ts` - Window and menu management
 

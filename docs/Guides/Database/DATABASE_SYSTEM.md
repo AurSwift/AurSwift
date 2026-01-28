@@ -60,7 +60,7 @@ This document provides a comprehensive overview of AuraSwift's database system, 
 ### Core Files
 
 - **`db-manager.ts`** - Low-level database initialization and connection management
-- **`index.ts`** - Main entry point, creates and exports all managers
+- **`index.ts`** - Main entry point, creates and exports all managers (lazy initialization; see below)
 - **`drizzle.ts`** - Drizzle ORM initialization wrapper
 - **`drizzle-migrator.ts`** - Migration execution system
 - **`seed.ts`** - Default data seeding
@@ -152,9 +152,13 @@ class ManagerName {
 
 Some managers depend on others:
 
-- **`InventoryManager`** depends on `StockMovementManager` and `BatchManager`
+- **`UserManager`** depends on `SessionManager`, `TimeTrackingManager`, and `ScheduleManager`
+- **`InventoryManager`** depends on `StockMovementManager`
 - **`StockMovementManager`** depends on `BatchManager`
-- Managers are initialized in dependency order in `index.ts`
+
+### Lazy Initialization
+
+Managers are **lazily initialized** on first access, except **`SessionManager`** and **`AuditLogManager`**, which are created eagerly because they run startup cleanups (expired sessions, old audit logs). All other managers are created when first accessed via `db.<manager>`. Dependency order is enforced by getters: e.g. accessing `db.users` ensures `sessions`, `timeTracking`, and `schedules` exist first; `db.inventory` ensures `stockMovements` (and thus `batches`) exist. This reduces startup cost and memory use for less-used managers.
 
 ---
 
