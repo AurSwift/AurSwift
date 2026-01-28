@@ -17,8 +17,8 @@ export function CartItemRow({
 }: CartItemRowProps) {
   const handleRowClick = (e: React.MouseEvent<HTMLTableRowElement>) => {
     if (
-      (e.target as HTMLElement).closest('button') ||
-      (e.target as HTMLElement).tagName === 'BUTTON'
+      (e.target as HTMLElement).closest("button") ||
+      (e.target as HTMLElement).tagName === "BUTTON"
     ) {
       return;
     }
@@ -28,9 +28,7 @@ export function CartItemRow({
   return (
     <tr
       className={`border-b border-slate-200 transition-colors cursor-pointer ${
-        isSelected
-          ? "bg-slate-200 hover:bg-slate-300"
-          : "hover:bg-slate-50"
+        isSelected ? "bg-slate-200 hover:bg-slate-300" : "hover:bg-slate-50"
       }`}
       onClick={handleRowClick}
     >
@@ -38,8 +36,8 @@ export function CartItemRow({
         {item.itemType === "WEIGHT" && item.weight
           ? `${item.weight.toFixed(2)}`
           : item.itemType === "UNIT" && item.quantity
-          ? `${item.quantity}x`
-          : "-"}
+            ? `${item.quantity}x`
+            : "-"}
       </td>
       <td className="font-medium text-xs sm:text-sm">
         <span className="line-clamp-2">

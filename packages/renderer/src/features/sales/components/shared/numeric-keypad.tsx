@@ -62,7 +62,11 @@ export function NumericKeypad({
       key="backspace-btn"
       type="button"
       onClick={() => onInput("Backspace")}
-      className={cn("w-full h-full flex items-center justify-center", keyBase, keyBackspace)}
+      className={cn(
+        "w-full h-full flex items-center justify-center",
+        keyBase,
+        keyBackspace,
+      )}
       tabIndex={0}
       aria-label="Backspace"
       title="Backspace"
@@ -90,7 +94,7 @@ export function NumericKeypad({
       ? numericFieldKeys
       : keysOverride
         ? keysOverride.map((row) =>
-            row.map((key) => (key === "Back" ? "Backspace" : key))
+            row.map((key) => (key === "Back" ? "Backspace" : key)),
           )
         : [
             ["7", "8", "9", "Enter"],
@@ -104,7 +108,11 @@ export function NumericKeypad({
 
   // Tailwind needs static classnames; map dynamic column counts safely.
   const gridColsClass =
-    colCount <= 2 ? "grid-cols-2" : colCount === 3 ? "grid-cols-3" : "grid-cols-4";
+    colCount <= 2
+      ? "grid-cols-2"
+      : colCount === 3
+        ? "grid-cols-3"
+        : "grid-cols-4";
 
   return (
     <div className={cn("grid mt-2 gap-1.5 sm:gap-2", gridColsClass)}>
@@ -147,7 +155,7 @@ export function NumericKeypad({
               {key}
             </button>
           );
-        })
+        }),
       )}
     </div>
   );

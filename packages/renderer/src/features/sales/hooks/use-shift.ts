@@ -153,7 +153,7 @@ export function useShift({
         }
       }
     },
-    [userId]
+    [userId],
   );
 
   /**
@@ -306,7 +306,7 @@ export function useShift({
         const today = new Date(now);
         today.setHours(0, 0, 0, 0);
         const daysDiff = Math.abs(
-          (scheduleDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+          (scheduleDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
         );
 
         if (daysDiff > 1) {
@@ -326,7 +326,7 @@ export function useShift({
         };
       }
     },
-    []
+    [],
   );
 
   /**
@@ -369,11 +369,11 @@ export function useShift({
           minute: "2-digit",
           hour12: true,
         })} and is now ${Math.floor(minutesAfterEnd / 60)}h ${Math.floor(
-          minutesAfterEnd % 60
+          minutesAfterEnd % 60,
         )}m overdue. Please contact your manager to reschedule or create a new shift.`,
         {
           duration: 6000,
-        }
+        },
       );
       return;
     }
@@ -391,11 +391,11 @@ export function useShift({
             hour: "2-digit",
             minute: "2-digit",
             hour12: true,
-          }
+          },
         )}. Please wait ${minutesUntilStart} more minutes.`,
         {
           duration: 5000,
-        }
+        },
       );
       return;
     }
@@ -440,7 +440,7 @@ export function useShift({
         `Starting cash exceeds maximum limit of £${MAX_STARTING_CASH.toLocaleString()}. Please verify the amount.`,
         {
           duration: 6000,
-        }
+        },
       );
       return;
     }
@@ -451,7 +451,7 @@ export function useShift({
         `Starting cash amount is unusually large (£${cashAmount.toLocaleString()}). Please verify.`,
         {
           duration: 5000,
-        }
+        },
       );
     }
 
@@ -476,7 +476,7 @@ export function useShift({
         "You are offline. Shift start has been queued and will be processed when connection is restored.",
         {
           duration: 5000,
-        }
+        },
       );
       return;
     }
@@ -508,7 +508,7 @@ export function useShift({
           initialDelay: 1000,
           maxDelay: 5000,
           retryableErrors: (error) => isNetworkError(error),
-        }
+        },
       );
 
       if (response.success && response.data) {
@@ -542,11 +542,11 @@ export function useShift({
           if (isDifferentDevice && existingShift) {
             toast.warning(
               `Shift is already active on another device. Started at ${new Date(
-                existingShift.startTime
+                existingShift.startTime,
               ).toLocaleString()}`,
               {
                 duration: 5000,
-              }
+              },
             );
           } else {
             toast.warning("You already have an active shift running", {
@@ -562,7 +562,7 @@ export function useShift({
             response.message || "Failed to start shift. Please try again.",
             {
               duration: 5000,
-            }
+            },
           );
         }
       }
@@ -579,7 +579,7 @@ export function useShift({
           "Network error. Please check your connection and try again.",
           {
             duration: 5000,
-          }
+          },
         );
       } else {
         toast.error("Failed to start shift. Please try again.", {
@@ -641,7 +641,7 @@ export function useShift({
       });
 
       const formattedDiff = TimeChangeDetector.formatTimeDifference(
-        changeInfo.timeDifference
+        changeInfo.timeDifference,
       );
       const direction = changeInfo.timeDifference > 0 ? "forward" : "backward";
 
@@ -654,7 +654,7 @@ export function useShift({
             label: "Dismiss",
             onClick: dismissTimeChange,
           },
-        }
+        },
       );
     };
 
@@ -717,7 +717,7 @@ export function useShift({
         toast.warning("Connection lost. Operations will be queued.", {
           duration: 3000,
         });
-      }
+      },
     );
 
     // Process queue on mount if online

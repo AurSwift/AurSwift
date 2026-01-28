@@ -19,7 +19,8 @@ export function TimeChangeBanner({
 }: TimeChangeBannerProps) {
   if (!show || timeDifferenceMs == null) return null;
 
-  const formattedDiff = TimeChangeDetector.formatTimeDifference(timeDifferenceMs);
+  const formattedDiff =
+    TimeChangeDetector.formatTimeDifference(timeDifferenceMs);
   const direction = timeDifferenceMs > 0 ? "forward" : "backward";
 
   return (

@@ -76,7 +76,7 @@ export function CashPaymentModal({
   const currencySymbol = getCurrencySymbol(currency) || `${currency} `;
   const cashPaymentMethod = React.useMemo<PaymentMethod>(
     () => ({ type: "cash", amount: total }),
-    [total]
+    [total],
   );
 
   // Source of truth for keypad editing (keeps partial states like "12.")
@@ -94,7 +94,10 @@ export function CashPaymentModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const cashValue = React.useMemo(() => parseMoneyInput(cashInput), [cashInput]);
+  const cashValue = React.useMemo(
+    () => parseMoneyInput(cashInput),
+    [cashInput],
+  );
 
   const change = cashValue >= total ? cashValue - total : 0;
   const shortfall = cashValue > 0 && cashValue < total ? total - cashValue : 0;
@@ -154,7 +157,7 @@ export function CashPaymentModal({
         return next;
       });
     },
-    [handleBackspace, handleClear, isCashValid, onCashAmountChange, onComplete]
+    [handleBackspace, handleClear, isCashValid, onCashAmountChange, onComplete],
   );
 
   return (
@@ -282,9 +285,7 @@ export function CashPaymentModal({
 
           {/* Right: numeric field keypad (Clear and Backspace in grid) */}
           <div>
-            <Label className="text-xs sm:text-sm text-slate-600">
-              Keypad
-            </Label>
+            <Label className="text-xs sm:text-sm text-slate-600">Keypad</Label>
             <NumericKeypad
               layout="numericField"
               includeClear
@@ -297,4 +298,3 @@ export function CashPaymentModal({
     </Dialog>
   );
 }
-

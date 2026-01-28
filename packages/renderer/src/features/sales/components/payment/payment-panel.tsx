@@ -27,7 +27,7 @@ interface PaymentPanelProps {
   onCompleteTransaction: (
     skipPaymentValidation?: boolean,
     actualPaymentMethod?: PaymentMethod["type"],
-    vivaWalletTransactionId?: string
+    vivaWalletTransactionId?: string,
   ) => void;
   onCancel: () => void;
 }
@@ -98,7 +98,7 @@ export function PaymentPanel({
       onCompleteTransaction(
         true,
         "viva_wallet",
-        transactionStatus.transactionId
+        transactionStatus.transactionId,
       );
     }
   }, [

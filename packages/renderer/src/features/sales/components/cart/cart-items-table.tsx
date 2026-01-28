@@ -90,7 +90,9 @@ export function CartItemsTable({
                     key={item.id}
                     item={item}
                     isSelected={selectedItemId === item.id}
-                    onSelect={onItemSelect ? () => onItemSelect(item) : undefined}
+                    onSelect={
+                      onItemSelect ? () => onItemSelect(item) : undefined
+                    }
                   />
                 ))
               )}
