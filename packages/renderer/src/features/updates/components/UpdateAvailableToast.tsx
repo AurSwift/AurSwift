@@ -85,12 +85,6 @@ export function showUpdateAvailableToast(
   onDownload: () => void,
   onPostpone: () => void,
 ): string | number {
-  console.log("========================================");
-  console.log("📢 showUpdateAvailableToast CALLED!");
-  console.log(`   Update version: ${updateInfo?.version}`);
-  console.log(`   Current version: ${currentVersion}`);
-  console.log("========================================");
-
   const toastId = toast.custom(
     (t) => (
       <UpdateAvailableToast
@@ -113,6 +107,5 @@ export function showUpdateAvailableToast(
     },
   );
 
-  console.log(`✅ Toast created with ID: ${toastId}`);
   return toastId;
 }
