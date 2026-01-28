@@ -145,7 +145,7 @@ const CashierDashboardView = ({
 
           // Load hourly stats if shift is active
           const hourlyStatsResponse = await window.shiftAPI.getHourlyStats(
-            shiftData.id
+            shiftData.id,
           );
           if (hourlyStatsResponse.success && hourlyStatsResponse.data) {
             const newHourlyStats = hourlyStatsResponse.data as {
@@ -220,13 +220,13 @@ const CashierDashboardView = ({
             const shiftData = activeShiftResponse.data as Shift;
             transactionsResponse = await window.refundAPI.getShiftTransactions(
               shiftData.id,
-              10
+              10,
             );
           } else if (user.businessId) {
             // If no active shift, get recent transactions from business
             transactionsResponse = await window.refundAPI.getRecentTransactions(
               user.businessId,
-              10
+              10,
             );
           }
 
@@ -263,7 +263,7 @@ const CashierDashboardView = ({
         }
       }
     },
-    [user?.id, user?.businessId]
+    [user?.id, user?.businessId],
   );
 
   // Load shift data on component mount
@@ -285,18 +285,6 @@ const CashierDashboardView = ({
   if (!user) {
     navigate("/");
     return null;
-  }
-
-  if (isLoading) {
-    return (
-      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
-        <div className="flex items-center justify-center h-48 sm:h-64">
-          <div className="text-gray-600 text-sm sm:text-base">
-            Loading shift data...
-          </div>
-        </div>
-      </div>
-    );
   }
 
   return (
@@ -336,9 +324,7 @@ const CashierDashboardView = ({
             <div className="text-xl sm:text-2xl font-bold text-black">
               £{cashDrawerBalance.amount.toFixed(2)}
               {cashDrawerBalance.isEstimated && (
-                <span className="text-caption text-amber-600 ml-1">
-                  (est.)
-                </span>
+                <span className="text-caption text-amber-600 ml-1">(est.)</span>
               )}
             </div>
             <div className="flex items-center mt-2 text-xs sm:text-sm text-black">
@@ -363,7 +349,7 @@ const CashierDashboardView = ({
                       hour: "2-digit",
                       minute: "2-digit",
                       hour12: true,
-                    }
+                    },
                   )}
                 </>
               ) : (
