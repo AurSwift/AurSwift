@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.41.2](https://github.com/AurSwift/AurSwift/compare/v1.41.1...v1.41.2) (2026-01-29)
+
+
+* Merge pull request #35 from AurSwift/dependabot/github_actions/github-actions-9fbfd1d4d0 ([](https://github.com/AurSwift/AurSwift/commit/74030ba78702ed44b6ae9cc3eb823d84a94573bf)), closes [#35](https://github.com/AurSwift/AurSwift/issues/35)
+* Merge pull request #39 from AurSwift/dependabot/npm_and_yarn/electron-9f6543d617 ([](https://github.com/AurSwift/AurSwift/commit/e60a2d717844872d6356fabfce264bcfb3d191ff)), closes [#39](https://github.com/AurSwift/AurSwift/issues/39)
+
+
+### chore
+
+* **deps:** bump the electron group across 1 directory with 2 updates ([](https://github.com/AurSwift/AurSwift/commit/7e1158ca9a4eada72c4b20090cb0541661fdc1d6))
+* **deps:** bump the github-actions group across 1 directory with 7 updates ([](https://github.com/AurSwift/AurSwift/commit/347281c81527d231af46123ad8941d3906bfdf60))
+* **auto-update:** remove outdated documentation and add new migration guide ([](https://github.com/AurSwift/AurSwift/commit/7302e44e54d2c699722e63adb38937c57673ce07))
+
+
+### docs
+
+* remove outdated database migration documentation ([](https://github.com/AurSwift/AurSwift/commit/560199d9da45b3f0df742c2afa60ce8a49067904))
+* **database:** streamline repair strategies section by removing redundant formatting ([](https://github.com/AurSwift/AurSwift/commit/54b88b110be92753047aa086bec9063cb5995825))
+
+
+### refactor
+
+* **database:** improve formatting for lazy initialization of database managers ([](https://github.com/AurSwift/AurSwift/commit/3bdc9cd1cd971f6c0c27d2cebc91e088f85fb443))
+
 ## [1.41.1](https://github.com/AurSwift/AurSwift/compare/v1.41.0...v1.41.1) (2026-01-29)
 
 
