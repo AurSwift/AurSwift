@@ -214,12 +214,16 @@ export async function getDatabase(): Promise<DatabaseManagers> {
         const s = host.sessions;
         const tt = host.timeTracking;
         const sch = host.schedules;
-        return createLazy("users", () =>
-          new UserManager(drizzle, bcryptWrapper, uuid, s, tt, sch)
+        return createLazy(
+          "users",
+          () => new UserManager(drizzle, bcryptWrapper, uuid, s, tt, sch),
         );
       },
       get businesses() {
-        return createLazy("businesses", () => new BusinessManager(drizzle, uuid));
+        return createLazy(
+          "businesses",
+          () => new BusinessManager(drizzle, uuid),
+        );
       },
       get sessions() {
         return cache.sessions as SessionManager;
@@ -228,16 +232,23 @@ export async function getDatabase(): Promise<DatabaseManagers> {
         return createLazy("products", () => new ProductManager(drizzle, uuid));
       },
       get categories() {
-        return createLazy("categories", () => new CategoryManager(drizzle, uuid));
+        return createLazy(
+          "categories",
+          () => new CategoryManager(drizzle, uuid),
+        );
       },
       get inventory() {
         const sm = host.stockMovements;
-        return createLazy("inventory", () =>
-          new InventoryManager(drizzle, uuid, sm)
+        return createLazy(
+          "inventory",
+          () => new InventoryManager(drizzle, uuid, sm),
         );
       },
       get schedules() {
-        return createLazy("schedules", () => new ScheduleManager(drizzle, uuid));
+        return createLazy(
+          "schedules",
+          () => new ScheduleManager(drizzle, uuid),
+        );
       },
       get shifts() {
         return createLazy("shifts", () => new ShiftManager(drizzle, uuid));
@@ -245,13 +256,13 @@ export async function getDatabase(): Promise<DatabaseManagers> {
       get transactions() {
         return createLazy(
           "transactions",
-          () => new TransactionManager(drizzle, uuid)
+          () => new TransactionManager(drizzle, uuid),
         );
       },
       get cashDrawers() {
         return createLazy(
           "cashDrawers",
-          () => new CashDrawerManager(drizzle, uuid)
+          () => new CashDrawerManager(drizzle, uuid),
         );
       },
       get reports() {
@@ -261,12 +272,15 @@ export async function getDatabase(): Promise<DatabaseManagers> {
         return cache.auditLogs as AuditLogManager;
       },
       get discounts() {
-        return createLazy("discounts", () => new DiscountManager(drizzle, uuid));
+        return createLazy(
+          "discounts",
+          () => new DiscountManager(drizzle, uuid),
+        );
       },
       get timeTracking() {
         return createLazy(
           "timeTracking",
-          () => new TimeTrackingManager(drizzle, uuid)
+          () => new TimeTrackingManager(drizzle, uuid),
         );
       },
       get audit() {
@@ -275,7 +289,7 @@ export async function getDatabase(): Promise<DatabaseManagers> {
       get timeTrackingReports() {
         return createLazy(
           "timeTrackingReports",
-          () => new TimeTrackingReportManager(drizzle)
+          () => new TimeTrackingReportManager(drizzle),
         );
       },
       get settings() {
@@ -284,43 +298,47 @@ export async function getDatabase(): Promise<DatabaseManagers> {
       get ageVerification() {
         return createLazy(
           "ageVerification",
-          () => new AgeVerificationManager(drizzle, uuid)
+          () => new AgeVerificationManager(drizzle, uuid),
         );
       },
       get batches() {
         return createLazy("batches", () => new BatchManager(drizzle, uuid));
       },
       get suppliers() {
-        return createLazy("suppliers", () => new SupplierManager(drizzle, uuid));
+        return createLazy(
+          "suppliers",
+          () => new SupplierManager(drizzle, uuid),
+        );
       },
       get vatCategories() {
         return createLazy(
           "vatCategories",
-          () => new VatCategoryManager(drizzle, uuid)
+          () => new VatCategoryManager(drizzle, uuid),
         );
       },
       get expirySettings() {
         return createLazy(
           "expirySettings",
-          () => new ExpirySettingManager(drizzle, uuid)
+          () => new ExpirySettingManager(drizzle, uuid),
         );
       },
       get expiryNotifications() {
         return createLazy(
           "expiryNotifications",
-          () => new ExpiryNotificationManager(drizzle, uuid)
+          () => new ExpiryNotificationManager(drizzle, uuid),
         );
       },
       get salesUnitSettings() {
         return createLazy(
           "salesUnitSettings",
-          () => new SalesUnitSettingManager(drizzle, uuid)
+          () => new SalesUnitSettingManager(drizzle, uuid),
         );
       },
       get stockMovements() {
         const b = host.batches;
-        return createLazy("stockMovements", () =>
-          new StockMovementManager(drizzle, uuid, b)
+        return createLazy(
+          "stockMovements",
+          () => new StockMovementManager(drizzle, uuid, b),
         );
       },
       get cart() {
@@ -329,28 +347,34 @@ export async function getDatabase(): Promise<DatabaseManagers> {
       get savedBaskets() {
         return createLazy(
           "savedBaskets",
-          () => new SavedBasketManager(drizzle, uuid)
+          () => new SavedBasketManager(drizzle, uuid),
         );
       },
       get roles() {
         return createLazy("roles", () => new RoleManager(drizzle, uuid));
       },
       get userRoles() {
-        return createLazy("userRoles", () => new UserRoleManager(drizzle, uuid));
+        return createLazy(
+          "userRoles",
+          () => new UserRoleManager(drizzle, uuid),
+        );
       },
       get userPermissions() {
         return createLazy(
           "userPermissions",
-          () => new UserPermissionManager(drizzle, uuid)
+          () => new UserPermissionManager(drizzle, uuid),
         );
       },
       get terminals() {
-        return createLazy("terminals", () => new TerminalManager(drizzle, uuid));
+        return createLazy(
+          "terminals",
+          () => new TerminalManager(drizzle, uuid),
+        );
       },
       get breakPolicy() {
         return createLazy(
           "breakPolicy",
-          () => new BreakPolicyManager(drizzle, uuid)
+          () => new BreakPolicyManager(drizzle, uuid),
         );
       },
 
