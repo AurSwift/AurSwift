@@ -12,13 +12,8 @@ import Store from "electron-store";
 import { getLogger } from "../utils/logger.js";
 const logger = getLogger("AutoUpdater");
 
-type DownloadNotification = Parameters<
-  AppUpdater["checkForUpdatesAndNotify"]
->[0];
-
 // Type for persisted download state
 type PersistedDownloadState = {
-  url: string;
   downloadedBytes: number;
   totalBytes: number;
   version: string;
@@ -33,7 +28,6 @@ type PersistedUpdateCheckErrorCount = {
 
 export class AutoUpdater implements AppModule {
   readonly #logger: Logger | null;
-  readonly #notification: DownloadNotification;
   readonly #store: Store<{
     downloadState: PersistedDownloadState | null;
     updateCheckErrorCount: PersistedUpdateCheckErrorCount | null;
@@ -45,19 +39,11 @@ export class AutoUpdater implements AppModule {
   #downloadStartTime: number | null = null;
   #lastError: { message: string; timestamp: Date; type: string } | null = null;
   #downloadCancellationToken: CancellationToken | null = null;
-  #lastErrorNotification: number | null = null;
   #lastErrorNotifications: Map<string, number> = new Map();
   #pendingCheckPromises: Array<{
     resolve: (value: any) => void;
     reject: (error: any) => void;
   }> = [];
-  #isDownloadPaused = false;
-  #pausedDownloadState: {
-    url: string;
-    downloadedBytes: number;
-    totalBytes: number;
-    version: string;
-  } | null = null;
 
   readonly #REMIND_LATER_INTERVAL = 2 * 60 * 60 * 1000;
   readonly #MAX_POSTPONE_COUNT = 3;
@@ -76,49 +62,15 @@ export class AutoUpdater implements AppModule {
   readonly #REQUEST_TIMEOUT = 10000; // 10 seconds
   readonly #MAX_RETRIES = 3;
   readonly #RETRY_DELAY = 2000; // 2 seconds base delay
-  // Phase 3.2: Release Notes Caching
-  readonly #cachedReleaseNotes: Map<string, string> = new Map();
-  readonly #MAX_CACHED_NOTES = 5; // Keep last 5 versions
-  // Phase 4.1: Download Resume Capability
+  // Download state for resume capability
   #downloadState: {
-    url: string;
     downloadedBytes: number;
     totalBytes: number;
     version: string;
   } | null = null;
-  // Phase 4.3: Update Check Debouncing
   #checkDebounceTimer: NodeJS.Timeout | null = null;
   readonly #DEBOUNCE_DELAY = 2000; // 2 seconds
-  // UI/Notification timing constants
-  readonly #TOAST_DISMISS_DELAY = 100; // 100ms delay for toast dismissal
-  readonly #INSTALL_TOAST_DURATION = 1000; // 1 second
-  readonly #INSTALL_DELAY = 500; // 500ms delay before install
-  readonly #PROGRESS_NOTIFICATION_THRESHOLD_MIN = 50; // Show notification at 50%
-  readonly #PROGRESS_NOTIFICATION_THRESHOLD_MAX = 55; // Hide notification after 55%
-  // Performance: Reduced from 100 to 20 - sufficient for meaningful averages with less memory
-  readonly #METRICS_ROLLING_WINDOW = 20;
-  // Performance: Simplified - no separate window needed, use checkCount directly
-  readonly #MAX_ERROR_COOLDOWNS = 10; // Limit error notification cooldown entries
-  // Phase 5.1: Performance Metrics (Optimized for memory efficiency)
-  readonly #metrics: {
-    checkCount: number;
-    checkDuration: number[]; // Rolling window of last N durations
-    downloadCount: number;
-    downloadDuration: number[]; // Rolling window of last N durations
-    errorCount: number;
-    cacheHits: number; // Simple counter for cache hit rate
-    retryCount: number;
-    timeoutCount: number;
-  } = {
-    checkCount: 0,
-    checkDuration: [],
-    downloadCount: 0,
-    downloadDuration: [],
-    errorCount: 0,
-    cacheHits: 0,
-    retryCount: 0,
-    timeoutCount: 0,
-  };
+  readonly #PROGRESS_NOTIFICATION_THRESHOLD = 50; // Show notification at 50%
   #postponeCount = 0;
   #isCheckingForUpdates = false;
   #updateListeners: Array<{
@@ -135,13 +87,10 @@ export class AutoUpdater implements AppModule {
 
   constructor({
     logger = null,
-    downloadNotification = undefined,
   }: {
     logger?: Logger | null | undefined;
-    downloadNotification?: DownloadNotification;
   } = {}) {
     this.#logger = logger;
-    this.#notification = downloadNotification;
 
     // Initialize persistent store for download state and error notification count
     this.#store = new Store<{
@@ -247,7 +196,6 @@ export class AutoUpdater implements AppModule {
 
     // Performance: Clear caches and Maps
     this.#lastErrorNotifications.clear();
-    this.#cachedReleaseNotes.clear();
 
     // Remove all event listeners
     const updater = this.getAutoUpdater();
@@ -445,7 +393,6 @@ export class AutoUpdater implements AppModule {
 
     const currentVersion = app.getVersion();
     const newVersion = info.version;
-    const releaseNotes = this.formatReleaseNotes(info);
     const hasReachedLimit = this.#postponeCount >= this.#MAX_POSTPONE_COUNT;
 
     const buttons = hasReachedLimit
@@ -467,7 +414,7 @@ export class AutoUpdater implements AppModule {
         type: hasReachedLimit ? "warning" : "info",
         title: isReminder ? "Update Reminder" : "Update Available",
         message: `A new version of aurswift is available!`,
-        detail: `Current version: ${currentVersion}\nNew version: ${newVersion}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nWhat's New:\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n${releaseNotes}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${reminderText}\n\nWould you like to download this update now?\n(The download will happen in the background.)`,
+        detail: `Current version: ${currentVersion}\nNew version: ${newVersion}${reminderText}\n\nWould you like to download this update now?\n(The download will happen in the background.)`,
         buttons,
         defaultId: 0,
         cancelId: buttons.length - 1,
@@ -490,19 +437,15 @@ export class AutoUpdater implements AppModule {
           this.setDownloading(true);
 
           const updater = this.getAutoUpdater();
-          // Phase 4.1: Set version in download state before starting
           if (this.#downloadState) {
             this.#downloadState.version = info.version;
           } else {
-            // Initialize download state
             this.#downloadState = {
-              url: "",
               downloadedBytes: 0,
               totalBytes: 0,
               version: info.version,
             };
           }
-          // Phase 4.1: Check for resume capability
           this.downloadWithResume(updater, info.version);
 
           if (Notification.isSupported()) {
@@ -559,14 +502,6 @@ export class AutoUpdater implements AppModule {
   }
 
   /**
-   * Get the last update error if any occurred
-   * @returns The last error object with message, timestamp, and type, or null if no error occurred
-   */
-  getLastError(): { message: string; timestamp: Date; type: string } | null {
-    return this.#lastError;
-  }
-
-  /**
    * Clear the last error
    */
   clearLastError(): void {
@@ -607,8 +542,6 @@ export class AutoUpdater implements AppModule {
 
       // Update state
       this.setDownloading(false);
-      this.#isDownloadPaused = false;
-      this.#pausedDownloadState = null;
 
       // Clear download state (user cancelled, don't preserve for resume)
       this.#downloadState = null;
@@ -630,94 +563,31 @@ export class AutoUpdater implements AppModule {
   }
 
   /**
-   * Pause ongoing download
-   * @returns true if pause was successful, false if no download in progress or already paused
+   * Pause download - not supported by electron-updater
+   * @returns always false as pause is not supported
    */
   pauseDownload(): boolean {
-    if (!this.#isDownloading || this.#isDownloadPaused) {
-      return false;
-    }
-
-    try {
-      // Cancel current download to pause it
-      if (this.#downloadCancellationToken) {
-        this.#downloadCancellationToken.cancel();
-      }
-
-      // Save current state for resume
-      if (this.#downloadState) {
-        this.#pausedDownloadState = { ...this.#downloadState };
-      }
-
-      this.#isDownloadPaused = true;
-      this.setDownloading(false);
-
-      if (this.#logger) {
-        this.#logger.info("Download paused by user");
-      }
-
-      this.broadcastToAllWindows("update:download-paused", {
-        state: this.#pausedDownloadState,
-        timestamp: new Date(),
-      });
-
-      return true;
-    } catch (error) {
-      const errorMessage = this.formatErrorMessage(error);
-      if (this.#logger) {
-        this.#logger.error(`Failed to pause download: ${errorMessage}`);
-      }
-      return false;
-    }
+    // Note: electron-updater doesn't support true pause/resume
+    // Keeping method for API compatibility but returns false
+    return false;
   }
 
   /**
-   * Resume paused download
-   * @returns true if resume was successful, false if no paused download
+   * Resume download - not supported by electron-updater
+   * @returns always false as resume is not supported
    */
   resumeDownload(): boolean {
-    if (!this.#isDownloadPaused || !this.#pausedDownloadState) {
-      return false;
-    }
-
-    try {
-      const updater = this.getAutoUpdater();
-
-      // Restore download state
-      this.#downloadState = this.#pausedDownloadState;
-      this.#isDownloadPaused = false;
-      this.#pausedDownloadState = null;
-      this.setDownloading(true);
-
-      if (this.#logger) {
-        this.#logger.info("Resuming paused download");
-      }
-
-      // Resume download (electron-updater handles partial downloads automatically)
-      this.downloadWithResume(updater, this.#downloadState.version);
-
-      this.broadcastToAllWindows("update:download-resumed", {
-        timestamp: new Date(),
-      });
-
-      return true;
-    } catch (error) {
-      const errorMessage = this.formatErrorMessage(error);
-      if (this.#logger) {
-        this.#logger.error(`Failed to resume download: ${errorMessage}`);
-      }
-      this.#isDownloadPaused = false;
-      this.#pausedDownloadState = null;
-      return false;
-    }
+    // Note: electron-updater doesn't support true pause/resume
+    // Keeping method for API compatibility but returns false
+    return false;
   }
 
   /**
    * Check if download is paused
-   * @returns true if download is paused
+   * @returns always false as pause is not supported
    */
   isDownloadPaused(): boolean {
-    return this.#isDownloadPaused;
+    return false;
   }
 
   /**
@@ -730,10 +600,7 @@ export class AutoUpdater implements AppModule {
     total: number;
     bytesPerSecond: number;
   } | null {
-    if (
-      !this.#downloadState ||
-      (!this.#isDownloading && !this.#isDownloadPaused)
-    ) {
+    if (!this.#downloadState || !this.#isDownloading) {
       return null;
     }
     return {
@@ -745,7 +612,7 @@ export class AutoUpdater implements AppModule {
           : 0,
       transferred: this.#downloadState.downloadedBytes,
       total: this.#downloadState.totalBytes,
-      bytesPerSecond: 0, // Would need separate tracking for accurate speed
+      bytesPerSecond: 0,
     };
   }
 
@@ -772,13 +639,6 @@ export class AutoUpdater implements AppModule {
   }
 
   /**
-   * Get downloaded update info
-   */
-  getDownloadedUpdateInfo(): UpdateInfo | null {
-    return this.#downloadedUpdateInfo;
-  }
-
-  /**
    * Check if update is downloaded and ready to install
    */
   isUpdateDownloaded(): boolean {
@@ -798,7 +658,6 @@ export class AutoUpdater implements AppModule {
    */
   private saveDownloadState(
     state: {
-      url: string;
       downloadedBytes: number;
       totalBytes: number;
       version: string;
@@ -806,19 +665,9 @@ export class AutoUpdater implements AppModule {
   ): void {
     try {
       if (state) {
-        const persistedState: PersistedDownloadState = {
-          ...state,
-          timestamp: Date.now(),
-        };
-        this.#store.set("downloadState", persistedState);
-        if (this.#logger) {
-          this.#logger.info("Download state persisted to disk");
-        }
+        this.#store.set("downloadState", { ...state, timestamp: Date.now() });
       } else {
         this.#store.delete("downloadState");
-        if (this.#logger) {
-          this.#logger.info("Download state cleared from disk");
-        }
       }
     } catch (error) {
       if (this.#logger) {
@@ -835,27 +684,15 @@ export class AutoUpdater implements AppModule {
     try {
       const saved = this.#store.get("downloadState");
       if (saved) {
-        const age = Date.now() - saved.timestamp;
         const MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours
-
-        if (age < MAX_AGE) {
+        if (Date.now() - saved.timestamp < MAX_AGE) {
           this.#downloadState = {
-            url: saved.url,
             downloadedBytes: saved.downloadedBytes,
             totalBytes: saved.totalBytes,
             version: saved.version,
           };
-          if (this.#logger) {
-            this.#logger.info(
-              `Loaded persisted download state: ${saved.version} (${saved.downloadedBytes}/${saved.totalBytes} bytes)`,
-            );
-          }
         } else {
-          // Clear old state
           this.#store.delete("downloadState");
-          if (this.#logger) {
-            this.#logger.info("Cleared expired download state");
-          }
         }
       }
     } catch (error) {
@@ -976,47 +813,17 @@ export class AutoUpdater implements AppModule {
   }
 
   /**
-   * Get performance metrics (Phase 5.1)
-   * @returns Performance metrics object with statistics
+   * Check if an error message indicates a network-related error
    */
-  getMetrics(): {
-    checkCount: number;
-    avgCheckDuration: number;
-    downloadCount: number;
-    avgDownloadDuration: number;
-    errorCount: number;
-    cacheHitRate: number;
-    retryCount: number;
-    timeoutCount: number;
-  } {
-    // Performance: Calculate averages only when requested (lazy evaluation)
-    const avgCheckDuration =
-      this.#metrics.checkDuration.length > 0
-        ? this.#metrics.checkDuration.reduce((a, b) => a + b, 0) /
-          this.#metrics.checkDuration.length
-        : 0;
-    const avgDownloadDuration =
-      this.#metrics.downloadDuration.length > 0
-        ? this.#metrics.downloadDuration.reduce((a, b) => a + b, 0) /
-          this.#metrics.downloadDuration.length
-        : 0;
-
-    // Simplified cache hit rate: cacheHits / totalChecks * 100
-    const cacheHitRate =
-      this.#metrics.checkCount > 0
-        ? (this.#metrics.cacheHits / this.#metrics.checkCount) * 100
-        : 0;
-
-    return {
-      checkCount: this.#metrics.checkCount,
-      avgCheckDuration,
-      downloadCount: this.#metrics.downloadCount,
-      avgDownloadDuration,
-      errorCount: this.#metrics.errorCount,
-      cacheHitRate,
-      retryCount: this.#metrics.retryCount,
-      timeoutCount: this.#metrics.timeoutCount,
-    };
+  #isNetworkError(errorMessage: string): boolean {
+    return (
+      errorMessage.includes("ENOTFOUND") ||
+      errorMessage.includes("ETIMEDOUT") ||
+      errorMessage.includes("ECONNREFUSED") ||
+      errorMessage.includes("Network Error") ||
+      errorMessage.includes("net::ERR_INTERNET_DISCONNECTED") ||
+      errorMessage.includes("timeout")
+    );
   }
 
   /**
@@ -1192,8 +999,6 @@ export class AutoUpdater implements AppModule {
             )}s old, version: ${this.#lastCheckResult.version})`,
           );
         }
-        // Track cache hit
-        this.trackCheckMetrics(0, true);
         // Return null to indicate cached result - no network request needed
         // The cached result was already broadcast via update-available event if available
         return null;
@@ -1216,16 +1021,12 @@ export class AutoUpdater implements AppModule {
           const checkPromise = updater.checkForUpdates();
           const timeoutPromise = new Promise<never>((_, reject) => {
             setTimeout(() => {
-              this.#metrics.timeoutCount++;
               reject(new Error("Update check timeout"));
             }, this.#REQUEST_TIMEOUT);
           });
 
           const result = await Promise.race([checkPromise, timeoutPromise]);
           const checkDuration = Date.now() - checkStartTime;
-
-          // Track metrics (Phase 5.1)
-          this.trackCheckMetrics(checkDuration, false);
 
           // Reset error notification count on successful update check
           this.resetUpdateCheckErrorNotificationCount();
@@ -1290,11 +1091,6 @@ export class AutoUpdater implements AppModule {
           const errorMessage =
             error instanceof Error ? error.message : String(error);
 
-          // Track retry attempt
-          if (attempt < this.#MAX_RETRIES) {
-            this.#metrics.retryCount++;
-          }
-
           // Handle expected errors (don't retry)
           // These are not actual errors - they mean no update is available
           // This is a successful check confirming we're on the latest version
@@ -1333,12 +1129,9 @@ export class AutoUpdater implements AppModule {
 
           // If we've exhausted retries or it's not a retryable error, throw
           if (attempt === this.#MAX_RETRIES) {
-            this.#metrics.errorCount++;
             if (this.#logger) {
               this.#logger.error(
-                `Update check failed after ${
-                  this.#MAX_RETRIES
-                } attempts: ${errorMessage}`,
+                `Update check failed after ${this.#MAX_RETRIES} attempts: ${errorMessage}`,
               );
             }
             throw lastError || new Error("Update check failed after retries");
@@ -1350,28 +1143,6 @@ export class AutoUpdater implements AppModule {
       throw lastError || new Error("Update check failed");
     } finally {
       this.#isCheckingForUpdates = false;
-    }
-  }
-
-  /**
-   * Track check metrics (Phase 5.1 - Optimized)
-   * Uses simple counters and small rolling windows for memory efficiency
-   * @param duration - Check duration in milliseconds
-   * @param cached - Whether the result was from cache
-   */
-  private trackCheckMetrics(duration: number, cached: boolean): void {
-    this.#metrics.checkCount++;
-
-    if (cached) {
-      // Simple increment for cache hits
-      this.#metrics.cacheHits++;
-    } else {
-      // Only track duration for actual network checks
-      this.#metrics.checkDuration.push(duration);
-      // Keep only last N measurements to prevent unbounded growth
-      if (this.#metrics.checkDuration.length > this.#METRICS_ROLLING_WINDOW) {
-        this.#metrics.checkDuration.shift();
-      }
     }
   }
 
@@ -1423,7 +1194,6 @@ export class AutoUpdater implements AppModule {
       }
 
       // Store current available update info (even if not postponed yet)
-      // This allows postpone/download actions to work
       if (!this.#postponedUpdateInfo) {
         this.#postponedUpdateInfo = info;
       }
@@ -1431,7 +1201,6 @@ export class AutoUpdater implements AppModule {
       // Initialize download state with version for resume capability
       if (!this.#downloadState) {
         this.#downloadState = {
-          url: "",
           downloadedBytes: 0,
           totalBytes: 0,
           version: info.version,
@@ -1440,19 +1209,11 @@ export class AutoUpdater implements AppModule {
         this.#downloadState.version = info.version;
       }
 
-      // Always broadcast to renderer for toast notification
-      // The toast system uses a fixed ID ("update-available") which will replace
-      // any existing toast, so it's safe to show even if previously postponed.
-      // This ensures users are notified about available updates on app restart
-      // or periodic checks, even if they postponed the update earlier.
-      // Format notes before sending to ensure consistency with dialogs
-      const formattedNotes = this.formatReleaseNotes(info);
-
-      // Use UpdateInfo type directly to ensure type compatibility
+      // Broadcast to renderer for toast notification
       this.broadcastToAllWindows<UpdateInfo>("update:available", {
         version: info.version,
         releaseDate: info.releaseDate,
-        releaseNotes: formattedNotes,
+        releaseNotes: info.releaseNotes,
         files: info.files,
         path: info.path,
         sha512: info.sha512,
@@ -1507,33 +1268,24 @@ export class AutoUpdater implements AppModule {
         );
       }
 
-      // Phase 4.1: Save download state for resume capability
-      // Track download progress for potential resume and persist to disk
-      // Note: electron-updater handles resume automatically, we track for logging
+      // Track download progress for resume and persist to disk
       if (progressInfo.total && progressInfo.transferred) {
-        // Store state with current version from update info if available
-        // We'll get the version from the update info when download starts
         if (
           !this.#downloadState ||
           this.#downloadState.totalBytes !== progressInfo.total
         ) {
-          // Initialize or update download state
           this.#downloadState = {
-            url: "", // URL not available in ProgressInfo, but electron-updater handles it
             downloadedBytes: progressInfo.transferred,
             totalBytes: progressInfo.total,
-            version: "", // Will be set when download starts
+            version: this.#downloadState?.version || "",
           };
         } else {
-          // Update existing state
           this.#downloadState.downloadedBytes = progressInfo.transferred;
         }
-
-        // Persist state to disk for crash recovery
         this.saveDownloadState(this.#downloadState);
       }
 
-      // Broadcast progress to renderer for toast notification
+      // Broadcast progress to renderer
       if (progressInfo.total && progressInfo.transferred) {
         this.broadcastToAllWindows<{
           percent: number;
@@ -1557,22 +1309,19 @@ export class AutoUpdater implements AppModule {
         );
       }
 
-      // Show a notification at progress threshold (only once) - optional
+      // Show a notification at ~50% progress (only once)
       if (
         !this.#hasShownProgressNotification &&
-        progressInfo.percent > this.#PROGRESS_NOTIFICATION_THRESHOLD_MIN &&
-        progressInfo.percent < this.#PROGRESS_NOTIFICATION_THRESHOLD_MAX &&
+        progressInfo.percent > this.#PROGRESS_NOTIFICATION_THRESHOLD &&
+        progressInfo.percent < this.#PROGRESS_NOTIFICATION_THRESHOLD + 5 &&
         Notification.isSupported()
       ) {
         this.#hasShownProgressNotification = true;
-        const notification = new Notification({
+        new Notification({
           title: "Download In Progress",
-          body: `Update download is ${progressInfo.percent.toFixed(
-            0,
-          )}% complete...`,
+          body: `Update download is ${progressInfo.percent.toFixed(0)}% complete...`,
           silent: true,
-        });
-        notification.show();
+        }).show();
       }
     };
     updater.on("download-progress", onDownloadProgress);
@@ -1590,18 +1339,6 @@ export class AutoUpdater implements AppModule {
         ? (downloadDuration / 1000).toFixed(0)
         : "unknown";
       this.#downloadStartTime = null;
-
-      // Phase 5.1: Track download metrics
-      if (downloadDuration > 0) {
-        this.#metrics.downloadCount++;
-        this.#metrics.downloadDuration.push(downloadDuration);
-        // Keep only last N measurements to prevent memory growth
-        if (
-          this.#metrics.downloadDuration.length > this.#METRICS_ROLLING_WINDOW
-        ) {
-          this.#metrics.downloadDuration.shift();
-        }
-      }
 
       // Phase 4.1: Clear download state after successful download
       this.#downloadState = null;
@@ -1624,16 +1361,11 @@ export class AutoUpdater implements AppModule {
 
       const newVersion = info.version;
 
-      // Format notes before sending
-      const formattedNotes = this.formatReleaseNotes(info);
-
-      // Cursor-style: Broadcast to renderer for toast notification
-      // No dialog - toast will handle the UI
-      // Use UpdateInfo type directly to ensure type compatibility
+      // Broadcast to renderer for toast notification
       this.broadcastToAllWindows<UpdateInfo>("update:downloaded", {
         version: info.version,
         releaseDate: info.releaseDate,
-        releaseNotes: formattedNotes,
+        releaseNotes: info.releaseNotes,
         files: info.files,
         path: info.path,
         sha512: info.sha512,
@@ -1735,13 +1467,7 @@ export class AutoUpdater implements AppModule {
         errorMessage.includes("No published versions") ||
         errorMessage.includes("Cannot find latest") ||
         errorMessage.includes("No updates available");
-      const isNetworkError =
-        errorMessage.includes("ENOTFOUND") ||
-        errorMessage.includes("ETIMEDOUT") ||
-        errorMessage.includes("ECONNREFUSED") ||
-        errorMessage.includes("Network Error") ||
-        errorMessage.includes("net::ERR_INTERNET_DISCONNECTED") ||
-        errorMessage.includes("timeout");
+      const isNetworkError = this.#isNetworkError(errorMessage);
 
       // Best practice: If user is on latest version and it's just a network error,
       // don't show notifications (they don't need updates anyway)
@@ -1822,13 +1548,7 @@ export class AutoUpdater implements AppModule {
         }
         this.#lastErrorNotifications.set(errorType, now);
 
-        const isNetworkError =
-          errorMessage.includes("ENOTFOUND") ||
-          errorMessage.includes("ETIMEDOUT") ||
-          errorMessage.includes("ECONNREFUSED") ||
-          errorMessage.includes("Network Error");
-
-        if (isNetworkError && !isDownloadError) {
+        if (this.#isNetworkError(errorMessage) && !isDownloadError) {
           // For network check errors, show a persistent notification instead of dialog
           if (Notification.isSupported()) {
             const notification = new Notification({
@@ -1968,183 +1688,6 @@ export class AutoUpdater implements AppModule {
       }
       // Error will be handled by onError listener, but rethrow for caller awareness
       throw error;
-    }
-  }
-
-  /**
-   * Format release notes for display in update dialogs
-   * Removes HTML, decodes entities, and truncates appropriately
-   * Uses caching to avoid re-formatting (Performance: Phase 3.2)
-   * @param info - Update information containing release notes
-   * @returns Formatted release notes string
-   */
-  private formatReleaseNotes(info: UpdateInfo): string {
-    try {
-      // Phase 3.2: Check cache first
-      if (info.version && this.#cachedReleaseNotes.has(info.version)) {
-        if (this.#logger) {
-          this.#logger.info(
-            `Using cached release notes for version ${info.version}`,
-          );
-        }
-        return this.#cachedReleaseNotes.get(info.version)!;
-      }
-
-      if (!info.releaseNotes) {
-        const fallback = "• See full release notes on GitHub";
-        if (info.version) {
-          this.#cachedReleaseNotes.set(info.version, fallback);
-        }
-        return fallback;
-      }
-
-      if (typeof info.releaseNotes === "string") {
-        let notes = info.releaseNotes;
-
-        // Decode HTML entities before stripping HTML tags (correct order)
-        notes = notes
-          .replace(/&lt;/g, "<")
-          .replace(/&gt;/g, ">")
-          .replace(/&amp;/g, "&")
-          .replace(/&quot;/g, '"')
-          .replace(/&#39;/g, "'")
-          .replace(/&nbsp;/g, " ");
-
-        // Strip HTML tags after decoding entities
-        notes = notes.replace(/<[^>]*>/gs, "");
-
-        // Normalize line endings and excessive blank lines
-        notes = notes
-          .replace(/\r\n/g, "\n")
-          .replace(/\n{3,}/g, "\n\n")
-          .trim();
-
-        const lines = notes
-          .split("\n")
-          .map((line) => line.trim())
-          .filter((line) => {
-            return (
-              line &&
-              line.length > 3 &&
-              !line.startsWith("#") &&
-              !line.match(/^[-=_*]{3,}$/) &&
-              !line.toLowerCase().includes("what's changed") &&
-              !line.toLowerCase().includes("full changelog")
-            );
-          })
-          .slice(0, 25); // Increased from 15 to 25 lines
-
-        const formattedLines = lines.map((line) => {
-          if (line.match(/^[•\-*✨🐛⚡🔥📦🎨♻️⬆️⬇️]/)) {
-            return line;
-          }
-          return `• ${line}`;
-        });
-
-        let result = formattedLines.join("\n");
-
-        // Truncate at word boundaries if exceeding character limit
-        const MAX_LENGTH = 800; // Increased from 500
-        if (result.length > MAX_LENGTH) {
-          const truncated = result.substring(0, MAX_LENGTH);
-          const lastSpace = truncated.lastIndexOf(" ");
-          const lastNewline = truncated.lastIndexOf("\n");
-          const cutPoint = Math.max(lastSpace, lastNewline);
-
-          if (cutPoint > MAX_LENGTH * 0.8) {
-            // Only truncate at word boundary if we're not cutting off too much
-            result =
-              truncated.substring(0, cutPoint).trim() +
-              "\n\n... see full release notes on GitHub";
-          } else {
-            // Fallback to character limit if word boundary is too far back
-            result =
-              truncated.trim() + "\n\n... see full release notes on GitHub";
-          }
-        }
-
-        const resultText = result || "• See full release notes on GitHub";
-
-        // Phase 3.2: Cache formatted result
-        if (info.version && resultText) {
-          this.#cachedReleaseNotes.set(info.version, resultText);
-
-          // Limit cache size (keep last N versions)
-          if (this.#cachedReleaseNotes.size > this.#MAX_CACHED_NOTES) {
-            const firstKey = this.#cachedReleaseNotes.keys().next().value;
-            if (firstKey) {
-              this.#cachedReleaseNotes.delete(firstKey);
-              if (this.#logger) {
-                this.#logger.info(
-                  `Release notes cache limit reached, removed version ${firstKey}`,
-                );
-              }
-            }
-          }
-        }
-
-        return resultText;
-      }
-
-      if (Array.isArray(info.releaseNotes)) {
-        const formatted = info.releaseNotes
-          .slice(0, 25) // Increased from 15 to 25
-          .map((note: string | { note: string | null }) => {
-            let text: string;
-            if (typeof note === "string") {
-              text = note;
-            } else if (note && typeof note === "object" && "note" in note) {
-              text = note.note || "";
-            } else {
-              text = String(note);
-            }
-
-            // Decode HTML entities and strip HTML tags
-            text = text
-              .replace(/&lt;/g, "<")
-              .replace(/&gt;/g, ">")
-              .replace(/&amp;/g, "&")
-              .replace(/<[^>]*>/gs, "")
-              .trim();
-
-            return text.match(/^[•\-*✨🐛⚡🔥]/) ? text : `• ${text}`;
-          })
-          .join("\n");
-
-        const formattedText = formatted || "• See full release notes on GitHub";
-
-        // Phase 3.2: Cache formatted result
-        if (info.version && formattedText) {
-          this.#cachedReleaseNotes.set(info.version, formattedText);
-
-          // Limit cache size
-          if (this.#cachedReleaseNotes.size > this.#MAX_CACHED_NOTES) {
-            const firstKey = this.#cachedReleaseNotes.keys().next().value;
-            if (firstKey) {
-              this.#cachedReleaseNotes.delete(firstKey);
-            }
-          }
-        }
-
-        return formattedText;
-      }
-
-      const fallback = "• See full release notes on GitHub";
-      // Phase 3.2: Cache fallback too
-      if (info.version) {
-        this.#cachedReleaseNotes.set(info.version, fallback);
-      }
-      return fallback;
-    } catch (error) {
-      const errorMessage = this.formatErrorMessage(error);
-      if (this.#logger) {
-        this.#logger.warn(`Failed to format release notes: ${errorMessage}`);
-      } else {
-        logger.warn("Failed to format release notes:", error);
-      }
-      // Return fallback with version if available
-      const version = info.version ? ` (v${info.version})` : "";
-      return `• See full release notes on GitHub${version}`;
     }
   }
 }
