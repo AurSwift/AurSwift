@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.41.1](https://github.com/AurSwift/AurSwift/compare/v1.41.0...v1.41.1) (2026-01-29)
+
+
+### docs
+
+* update performance optimizations documentation and implement lazy initialization for database managers ([](https://github.com/AurSwift/AurSwift/commit/6fdd27b815b5533f149784cf412163362b36a645))
+
+
+### fix
+
+* **cashier-dashboard:** add missing trailing commas and clean up loading state rendering ([](https://github.com/AurSwift/AurSwift/commit/2c3f1bea869a22759a2accdd2429551aa762e14d))
+* **auto-updater:** simplify download state management and remove unused features ([](https://github.com/AurSwift/AurSwift/commit/d7a7875d2e9fe9c386cd942a158b1a1bcc1acb9a))
+
 # [1.41.0](https://github.com/AurSwift/AurSwift/compare/v1.40.0...v1.41.0) (2026-01-28)
 
 
