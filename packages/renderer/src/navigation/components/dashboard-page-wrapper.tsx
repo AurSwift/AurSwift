@@ -3,11 +3,11 @@
  *
  * Wrapper component that renders the appropriate dashboard page
  * based on user role. Uses the new navigation system.
- * Role-specific views are lazy-loaded so they can be code-split
- * (e.g. sales:cashier-dashboard gets its own chunk).
+ * Role-specific views are lazy-loaded so they can be code-split.
+ * Cashiers are automatically redirected to the new transaction view.
  */
 
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { useAuth } from "@/shared/hooks";
 import { getUserRoleName } from "@/shared/utils/rbac-helpers";
 import { USERS_ROUTES } from "@/features/users/config/navigation";
@@ -17,14 +17,11 @@ import { useNavigation } from "../hooks/use-navigation";
 import { useDashboardNavigation } from "../hooks/use-dashboard-navigation";
 import { LoadingScreen, ViewLoadingFallback } from "@/components";
 
-const AdminDashboardView = lazy(() =>
-  import("@/features/dashboard/views/admin-dashboard-view"),
+const AdminDashboardView = lazy(
+  () => import("@/features/dashboard/views/admin-dashboard-view"),
 );
-const ManagerDashboardView = lazy(() =>
-  import("@/features/dashboard/views/manager-dashboard-view"),
-);
-const CashierDashboardView = lazy(() =>
-  import("@/features/dashboard/views/cashier-dashboard-view"),
+const ManagerDashboardView = lazy(
+  () => import("@/features/dashboard/views/manager-dashboard-view"),
 );
 
 /**
@@ -46,6 +43,13 @@ export function DashboardPageWrapper() {
   }
 
   const role = getUserRoleName(user);
+
+  // Auto-navigate cashiers to new transaction view
+  useEffect(() => {
+    if (role === "cashier") {
+      navigateTo(SALES_ROUTES.NEW_TRANSACTION);
+    }
+  }, [role, navigateTo]);
 
   // Navigation helper
   const handleNavigate = (viewId: string) => {
@@ -71,15 +75,8 @@ export function DashboardPageWrapper() {
       );
 
     case "cashier":
-      return (
-        <Suspense fallback={<ViewLoadingFallback />}>
-          <CashierDashboardView
-            onNewTransaction={() =>
-              handleNavigate(SALES_ROUTES.NEW_TRANSACTION)
-            }
-          />
-        </Suspense>
-      );
+      // Cashiers are auto-redirected via useEffect above
+      return <ViewLoadingFallback />;
 
     default:
       return (

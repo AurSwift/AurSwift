@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import type { Shift, Schedule } from "@/types/domain/shift";
 import { retryWithBackoff, isNetworkError } from "@/shared/utils/retry";
 import { getDeviceId } from "@/shared/utils/device-id";
-import { TimeChangeDetector } from "@/shared/utils/time-change-detector";
 
 import { getLogger } from "@/shared/utils/logger";
 const logger = getLogger("use-shift");
@@ -47,17 +46,6 @@ export function useShift({
   const [lateStartMinutes, setLateStartMinutes] = useState(0);
   const [showOvertimeWarning, setShowOvertimeWarning] = useState(false);
   const [overtimeMinutes, setOvertimeMinutes] = useState(0);
-  const [timeChangeDetected, setTimeChangeDetected] = useState(false);
-  const [timeChangeInfo, setTimeChangeInfo] = useState<{
-    detected: boolean;
-    timeDifference: number;
-  } | null>(null);
-
-  // Time change detector instance
-  const timeChangeDetectorRef = useRef<TimeChangeDetector | null>(null);
-  if (!timeChangeDetectorRef.current) {
-    timeChangeDetectorRef.current = new TimeChangeDetector(5000); // 5 second threshold
-  }
 
   /**
    * Load shift data function with smart updates to prevent flickering
@@ -515,9 +503,6 @@ export function useShift({
         const shiftData = response.data as Shift;
         setActiveShift(shiftData);
 
-        // Reset time change detector when shift starts
-        timeChangeDetectorRef.current?.reset();
-
         // Always refresh shift state after API call to ensure consistency
         await loadShiftData(false);
 
@@ -604,73 +589,6 @@ export function useShift({
     setStartingCash("");
     setShowStartShiftDialog(true);
   }, []);
-
-  /**
-   * Dismiss time-change warning (toast action + banner button).
-   * Clears both timeChangeDetected and timeChangeInfo for consistency.
-   */
-  const dismissTimeChange = useCallback(() => {
-    setTimeChangeDetected(false);
-    setTimeChangeInfo(null);
-    toast.dismiss("time-change");
-  }, []);
-
-  /**
-   * Time change detection during active shift
-   */
-  useEffect(() => {
-    if (!activeShift) {
-      // Reset detector when no active shift
-      timeChangeDetectorRef.current?.reset();
-      setTimeChangeDetected(false);
-      setTimeChangeInfo(null);
-      return;
-    }
-
-    // Establish baseline immediately so we can detect changes within the first 30s
-    timeChangeDetectorRef.current?.checkTimeChange();
-
-    const notifyTimeChange = (changeInfo: {
-      detected: boolean;
-      timeDifference: number;
-    }) => {
-      setTimeChangeDetected(true);
-      setTimeChangeInfo({
-        detected: true,
-        timeDifference: changeInfo.timeDifference,
-      });
-
-      const formattedDiff = TimeChangeDetector.formatTimeDifference(
-        changeInfo.timeDifference,
-      );
-      const direction = changeInfo.timeDifference > 0 ? "forward" : "backward";
-
-      toast.warning(
-        `System time changed ${direction} by ${formattedDiff}. This may affect shift calculations.`,
-        {
-          id: "time-change",
-          duration: 10000,
-          action: {
-            label: "Dismiss",
-            onClick: dismissTimeChange,
-          },
-        },
-      );
-    };
-
-    // Check for time changes every 30 seconds
-    const timeCheckInterval = setInterval(() => {
-      const result = timeChangeDetectorRef.current?.checkTimeChange();
-      if (result?.detected) {
-        notifyTimeChange({
-          detected: true,
-          timeDifference: result.timeDifference,
-        });
-      }
-    }, 30000);
-
-    return () => clearInterval(timeCheckInterval);
-  }, [activeShift, dismissTimeChange]);
 
   /**
    * Process offline queue when connection is restored
@@ -764,9 +682,6 @@ export function useShift({
     showOvertimeWarning,
     overtimeMinutes,
     shiftTimingInfo,
-    timeChangeDetected,
-    timeChangeInfo,
-    dismissTimeChange,
     loadShiftData,
     handleStartShiftClick,
     confirmStartShift,

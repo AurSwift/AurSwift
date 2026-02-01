@@ -9,13 +9,8 @@ export const SALES_ROUTES = {
   /** New transaction view */
   NEW_TRANSACTION: "sales:new-transaction",
 
-  /** Cashier dashboard view */
-  CASHIER_DASHBOARD: "sales:cashier-dashboard",
-
   /** Sales reports view */
   SALES_REPORTS: "sales:sales-reports",
 } as const;
 
-export type SalesRoute =
-  (typeof SALES_ROUTES)[keyof typeof SALES_ROUTES];
-
+export type SalesRoute = (typeof SALES_ROUTES)[keyof typeof SALES_ROUTES];

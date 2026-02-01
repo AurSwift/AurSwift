@@ -35,7 +35,6 @@ import {
   LoadingState,
   ShiftBanner,
   OvertimeWarning,
-  TimeChangeBanner,
   StartShiftDialog,
   NoActiveShiftModal,
   ProductSelectionPanel,
@@ -1130,11 +1129,6 @@ export function NewTransactionView({
             show={shift.showOvertimeWarning}
             minutes={shift.overtimeMinutes}
           />
-          <TimeChangeBanner
-            show={shift.timeChangeDetected}
-            timeDifferenceMs={shift.timeChangeInfo?.timeDifference ?? null}
-            onDismiss={shift.dismissTimeChange}
-          />
           <ShiftBanner
             isOperationsDisabled={isOperationsDisabled}
             todaySchedule={shift.todaySchedule}
@@ -1200,7 +1194,6 @@ export function NewTransactionView({
           <QuickActionsCarousel
             onRefund={() => setShowRefundModal(true)}
             onCount={() => setShowCountModal(true)}
-            onDashboard={onBack}
             onReceipts={handleReceipts}
             onLogOff={logout}
             hasActiveShift={!!shift.activeShift}

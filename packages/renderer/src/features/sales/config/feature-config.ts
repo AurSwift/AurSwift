@@ -54,19 +54,6 @@ export const salesViews: Record<string, ViewConfig> = {
     permissions: [SALES_PERMISSIONS.WRITE],
     requiresAuth: true,
   },
-  [SALES_ROUTES.CASHIER_DASHBOARD]: {
-    id: SALES_ROUTES.CASHIER_DASHBOARD,
-    level: "root",
-    component: lazy(() =>
-      import("@/features/dashboard/views/cashier-dashboard-view"),
-    ),
-    metadata: {
-      title: "Cashier Dashboard",
-      description: "Cashier dashboard",
-    },
-    permissions: [SALES_PERMISSIONS.READ],
-    requiresAuth: true,
-  },
   [SALES_ROUTES.SALES_REPORTS]: {
     id: SALES_ROUTES.SALES_REPORTS,
     level: "root",

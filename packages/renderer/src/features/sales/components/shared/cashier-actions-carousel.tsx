@@ -1,7 +1,6 @@
 import {
   Calculator,
   ChevronRight,
-  LayoutDashboard,
   RotateCcw,
   Receipt,
   LogOut,
@@ -16,9 +15,8 @@ const OVERRIDE_DISABLED_TITLE =
 interface QuickActionsCarouselProps {
   onRefund: () => void;
   onCount: () => void;
-  onDashboard: () => void;
   onReceipts?: () => void;
-  onLogOff?: () => void;
+  onLogOff: () => void;
   hasActiveShift?: boolean; // Enable buttons only when cashier has active shift
   /** When false, Refund is disabled and shows permission tooltip. Requires TRANSACTIONS_OVERRIDE. */
   canVoidAndRefund?: boolean;
@@ -27,7 +25,6 @@ interface QuickActionsCarouselProps {
 export const QuickActionsCarousel: React.FC<QuickActionsCarouselProps> = ({
   onRefund,
   onCount,
-  onDashboard,
   onReceipts,
   onLogOff,
   hasActiveShift = false,
@@ -64,11 +61,11 @@ export const QuickActionsCarousel: React.FC<QuickActionsCarouselProps> = ({
       requiresShift: true,
     },
     {
-      icon: LayoutDashboard,
-      title: "Dashboard",
-      onClick: onDashboard,
-      hoverColor: "hover:bg-purple-50",
-      disabled: false, // Dashboard is always enabled
+      icon: LogOut,
+      title: "Log off",
+      onClick: onLogOff,
+      hoverColor: "hover:bg-slate-50",
+      disabled: false,
       disabledTitle: undefined,
       requiresShift: false,
     },
@@ -79,19 +76,6 @@ export const QuickActionsCarousel: React.FC<QuickActionsCarouselProps> = ({
             title: "Receipts",
             onClick: onReceipts,
             hoverColor: "hover:bg-amber-50",
-            disabled: false,
-            disabledTitle: undefined as string | undefined,
-            requiresShift: false,
-          },
-        ]
-      : []),
-    ...(onLogOff
-      ? [
-          {
-            icon: LogOut,
-            title: "Log off",
-            onClick: onLogOff,
-            hoverColor: "hover:bg-slate-50",
             disabled: false,
             disabledTitle: undefined as string | undefined,
             requiresShift: false,
