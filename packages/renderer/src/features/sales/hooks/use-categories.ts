@@ -30,7 +30,7 @@ export function useCategories({
 }: UseCategoriesProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [currentCategoryId, setCurrentCategoryId] = useState<string | null>(
-    null
+    null,
   );
   const [breadcrumb, setBreadcrumb] = useState<BreadcrumbItem[]>([
     { id: null, name: "All Categories" },
@@ -47,7 +47,7 @@ export function useCategories({
       if (response.success && response.categories) {
         // Filter to only active categories
         const activeCategories = response.categories.filter(
-          (cat: any) => cat.isActive
+          (cat: any) => cat.isActive,
         );
         setCategories(activeCategories);
       } else {
@@ -75,7 +75,7 @@ export function useCategories({
         ]);
       }
     },
-    [onCategorySelectForPriceInput]
+    [onCategorySelectForPriceInput],
   );
 
   /**
@@ -88,7 +88,7 @@ export function useCategories({
       setBreadcrumb(newBreadcrumb);
       setCurrentCategoryId(newBreadcrumb[newBreadcrumb.length - 1].id);
     },
-    [breadcrumb]
+    [breadcrumb],
   );
 
   /**
@@ -99,7 +99,7 @@ export function useCategories({
       .filter((cat) =>
         currentCategoryId === null
           ? !cat.parentId
-          : cat.parentId === currentCategoryId
+          : cat.parentId === currentCategoryId,
       )
       .sort((a, b) => a.sortOrder - b.sortOrder);
   }, [categories, currentCategoryId]);
@@ -123,7 +123,9 @@ export function useCategories({
     };
 
     const categoryIds = getDescendantIds(currentCategoryId);
-    return products.filter((p) => p.categoryId && categoryIds.includes(p.categoryId));
+    return products.filter(
+      (p) => p.categoryId && categoryIds.includes(p.categoryId),
+    );
   }, [currentCategoryId, categories, products]);
 
   return {

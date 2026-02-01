@@ -56,7 +56,7 @@ export function CategorySearchCombobox({
       try {
         setIsLoading(true);
         const response = await window.categoryAPI.getByBusiness(
-          user.businessId
+          user.businessId,
         );
 
         if (response.success && response.categories) {

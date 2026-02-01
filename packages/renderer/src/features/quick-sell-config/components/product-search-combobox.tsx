@@ -91,7 +91,7 @@ export function ProductSearchCombobox({
           {
             searchTerm: query,
             isActive: true, // Only active products
-          }
+          },
         );
 
         if (response.success && response.products) {
@@ -106,7 +106,7 @@ export function ProductSearchCombobox({
         setIsLoading(false);
       }
     },
-    [user?.businessId]
+    [user?.businessId],
   );
 
   // Handle search query change with debouncing
@@ -209,7 +209,7 @@ export function ProductSearchCombobox({
                         "mr-2 h-4 w-4",
                         selectedProductId === product.id
                           ? "opacity-100"
-                          : "opacity-0"
+                          : "opacity-0",
                       )}
                     />
                     <div className="flex flex-col flex-1 min-w-0">

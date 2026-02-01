@@ -71,7 +71,7 @@ export function useVirtualCategories({
   const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [currentCategories, setCurrentCategories] = useState<Category[]>([]);
   const [currentCategoryId, setCurrentCategoryId] = useState<string | null>(
-    null
+    null,
   );
   const [loading, setLoading] = useState(false);
   const [breadcrumb, setBreadcrumb] = useState<BreadcrumbItem[]>([
@@ -113,7 +113,7 @@ export function useVirtualCategories({
         const response = await window.categoryAPI.getChildren(
           businessId,
           parentId,
-          { page: 1, pageSize: CATEGORY_PAGE_SIZE }
+          { page: 1, pageSize: CATEGORY_PAGE_SIZE },
         );
 
         if (!isMountedRef.current) return [];
@@ -128,7 +128,7 @@ export function useVirtualCategories({
           setAllCategories((prev) => {
             const existingIds = new Set(prev.map((c) => c.id));
             const newCategories = items.filter(
-              (c: Category) => !existingIds.has(c.id)
+              (c: Category) => !existingIds.has(c.id),
             );
             return [...prev, ...newCategories];
           });
@@ -149,7 +149,7 @@ export function useVirtualCategories({
         }
       }
     },
-    [businessId]
+    [businessId],
   );
 
   /**
@@ -187,7 +187,7 @@ export function useVirtualCategories({
         setCurrentCategories(children);
       }
     },
-    [onCategorySelectForPriceInput, loadCategoryChildren]
+    [onCategorySelectForPriceInput, loadCategoryChildren],
   );
 
   /**
@@ -205,7 +205,7 @@ export function useVirtualCategories({
       const children = await loadCategoryChildren(targetId);
       setCurrentCategories(children);
     },
-    [breadcrumb, loadCategoryChildren]
+    [breadcrumb, loadCategoryChildren],
   );
 
   /**
@@ -229,7 +229,7 @@ export function useVirtualCategories({
 
     const categoryIds = getDescendantIds(currentCategoryId);
     return products.filter(
-      (p) => p.categoryId && categoryIds.includes(p.categoryId)
+      (p) => p.categoryId && categoryIds.includes(p.categoryId),
     );
   }, [currentCategoryId, allCategories, products]);
 

@@ -43,7 +43,7 @@ export interface UseQuickSellButtonsReturn {
  * Filter out unassigned buttons from a page
  */
 function filterAssignedButtons(
-  page: QuickSellPageWithButtons
+  page: QuickSellPageWithButtons,
 ): QuickSellPageWithButtons {
   return {
     ...page,
@@ -51,7 +51,7 @@ function filterAssignedButtons(
       (button) =>
         button.linkType !== "unassigned" &&
         button.isActive &&
-        (button.productId || button.categoryId)
+        (button.productId || button.categoryId),
     ),
   };
 }
@@ -101,7 +101,7 @@ export function useQuickSellButtons(): UseQuickSellButtonsReturn {
         const filteredPages = response.pages.map(filterAssignedButtons);
         setPages(filteredPages);
         logger.debug(
-          `Loaded quick sell pages: ${filteredPages.length} with assigned buttons`
+          `Loaded quick sell pages: ${filteredPages.length} with assigned buttons`,
         );
       } else {
         // No pages configured - this is fine, just means quick sell is not set up
@@ -110,7 +110,9 @@ export function useQuickSellButtons(): UseQuickSellButtonsReturn {
       }
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to load quick sell buttons";
+        err instanceof Error
+          ? err.message
+          : "Failed to load quick sell buttons";
       logger.error("Error loading quick sell buttons:", err);
       setError(errorMessage);
     } finally {
@@ -136,7 +138,7 @@ export function useQuickSellButtons(): UseQuickSellButtonsReturn {
     // Clamp the index to valid range
     const validIndex = Math.min(
       Math.max(0, selectedPageIndex),
-      pagesWithButtons.length - 1
+      pagesWithButtons.length - 1,
     );
 
     // If the stored index is invalid, update it
