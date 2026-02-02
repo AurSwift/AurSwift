@@ -4,7 +4,7 @@
  * retry logic, concurrent access, and time change detection
  */
 
-import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 import type { Shift, Schedule } from "@/types/domain/shift";
 import { retryWithBackoff, isNetworkError } from "@/shared/utils/retry";

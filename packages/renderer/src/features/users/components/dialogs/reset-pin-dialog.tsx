@@ -16,6 +16,9 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/shared/hooks/use-auth";
+import { getLogger } from "@/shared/utils/logger";
+
+const logger = getLogger("reset-pin-dialog");
 
 interface ResetPinDialogProps {
   open: boolean;
@@ -51,7 +54,7 @@ export function ResetPinDialog({
         toast.error(result.message || "Failed to reset PIN");
       }
     } catch (error) {
-      console.error("Reset PIN error:", error);
+      logger.error("Reset PIN error:", error);
       toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);

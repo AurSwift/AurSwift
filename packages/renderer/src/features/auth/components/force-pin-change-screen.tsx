@@ -5,6 +5,9 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { getLogger } from "@/shared/utils/logger";
+
+const logger = getLogger("force-pin-change-screen");
 
 import {
   Card,
@@ -132,7 +135,7 @@ export function ForcePinChangeScreen({ onComplete }: ForcePinChangeScreenProps) 
         toast.error(result.message || "Failed to set PIN");
       }
     } catch (error) {
-      console.error("Set PIN error:", error);
+      logger.error("Set PIN error:", error);
       toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);

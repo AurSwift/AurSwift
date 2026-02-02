@@ -51,7 +51,7 @@ interface UseBatchFormOptions {
  */
 const getDefaultValues = (
   productId: string,
-  businessId: string
+  businessId: string,
 ): BatchFormData => {
   const today = new Date().toISOString().split("T")[0];
   const defaultExpiry = new Date();
@@ -151,7 +151,7 @@ export function useBatchForm({
     (errors) => {
       // Log validation errors for debugging
       logger.error("Batch form validation errors:", errors);
-    }
+    },
   );
 
   return {

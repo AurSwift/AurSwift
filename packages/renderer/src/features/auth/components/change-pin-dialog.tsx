@@ -5,6 +5,9 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { getLogger } from "@/shared/utils/logger";
+
+const logger = getLogger("change-pin-dialog");
 
 import {
   Dialog,
@@ -183,7 +186,7 @@ export function ChangePinDialog({
         }
       }
     } catch (error) {
-      console.error("Change PIN error:", error);
+      logger.error("Change PIN error:", error);
       toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);

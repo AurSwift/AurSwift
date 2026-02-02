@@ -18,7 +18,7 @@ export const useBatchData = ({ businessId, productId }: UseBatchDataProps) => {
   const [batches, setBatches] = useState<ProductBatch[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [expirySettings, setExpirySettings] = useState<ExpirySettings | null>(
-    null
+    null,
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +36,7 @@ export const useBatchData = ({ businessId, productId }: UseBatchDataProps) => {
       // Pass productId as part of options object for proper filtering
       const response = await window.batchesAPI.getByBusiness(
         businessId,
-        productId ? { productId } : undefined
+        productId ? { productId } : undefined,
       );
 
       if (response.success && response.batches) {
@@ -66,7 +66,7 @@ export const useBatchData = ({ businessId, productId }: UseBatchDataProps) => {
 
       if (response.success && response.suppliers) {
         setSuppliers(
-          Array.isArray(response.suppliers) ? response.suppliers : []
+          Array.isArray(response.suppliers) ? response.suppliers : [],
         );
       } else {
         logger.warn("Failed to load suppliers");
@@ -190,7 +190,7 @@ export const useBatchData = ({ businessId, productId }: UseBatchDataProps) => {
         };
       }
     },
-    [businessId]
+    [businessId],
   );
 
   const updateBatch = useCallback(
@@ -205,7 +205,7 @@ export const useBatchData = ({ businessId, productId }: UseBatchDataProps) => {
         purchaseOrderNumber?: string;
         costPrice?: number;
         status?: "ACTIVE" | "EXPIRED" | "SOLD_OUT" | "REMOVED";
-      }
+      },
     ): Promise<BatchResponse> => {
       try {
         if (!window.batchesAPI) {
@@ -220,8 +220,8 @@ export const useBatchData = ({ businessId, productId }: UseBatchDataProps) => {
         if (response.success && response.batch) {
           setBatches((prev) =>
             prev.map((batch) =>
-              batch.id === batchId ? response.batch! : batch
-            )
+              batch.id === batchId ? response.batch! : batch,
+            ),
           );
         }
 
@@ -239,7 +239,7 @@ export const useBatchData = ({ businessId, productId }: UseBatchDataProps) => {
         };
       }
     },
-    []
+    [],
   );
 
   const deleteBatch = useCallback(
@@ -271,7 +271,7 @@ export const useBatchData = ({ businessId, productId }: UseBatchDataProps) => {
         };
       }
     },
-    []
+    [],
   );
 
   return {

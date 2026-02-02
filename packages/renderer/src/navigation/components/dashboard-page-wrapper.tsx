@@ -51,11 +51,6 @@ export function DashboardPageWrapper() {
     }
   }, [role, navigateTo]);
 
-  // Navigation helper
-  const handleNavigate = (viewId: string) => {
-    navigateTo(viewId);
-  };
-
   switch (role) {
     case "admin":
       return (

@@ -140,7 +140,7 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = ({
                     <p className="text-xs sm:text-sm text-red-700">
                       {expiredBatches.reduce(
                         (sum, b) => sum + b.currentQuantity,
-                        0
+                        0,
                       )}{" "}
                       units need immediate attention
                     </p>

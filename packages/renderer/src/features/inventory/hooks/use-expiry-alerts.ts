@@ -112,19 +112,19 @@ export const useExpiryAlerts = ({
     () =>
       alerts.filter(
         (alert) =>
-          alert.alertType === "CRITICAL" || alert.alertType === "EXPIRED"
+          alert.alertType === "CRITICAL" || alert.alertType === "EXPIRED",
       ),
-    [alerts]
+    [alerts],
   );
 
   const warningAlerts = useMemo(
     () => alerts.filter((alert) => alert.alertType === "WARNING"),
-    [alerts]
+    [alerts],
   );
 
   const infoAlerts = useMemo(
     () => alerts.filter((alert) => alert.alertType === "INFO"),
-    [alerts]
+    [alerts],
   );
 
   // Batch counts by status
@@ -133,7 +133,7 @@ export const useExpiryAlerts = ({
       expirySettings
         ? filterBatchesByExpiryStatus(batches, "expired", expirySettings)
         : [],
-    [batches, expirySettings]
+    [batches, expirySettings],
   );
 
   const criticalBatches = useMemo(
@@ -141,7 +141,7 @@ export const useExpiryAlerts = ({
       expirySettings
         ? filterBatchesByExpiryStatus(batches, "critical", expirySettings)
         : [],
-    [batches, expirySettings]
+    [batches, expirySettings],
   );
 
   const warningBatches = useMemo(
@@ -149,17 +149,17 @@ export const useExpiryAlerts = ({
       expirySettings
         ? filterBatchesByExpiryStatus(batches, "warning", expirySettings)
         : [],
-    [batches, expirySettings]
+    [batches, expirySettings],
   );
 
   const expiringThisWeek = useMemo(
     () => getBatchesExpiringInRange(batches, 0, 7),
-    [batches]
+    [batches],
   );
 
   const expiringNext30Days = useMemo(
     () => getBatchesExpiringInRange(batches, 0, 30),
-    [batches]
+    [batches],
   );
 
   return {

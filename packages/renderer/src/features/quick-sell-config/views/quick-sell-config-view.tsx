@@ -57,7 +57,7 @@ export default function QuickSellConfigView({
         setPages(response.pages);
         toast.success("Quick sell pages initialized");
       } else {
-        throw new Error(response.message || "Failed to initialize pages");
+        throw new Error((response as { message?: string }).message || "Failed to initialize pages");
       }
     } catch (error) {
       logger.error("Error initializing default pages:", error);
@@ -138,7 +138,7 @@ export default function QuickSellConfigView({
         toast.success("Button updated successfully");
         setEditorState({ isOpen: false, button: null, mode: "edit" });
       } else {
-        throw new Error(response.message || "Failed to update button");
+        throw new Error((response as { message?: string }).message || "Failed to update button");
       }
     } catch (error) {
       logger.error("Error updating button:", error);
@@ -158,7 +158,7 @@ export default function QuickSellConfigView({
         // Reload data to get updated positions
         await loadData();
       } else {
-        throw new Error(response.message || "Failed to swap positions");
+        throw new Error((response as { message?: string }).message || "Failed to swap positions");
       }
     } catch (error) {
       logger.error("Error swapping positions:", error);
@@ -183,7 +183,7 @@ export default function QuickSellConfigView({
         await loadData();
         toast.success(`${currentPage.name} has been reset`);
       } else {
-        throw new Error(response.message || "Failed to reset page");
+        throw new Error((response as { message?: string }).message || "Failed to reset page");
       }
     } catch (error) {
       logger.error("Error resetting page:", error);

@@ -8,6 +8,8 @@
 
 import type { BatchStatus } from '../../enums/batch-status';
 
+export type { BatchStatus };
+
 export type NotificationType = 'INFO' | 'WARNING' | 'CRITICAL' | 'EXPIRED';
 
 export type NotificationStatus =

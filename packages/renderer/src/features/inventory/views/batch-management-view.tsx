@@ -57,7 +57,7 @@ const BatchManagementView: React.FC<BatchManagementViewProps> = ({
 
   const nestedViews = getNestedViews(INVENTORY_ROUTES.BATCH_MANAGEMENT);
   const defaultView = nestedViews.find(
-    (v) => v.id === INVENTORY_ROUTES.BATCH_DASHBOARD
+    (v) => v.id === INVENTORY_ROUTES.BATCH_DASHBOARD,
   );
 
   // Get productId from params if provided
@@ -91,7 +91,7 @@ const BatchManagementView: React.FC<BatchManagementViewProps> = ({
         : INVENTORY_ROUTES.BATCH_DASHBOARD;
       navigateTo(
         initialView,
-        effectiveProductId ? { productId: effectiveProductId } : undefined
+        effectiveProductId ? { productId: effectiveProductId } : undefined,
       );
     }
   }, [currentNestedViewId, defaultView, navigateTo, effectiveProductId]);
@@ -101,7 +101,7 @@ const BatchManagementView: React.FC<BatchManagementViewProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [expiryFilter, setExpiryFilter] = useState<string>("all");
-  
+
   // Keyboard state for search field
   const [showSearchKeyboard, setShowSearchKeyboard] = useState(false);
   const [searchValue, setSearchValue] = useState(searchTerm);
@@ -142,7 +142,7 @@ const BatchManagementView: React.FC<BatchManagementViewProps> = ({
 
   // Batch adjustment modal state
   const [adjustingBatch, setAdjustingBatch] = useState<ProductBatch | null>(
-    null
+    null,
   );
   const [adjustmentType, setAdjustmentType] = useState<
     "add" | "remove" | "set"
@@ -158,7 +158,7 @@ const BatchManagementView: React.FC<BatchManagementViewProps> = ({
   const [allBatches, setAllBatches] = useState<ProductBatch[]>([]); // For dashboard/alerts
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [expirySettings, setExpirySettings] = useState<ExpirySettings | null>(
-    null
+    null,
   );
   const [loading, setLoading] = useState(false);
 
@@ -258,7 +258,7 @@ const BatchManagementView: React.FC<BatchManagementViewProps> = ({
           status: statusFilter !== "all" ? (statusFilter as string) : undefined,
           expiryStatus:
             expiryFilter !== "all" ? (expiryFilter as string) : undefined,
-        }
+        },
       );
 
       if (response.success && response.data) {
@@ -300,7 +300,7 @@ const BatchManagementView: React.FC<BatchManagementViewProps> = ({
           expiringWithinDays: 30, // Only batches expiring in next 30 days
           limit: 100, // Limit to prevent loading massive datasets
           includeExpired: true, // Include expired for alerts display
-        }
+        },
       );
 
       if (response.success && response.data) {
@@ -330,7 +330,7 @@ const BatchManagementView: React.FC<BatchManagementViewProps> = ({
               warningAlertDays: expirySettings.warningAlertDays,
               infoAlertDays: expirySettings.infoAlertDays,
             }
-          : undefined
+          : undefined,
       );
 
       if (response.success && response.data) {
@@ -458,7 +458,7 @@ const BatchManagementView: React.FC<BatchManagementViewProps> = ({
     try {
       const response = await window.productAPI.getByBusiness(
         user.businessId,
-        true
+        true,
       );
       if (response.success && response.products) {
         setProducts(response.products);
@@ -489,14 +489,14 @@ const BatchManagementView: React.FC<BatchManagementViewProps> = ({
         loadProductsForForm();
       }
     },
-    [productsLoaded, loadProductsForForm]
+    [productsLoaded, loadProductsForForm],
   );
 
   const handleDeleteBatch = useCallback(
     async (batch: ProductBatch) => {
       if (
         !window.confirm(
-          `Are you sure you want to delete batch ${batch.batchNumber}? This action cannot be undone.`
+          `Are you sure you want to delete batch ${batch.batchNumber}? This action cannot be undone.`,
         )
       ) {
         return;
@@ -516,7 +516,7 @@ const BatchManagementView: React.FC<BatchManagementViewProps> = ({
         toast.error("Failed to delete batch");
       }
     },
-    [loadBatches, loadAllBatches]
+    [loadBatches, loadAllBatches],
   );
 
   const updateBatch = useCallback(
@@ -529,21 +529,21 @@ const BatchManagementView: React.FC<BatchManagementViewProps> = ({
         logger.error("Error updating batch:", error);
       }
     },
-    [loadBatches, loadAllBatches]
+    [loadBatches, loadAllBatches],
   );
 
   const handleSaveBatch = useCallback(
     (_batch: ProductBatch) => {
       loadBatches();
     },
-    [loadBatches]
+    [loadBatches],
   );
 
   const handleUpdateBatch = useCallback(
     (_batchId: string, _batch: ProductBatch) => {
       loadBatches();
     },
-    [loadBatches]
+    [loadBatches],
   );
 
   const handleAdjustBatch = useCallback((batch: ProductBatch) => {
@@ -558,7 +558,7 @@ const BatchManagementView: React.FC<BatchManagementViewProps> = ({
       batchId: string,
       type: "add" | "remove" | "set",
       quantity: number,
-      reason: string
+      reason: string,
     ) => {
       if (!window.batchesAPI) {
         toast.error("Batch API not available");
@@ -576,8 +576,8 @@ const BatchManagementView: React.FC<BatchManagementViewProps> = ({
           type === "add"
             ? "INBOUND"
             : type === "remove"
-            ? "OUTBOUND"
-            : "ADJUSTMENT";
+              ? "OUTBOUND"
+              : "ADJUSTMENT";
 
         // Call batch API to update quantity with userId and reason for audit trail
         const response = await window.batchesAPI.updateQuantity(
@@ -585,7 +585,7 @@ const BatchManagementView: React.FC<BatchManagementViewProps> = ({
           quantity,
           movementType,
           user.id,
-          reason
+          reason,
         );
 
         if (response.success) {
@@ -595,9 +595,9 @@ const BatchManagementView: React.FC<BatchManagementViewProps> = ({
               type === "add"
                 ? "increased"
                 : type === "remove"
-                ? "decreased"
-                : "adjusted"
-            } successfully`
+                  ? "decreased"
+                  : "adjusted"
+            } successfully`,
           );
         } else {
           toast.error(response.error || "Failed to adjust batch quantity");
@@ -607,7 +607,7 @@ const BatchManagementView: React.FC<BatchManagementViewProps> = ({
         toast.error("Failed to adjust batch quantity");
       }
     },
-    [loadBatches, user]
+    [loadBatches, user],
   );
 
   if (!user?.businessId) {
@@ -757,7 +757,8 @@ const BatchManagementView: React.FC<BatchManagementViewProps> = ({
                         "placeholder:text-muted-foreground",
                         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                         "disabled:cursor-not-allowed disabled:opacity-50",
-                        showSearchKeyboard && "ring-2 ring-primary border-primary"
+                        showSearchKeyboard &&
+                          "ring-2 ring-primary border-primary",
                       )}
                     />
                   </div>

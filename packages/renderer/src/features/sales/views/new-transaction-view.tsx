@@ -102,7 +102,7 @@ interface NewTransactionViewProps {
 }
 
 export function NewTransactionView({
-  onBack,
+  onBack: _onBack,
   embeddedInDashboard = false,
 }: NewTransactionViewProps) {
   const { user, logout } = useAuth();
@@ -626,14 +626,17 @@ export function NewTransactionView({
         try {
           // Create age verification audit record
           if (user?.id && user?.businessId) {
+            logger.info(
+              "Creating age verification record...",
+              verificationData,
+            );
             const auditResponse = await window.ageVerificationAPI.create({
               productId: pendingProductForAgeVerification.id,
               verificationMethod: verificationData.verificationMethod,
               customerBirthdate: verificationData.customerBirthdate,
               calculatedAge: verificationData.calculatedAge,
+              verificationNotes: verificationData.verificationNotes,
               verifiedBy: user.id,
-              managerOverrideId: verificationData.managerId,
-              overrideReason: verificationData.overrideReason,
               businessId: user.businessId,
             });
 
@@ -642,7 +645,16 @@ export function NewTransactionView({
                 "Failed to create age verification record:",
                 auditResponse.message,
               );
+              toast.error(
+                `Age verification record failed: ${auditResponse.message}`,
+              );
               // Continue even if audit fails - we don't want to block sales
+            } else {
+              logger.info(
+                "✅ Age verification record created",
+                auditResponse.record,
+              );
+              toast.success("Age verification recorded");
             }
           }
 

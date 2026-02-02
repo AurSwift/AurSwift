@@ -13,7 +13,8 @@ import type {
  * Calculate days until expiry from a given expiry date
  */
 export function calculateDaysUntilExpiry(expiryDate: string | Date): number {
-  const expiry = typeof expiryDate === "string" ? new Date(expiryDate) : expiryDate;
+  const expiry =
+    typeof expiryDate === "string" ? new Date(expiryDate) : expiryDate;
   const now = new Date();
   const diffTime = expiry.getTime() - now.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -27,7 +28,7 @@ export function getExpiryStatus(
   expiryDate: string | Date,
   criticalDays: number = 3,
   warningDays: number = 7,
-  infoDays: number = 14
+  infoDays: number = 14,
 ): {
   status: "expired" | "critical" | "warning" | "info" | "good";
   daysUntil: number;
@@ -83,13 +84,13 @@ export function generateExpiryAlert(
     criticalAlertDays: number;
     warningAlertDays: number;
     infoAlertDays: number;
-  }
+  },
 ): ExpiryAlert | null {
   const { status, daysUntil, notificationType } = getExpiryStatus(
     batch.expiryDate,
     settings.criticalAlertDays,
     settings.warningAlertDays,
-    settings.infoAlertDays
+    settings.infoAlertDays,
   );
 
   // Only generate alerts for batches that need attention
@@ -133,14 +134,14 @@ export function filterBatchesByExpiryStatus(
     criticalAlertDays: number;
     warningAlertDays: number;
     infoAlertDays: number;
-  }
+  },
 ): ProductBatch[] {
   return batches.filter((batch) => {
     const expiryStatus = getExpiryStatus(
       batch.expiryDate,
       settings.criticalAlertDays,
       settings.warningAlertDays,
-      settings.infoAlertDays
+      settings.infoAlertDays,
     );
     return expiryStatus.status === status;
   });
@@ -152,7 +153,7 @@ export function filterBatchesByExpiryStatus(
 export function getBatchesExpiringInRange(
   batches: ProductBatch[],
   startDays: number,
-  endDays: number
+  endDays: number,
 ): ProductBatch[] {
   return batches.filter((batch) => {
     const daysUntil = calculateDaysUntilExpiry(batch.expiryDate);
@@ -165,7 +166,7 @@ export function getBatchesExpiringInRange(
  */
 export function sortBatchesByExpiry(
   batches: ProductBatch[],
-  ascending: boolean = true
+  ascending: boolean = true,
 ): ProductBatch[] {
   return [...batches].sort((a, b) => {
     const dateA = new Date(a.expiryDate).getTime();
@@ -179,7 +180,7 @@ export function sortBatchesByExpiry(
  */
 export function calculateTotalStockFromBatches(
   batches: ProductBatch[],
-  statusFilter?: BatchStatus[]
+  statusFilter?: BatchStatus[],
 ): number {
   return batches
     .filter((batch) => !statusFilter || statusFilter.includes(batch.status))
@@ -191,9 +192,10 @@ export function calculateTotalStockFromBatches(
  */
 export function formatExpiryDate(
   expiryDate: string | Date,
-  includeRelative: boolean = true
+  includeRelative: boolean = true,
 ): string {
-  const date = typeof expiryDate === "string" ? new Date(expiryDate) : expiryDate;
+  const date =
+    typeof expiryDate === "string" ? new Date(expiryDate) : expiryDate;
   const formatted = date.toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "short",
@@ -228,9 +230,10 @@ export function formatExpiryDate(
 export function generateBatchNumber(
   productSku: string,
   expiryDate: string | Date,
-  sequence: number = 1
+  sequence: number = 1,
 ): string {
-  const date = typeof expiryDate === "string" ? new Date(expiryDate) : expiryDate;
+  const date =
+    typeof expiryDate === "string" ? new Date(expiryDate) : expiryDate;
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
@@ -248,7 +251,7 @@ export function canSellBatch(
   settings: {
     allowSellNearExpiry: boolean;
     nearExpiryThreshold: number;
-  }
+  },
 ): { canSell: boolean; reason?: string } {
   if (batch.status !== "ACTIVE") {
     return {
@@ -273,7 +276,10 @@ export function canSellBatch(
     };
   }
 
-  if (!settings.allowSellNearExpiry && daysUntil <= settings.nearExpiryThreshold) {
+  if (
+    !settings.allowSellNearExpiry &&
+    daysUntil <= settings.nearExpiryThreshold
+  ) {
     return {
       canSell: false,
       reason: `Batch expires in ${daysUntil} day${daysUntil !== 1 ? "s" : ""}. Selling near-expiry items is disabled.`,
@@ -287,7 +293,7 @@ export function canSellBatch(
  * Get color for expiry status badge
  */
 export function getExpiryStatusColor(
-  status: "expired" | "critical" | "warning" | "info" | "good"
+  status: "expired" | "critical" | "warning" | "info" | "good",
 ): string {
   switch (status) {
     case "expired":
@@ -304,4 +310,3 @@ export function getExpiryStatusColor(
       return "default";
   }
 }
-

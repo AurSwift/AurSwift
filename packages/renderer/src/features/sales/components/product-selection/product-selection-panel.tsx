@@ -11,13 +11,14 @@ import {
   Loader2,
   AlertCircle,
   ChevronLeft,
-  Home,
   Package,
-  FolderOpen,
 } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 import { QuickSellPanel } from "./quick-sell-panel";
 import { Breadcrumb } from "./breadcrumb";
+import { getLogger } from "@/shared/utils/logger";
+
+const logger = getLogger("product-selection-panel");
 import type { Product } from "@/types/domain";
 import type { Category } from "@/types/domain/category";
 import type { BreadcrumbItem } from "@/types/ui";
@@ -170,21 +171,21 @@ export function ProductSelectionPanel({
   categories,
   currentCategories,
   breadcrumb,
-  searchQuery,
-  selectedWeightProductId,
+  searchQuery: _searchQuery,
+  selectedWeightProductId: _selectedWeightProductId,
   loading,
   error,
-  lastClickTime,
+  lastClickTime: _lastClickTime,
   onProductClick,
-  onGenericItemClick,
+  onGenericItemClick: _onGenericItemClick,
   onCategoryClick,
   onBreadcrumbClick,
-  onSetLastClickTime,
+  onSetLastClickTime: _onSetLastClickTime,
   onRetry,
   DOUBLE_CLICK_DELAY,
-  onLoadMore,
-  hasMore = false,
-  isLoadingMore = false,
+  onLoadMore: _onLoadMore,
+  hasMore: _hasMore = false,
+  isLoadingMore: _isLoadingMore = false,
   // Quick Sell Props
   quickSellPages = [],
   quickSellPageIndex = 0,
@@ -254,7 +255,7 @@ export function ProductSelectionPanel({
             category = response.category;
           }
         } catch (error) {
-          console.error("Failed to fetch category:", error);
+          logger.error("Failed to fetch category:", error);
         }
       }
 
