@@ -3,6 +3,7 @@
  *
  * Component for selecting a custom date range.
  * Uses calendar component with range selection.
+ * Touch-friendly and responsive for mobile/tablet devices.
  */
 
 import { useState, useEffect } from "react";
@@ -12,7 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 import { format } from "date-fns";
@@ -34,6 +35,7 @@ export function DateRangePicker({
     dateRange?.start
   );
   const [endDate, setEndDate] = useState<Date | undefined>(dateRange?.end);
+  const [selectingEnd, setSelectingEnd] = useState(false);
 
   // Sync internal state with prop changes
   useEffect(() => {
@@ -46,19 +48,37 @@ export function DateRangePicker({
     }
   }, [dateRange]);
 
-  const handleStartDateChange = (date: Date | undefined) => {
-    if (date) {
-      setStartDate(date);
-      // If end date is before start date, reset end date
-      if (endDate && date > endDate) {
-        setEndDate(undefined);
-      }
-    }
-  };
+  const handleDateSelect = (date: Date | undefined) => {
+    if (!date) return;
 
-  const handleEndDateChange = (date: Date | undefined) => {
-    if (date) {
-      setEndDate(date);
+    if (!startDate || selectingEnd) {
+      // If no start date or we're selecting end date
+      if (!startDate) {
+        // First selection - set as start date
+        setStartDate(date);
+        setEndDate(undefined);
+        setSelectingEnd(true);
+      } else if (date >= startDate) {
+        // Valid end date
+        setEndDate(date);
+        setSelectingEnd(false);
+      } else {
+        // Selected date is before start, restart selection
+        setStartDate(date);
+        setEndDate(undefined);
+        setSelectingEnd(true);
+      }
+    } else {
+      // We have a start date and not selecting end
+      if (date >= startDate) {
+        setEndDate(date);
+        setSelectingEnd(false);
+      } else {
+        // New selection before start, restart
+        setStartDate(date);
+        setEndDate(undefined);
+        setSelectingEnd(true);
+      }
     }
   };
 
@@ -74,12 +94,26 @@ export function DateRangePicker({
 
       onDateRangeChange({ start, end });
       setIsOpen(false);
+      setSelectingEnd(false);
     }
   };
 
   const handleClear = () => {
     setStartDate(undefined);
     setEndDate(undefined);
+    setSelectingEnd(false);
+  };
+
+  const handleCancel = () => {
+    // Reset to original values
+    if (dateRange) {
+      setStartDate(dateRange.start);
+      setEndDate(dateRange.end);
+    } else {
+      setStartDate(undefined);
+      setEndDate(undefined);
+    }
+    setSelectingEnd(false);
     setIsOpen(false);
   };
 
@@ -93,74 +127,108 @@ export function DateRangePicker({
         <Button
           variant="outline"
           className={cn(
-            "w-full min-w-0 max-w-full justify-start text-left font-normal overflow-hidden",
+            "w-full min-w-0 max-w-full justify-start text-left font-normal overflow-hidden touch-manipulation",
             !dateRange && "text-muted-foreground",
             className
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
-          <span className="truncate">{displayText}</span>
+          <span className="truncate text-sm sm:text-base">{displayText}</span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        <div className="p-4 space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Start Date</label>
-            <div className="flex gap-2">
-              <Input
-                type="date"
-                value={
-                  startDate
-                    ? format(startDate, "yyyy-MM-dd")
-                    : ""
-                }
-                onChange={(e) => {
-                  if (e.target.value) {
-                    handleStartDateChange(new Date(e.target.value));
-                  }
-                }}
-                className="flex-1"
-              />
-            </div>
+      <PopoverContent 
+        className="w-auto p-0 max-w-[95vw]" 
+        align="start"
+        sideOffset={4}
+      >
+        <div className="flex flex-col">
+          {/* Instructions */}
+          <div className="px-4 pt-4 pb-2 border-b">
+            <p className="text-sm font-medium text-slate-900">
+              {!startDate 
+                ? "Select start date" 
+                : !endDate 
+                ? "Select end date" 
+                : "Date range selected"}
+            </p>
+            {startDate && !endDate && (
+              <p className="text-xs text-slate-600 mt-1">
+                Start: {format(startDate, "MMM dd, yyyy")}
+              </p>
+            )}
+            {startDate && endDate && (
+              <p className="text-xs text-slate-600 mt-1">
+                {format(startDate, "MMM dd, yyyy")} - {format(endDate, "MMM dd, yyyy")}
+              </p>
+            )}
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">End Date</label>
-            <div className="flex gap-2">
-              <Input
-                type="date"
-                value={
-                  endDate
-                    ? format(endDate, "yyyy-MM-dd")
-                    : ""
+
+          {/* Calendar */}
+          <div className="p-4 flex justify-center">
+            <Calendar
+              mode="single"
+              selected={selectingEnd ? endDate : startDate}
+              onSelect={handleDateSelect}
+              disabled={(date) => {
+                // Disable future dates
+                const today = new Date();
+                today.setHours(23, 59, 59, 999);
+                if (date > today) return true;
+                
+                // When selecting end date, disable dates before start
+                if (selectingEnd && startDate) {
+                  return date < startDate;
                 }
-                onChange={(e) => {
-                  if (e.target.value) {
-                    handleEndDateChange(new Date(e.target.value));
-                  }
-                }}
-                min={
-                  startDate
-                    ? format(startDate, "yyyy-MM-dd")
-                    : undefined
-                }
-                className="flex-1"
-              />
-            </div>
+                
+                return false;
+              }}
+              modifiers={{
+                selected: (date) => {
+                  if (!startDate || !endDate) return false;
+                  return date >= startDate && date <= endDate;
+                },
+                start: (date) => {
+                  if (!startDate) return false;
+                  return date.getTime() === startDate.getTime();
+                },
+                end: (date) => {
+                  if (!endDate) return false;
+                  return date.getTime() === endDate.getTime();
+                },
+              }}
+              modifiersClassNames={{
+                selected: "bg-primary/10 hover:bg-primary/20",
+                start: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
+                end: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
+              }}
+              className="rounded-md"
+              buttonVariant="ghost"
+            />
           </div>
-          <div className="flex gap-2">
+
+          {/* Action buttons */}
+          <div className="flex gap-2 p-4 border-t bg-slate-50">
             <Button
               variant="outline"
               size="sm"
               onClick={handleClear}
-              className="flex-1"
+              className="flex-1 touch-manipulation min-h-11 sm:min-h-9"
             >
               Clear
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCancel}
+              className="flex-1 touch-manipulation min-h-11 sm:min-h-9"
+            >
+              Cancel
             </Button>
             <Button
               size="sm"
               onClick={handleApply}
               disabled={!startDate || !endDate}
-              className="flex-1"
+              className="flex-1 touch-manipulation min-h-11 sm:min-h-9"
             >
               Apply
             </Button>

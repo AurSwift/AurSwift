@@ -95,7 +95,7 @@ export function SalesReportsFilters({
                 onDateRangeChange?.(range);
                 onTimePeriodChange?.("custom");
               }}
-              className="h-8 w-full max-w-full min-w-0"
+              className="h-10 sm:h-8 w-full max-w-full min-w-0"
             />
           </div>
 
@@ -110,7 +110,7 @@ export function SalesReportsFilters({
                 onTransactionTypeChange?.(value as TransactionTypeFilter)
               }
             >
-              <SelectTrigger size="sm" className="w-full max-w-full">
+              <SelectTrigger size="sm" className="w-full max-w-full h-10 sm:h-8 touch-manipulation">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
@@ -134,7 +134,7 @@ export function SalesReportsFilters({
                 onPaymentMethodChange?.(value as PaymentMethodFilter)
               }
             >
-              <SelectTrigger size="sm" className="w-full max-w-full">
+              <SelectTrigger size="sm" className="w-full max-w-full h-10 sm:h-8 touch-manipulation">
                 <SelectValue placeholder="Select method" />
               </SelectTrigger>
               <SelectContent>
