@@ -73,7 +73,7 @@ export function TransactionRow({
         )}
         onClick={onToggleExpand}
       >
-        <TableCell className="w-[50px]">
+        <TableCell className="w-12">
           <Button
             variant="ghost"
             size="sm"
@@ -90,7 +90,7 @@ export function TransactionRow({
             )}
           </Button>
         </TableCell>
-        <TableCell className="w-[80px]">
+        <TableCell className="w-20">
           <div
             className={cn(
               "flex items-center justify-center w-8 h-8 rounded-full",
@@ -112,15 +112,33 @@ export function TransactionRow({
           </TableCell>
         )}
         <TableCell>
-          <Badge
-            variant="outline"
-            className={cn(
-              "text-xs",
-              getPaymentMethodBadgeColor(transaction.paymentMethod)
+          <div className="flex flex-wrap items-center gap-1">
+            <Badge
+              variant="outline"
+              className={cn(
+                "text-xs uppercase",
+                getPaymentMethodBadgeColor(transaction.paymentMethod)
+              )}
+            >
+              {transaction.paymentMethod}
+            </Badge>
+            {transaction.type === "refund" && (
+              <Badge
+                variant="outline"
+                className="bg-red-50 text-red-700 border-red-300 text-xs"
+              >
+                REFUNDED
+              </Badge>
             )}
-          >
-            {transaction.paymentMethod}
-          </Badge>
+            {transaction.type === "void" && (
+              <Badge
+                variant="outline"
+                className="bg-amber-50 text-amber-700 border-amber-300 text-xs"
+              >
+                VOIDED
+              </Badge>
+            )}
+          </div>
         </TableCell>
         <TableCell className="text-right">
           <div

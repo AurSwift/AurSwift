@@ -74,9 +74,7 @@ export function SalesReportsFilters({
   className,
 }: SalesReportsFiltersProps) {
   return (
-    <Card
-      className={cn("bg-white border-slate-200 shadow-sm", className)}
-    >
+    <Card className={cn("bg-white border-slate-200 shadow-sm", className)}>
       <CardHeader className="py-3">
         <div className="flex flex-wrap items-center gap-4">
           <CardTitle className="text-base sm:text-lg font-semibold text-slate-700 flex items-center gap-2 shrink-0">
@@ -110,7 +108,10 @@ export function SalesReportsFilters({
                 onTransactionTypeChange?.(value as TransactionTypeFilter)
               }
             >
-              <SelectTrigger size="sm" className="w-full max-w-full h-10 sm:h-8 touch-manipulation">
+              <SelectTrigger
+                size="sm"
+                className="w-full max-w-full h-10 sm:h-8 touch-manipulation"
+              >
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
@@ -134,7 +135,10 @@ export function SalesReportsFilters({
                 onPaymentMethodChange?.(value as PaymentMethodFilter)
               }
             >
-              <SelectTrigger size="sm" className="w-full max-w-full h-10 sm:h-8 touch-manipulation">
+              <SelectTrigger
+                size="sm"
+                className="w-full max-w-full h-10 sm:h-8 touch-manipulation"
+              >
                 <SelectValue placeholder="Select method" />
               </SelectTrigger>
               <SelectContent>

@@ -17,6 +17,8 @@ export interface SalesReportsStatsCardProps {
   colorTheme?: "green" | "blue" | "amber" | "red" | "purple" | "default";
   isLoading?: boolean;
   className?: string;
+  valueFormat?: "currency" | "count" | "auto";
+  showNegative?: boolean;
 }
 
 /** Classic dark grey for numbers and icons (no coloured themes) */
@@ -33,7 +35,31 @@ export function SalesReportsStatsCard({
   colorTheme: _colorTheme = "default",
   isLoading = false,
   className,
+  valueFormat = "auto",
+  showNegative = false,
 }: SalesReportsStatsCardProps) {
+  // Format the display value based on valueFormat
+  const formatValue = (val: string | number): string => {
+    if (typeof val === "string") {
+      return val;
+    }
+
+    // Handle different formats
+    switch (valueFormat) {
+      case "currency":
+        if (showNegative && val < 0) {
+          return `-£${Math.abs(val).toFixed(2)}`;
+        }
+        return `£${val.toFixed(2)}`;
+      case "count":
+        return val.toString();
+      case "auto":
+      default:
+        // Auto-detect: if it's a number, format as currency
+        return `£${val.toFixed(2)}`;
+    }
+  };
+
   return (
     <Card className={cn("bg-white border-slate-200 shadow-sm h-full", className)}>
       <CardHeader className="pb-2 sm:pb-3">
@@ -61,7 +87,7 @@ export function SalesReportsStatsCard({
                 neutralTheme.value
               )}
             >
-              {typeof value === "number" ? `£${value.toFixed(2)}` : value}
+              {formatValue(value)}
             </div>
             {change && (
               <p className="text-xs sm:text-sm text-slate-600 mt-2">

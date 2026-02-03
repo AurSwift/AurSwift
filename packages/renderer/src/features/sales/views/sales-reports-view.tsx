@@ -136,23 +136,26 @@ const SalesReportsView = ({ onBack }: SalesReportsViewProps) => {
   });
 
   // Calculate stats from filtered transactions (synced with filters)
+  // NOTE: These stats are calculated from the filtered transaction list
+  // - revenue: Total sales amount (from hook's totalSales, which sums transaction.total for all sales)
+  // - salesCount: Number of sale transactions
+  // - refundsCount: Number of refund transactions
+  // - averageOrderValue: Average transaction value (revenue / salesCount)
   const filteredStats = useMemo(() => {
     const sales = transactions.filter((t) => t.type === "sale");
     const refunds = transactions.filter((t) => t.type === "refund");
 
-    // Calculate revenue from filtered sales
-    const filteredRevenue = sales.reduce((sum, t) => sum + t.total, 0);
-
+    // Use totalSales from the hook for revenue (already calculated correctly)
     // Calculate average order value from filtered sales
-    const filteredAOV = sales.length > 0 ? filteredRevenue / sales.length : 0;
+    const filteredAOV = sales.length > 0 ? totalSales / sales.length : 0;
 
     return {
-      revenue: filteredRevenue,
+      revenue: totalSales, // Use the hook's calculated totalSales
       salesCount: sales.length,
       refundsCount: refunds.length,
       averageOrderValue: filteredAOV,
     };
-  }, [transactions]);
+  }, [transactions, totalSales]);
 
   // Get time period label for dynamic text
   const getTimePeriodLabel = useCallback((): string => {
@@ -338,18 +341,20 @@ const SalesReportsView = ({ onBack }: SalesReportsViewProps) => {
           icon={DollarSign}
           colorTheme="green"
           isLoading={isLoading}
+          valueFormat="currency"
         />
 
         {/* Sales Count Card */}
         <SalesReportsStatsCard
           title="Sales"
-          value={filteredStats.salesCount}
+          value={`${filteredStats.salesCount}`}
           change={`${getTimePeriodLabel()} • ${
             filteredStats.salesCount
           } transaction${filteredStats.salesCount !== 1 ? "s" : ""}`}
           icon={ShoppingCart}
           colorTheme="blue"
           isLoading={isLoading}
+          valueFormat="count"
         />
 
         {/* Average Order Value Card */}
@@ -362,16 +367,19 @@ const SalesReportsView = ({ onBack }: SalesReportsViewProps) => {
           icon={TrendingUp}
           colorTheme="purple"
           isLoading={isLoading}
+          valueFormat="currency"
         />
 
         {/* Adjustments Card */}
         <SalesReportsStatsCard
           title="Adjustments"
-          value={`-£${adjustmentsValue.toFixed(2)}`}
+          value={-adjustmentsValue}
           change={`${totalVoids} voided, £${totalRefunds.toFixed(2)} refunded`}
           icon={RefreshCw}
           colorTheme="red"
           isLoading={isLoading}
+          valueFormat="currency"
+          showNegative
         />
       </div>
 

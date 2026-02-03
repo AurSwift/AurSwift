@@ -255,8 +255,8 @@ export function SalesReportsTransactionTable({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[50px]"></TableHead>
-                    <TableHead className="w-[80px]">
+                    <TableHead className="w-12"></TableHead>
+                    <TableHead className="w-20">
                       <Button
                         variant="ghost"
                         size="sm"

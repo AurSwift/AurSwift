@@ -32,7 +32,7 @@ export function DateRangePicker({
 }: DateRangePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [startDate, setStartDate] = useState<Date | undefined>(
-    dateRange?.start
+    dateRange?.start,
   );
   const [endDate, setEndDate] = useState<Date | undefined>(dateRange?.end);
   const [selectingEnd, setSelectingEnd] = useState(false);
@@ -87,7 +87,7 @@ export function DateRangePicker({
       // Set start to beginning of day
       const start = new Date(startDate);
       start.setHours(0, 0, 0, 0);
-      
+
       // Set end to end of day
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
@@ -129,15 +129,15 @@ export function DateRangePicker({
           className={cn(
             "w-full min-w-0 max-w-full justify-start text-left font-normal overflow-hidden touch-manipulation",
             !dateRange && "text-muted-foreground",
-            className
+            className,
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
           <span className="truncate text-sm sm:text-base">{displayText}</span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent 
-        className="w-auto p-0 max-w-[95vw]" 
+      <PopoverContent
+        className="w-auto p-0 max-w-[95vw]"
         align="start"
         sideOffset={4}
       >
@@ -145,11 +145,11 @@ export function DateRangePicker({
           {/* Instructions */}
           <div className="px-4 pt-4 pb-2 border-b">
             <p className="text-sm font-medium text-slate-900">
-              {!startDate 
-                ? "Select start date" 
-                : !endDate 
-                ? "Select end date" 
-                : "Date range selected"}
+              {!startDate
+                ? "Select start date"
+                : !endDate
+                  ? "Select end date"
+                  : "Date range selected"}
             </p>
             {startDate && !endDate && (
               <p className="text-xs text-slate-600 mt-1">
@@ -158,7 +158,8 @@ export function DateRangePicker({
             )}
             {startDate && endDate && (
               <p className="text-xs text-slate-600 mt-1">
-                {format(startDate, "MMM dd, yyyy")} - {format(endDate, "MMM dd, yyyy")}
+                {format(startDate, "MMM dd, yyyy")} -{" "}
+                {format(endDate, "MMM dd, yyyy")}
               </p>
             )}
           </div>
@@ -174,12 +175,12 @@ export function DateRangePicker({
                 const today = new Date();
                 today.setHours(23, 59, 59, 999);
                 if (date > today) return true;
-                
+
                 // When selecting end date, disable dates before start
                 if (selectingEnd && startDate) {
                   return date < startDate;
                 }
-                
+
                 return false;
               }}
               modifiers={{
@@ -198,7 +199,8 @@ export function DateRangePicker({
               }}
               modifiersClassNames={{
                 selected: "bg-primary/10 hover:bg-primary/20",
-                start: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
+                start:
+                  "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
                 end: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
               }}
               className="rounded-md"
@@ -238,4 +240,3 @@ export function DateRangePicker({
     </Popover>
   );
 }
-
