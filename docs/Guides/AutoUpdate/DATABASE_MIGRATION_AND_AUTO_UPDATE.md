@@ -220,11 +220,11 @@ dist/
 
 ### Key Auto-Update Features
 
-*   **Smart Scheduling**: Checks are skipped if the user is idle (mouse/keyboard inactive for 30mins) to save resources.
-*   **Resumable Downloads**: If a download is interrupted, it resumes from where it left off.
-*   **Postponement**: Users can "Remind Me Later" up to 3 times before being urged to update. 
-*   **Debouncing**: Rapid checks are prevented to avoid server spam.
-*   **Network Intelligence**: Distinguishes between critical errors (corruption) and transient ones (offline), minimizing user annoyance.
+- **Smart Scheduling**: Checks are skipped if the user is idle (mouse/keyboard inactive for 30mins) to save resources.
+- **Resumable Downloads**: If a download is interrupted, it resumes from where it left off.
+- **Postponement**: Users can "Remind Me Later" up to 3 times before being urged to update.
+- **Debouncing**: Rapid checks are prevented to avoid server spam.
+- **Network Intelligence**: Distinguishes between critical errors (corruption) and transient ones (offline), minimizing user annoyance.
 
 ---
 
