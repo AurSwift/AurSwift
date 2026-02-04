@@ -55,47 +55,47 @@ function formatPercentageChange(changePercent: number): string {
  * Get change severity and styling
  */
 function getChangeSeverity(changePercent: number): {
-  severity: 'critical' | 'warning' | 'positive' | 'neutral';
+  severity: "critical" | "warning" | "positive" | "neutral";
   color: string;
   bgColor: string;
   icon: typeof TrendingUp | typeof TrendingDown | typeof AlertTriangle;
 } {
   if (changePercent <= -50) {
     return {
-      severity: 'critical',
-      color: 'text-red-700',
-      bgColor: 'bg-red-50 border-red-200',
+      severity: "critical",
+      color: "text-red-700",
+      bgColor: "bg-red-50 border-red-200",
       icon: AlertTriangle,
     };
   }
   if (changePercent <= -20) {
     return {
-      severity: 'warning',
-      color: 'text-amber-700',
-      bgColor: 'bg-amber-50 border-amber-200',
+      severity: "warning",
+      color: "text-amber-700",
+      bgColor: "bg-amber-50 border-amber-200",
       icon: TrendingDown,
     };
   }
   if (changePercent >= 50) {
     return {
-      severity: 'positive',
-      color: 'text-green-700',
-      bgColor: 'bg-green-50 border-green-200',
+      severity: "positive",
+      color: "text-green-700",
+      bgColor: "bg-green-50 border-green-200",
       icon: TrendingUp,
     };
   }
   if (changePercent >= 20) {
     return {
-      severity: 'positive',
-      color: 'text-emerald-700',
-      bgColor: 'bg-emerald-50 border-emerald-200',
+      severity: "positive",
+      color: "text-emerald-700",
+      bgColor: "bg-emerald-50 border-emerald-200",
       icon: TrendingUp,
     };
   }
   return {
-    severity: 'neutral',
-    color: changePercent >= 0 ? 'text-green-600' : 'text-red-600',
-    bgColor: '',
+    severity: "neutral",
+    color: changePercent >= 0 ? "text-green-600" : "text-red-600",
+    bgColor: "",
     icon: changePercent >= 0 ? TrendingUp : TrendingDown,
   };
 }
@@ -122,7 +122,7 @@ export function StatsCards({ className = "", onActionClick }: StatsCardsProps) {
       value: statistics ? formatCurrency(statistics.revenue.current) : "£0.00",
       change: statistics
         ? `${formatPercentageChange(
-            statistics.revenue.changePercent
+            statistics.revenue.changePercent,
           )} from last month`
         : "Loading...",
       icon: DollarSign,
@@ -137,7 +137,7 @@ export function StatsCards({ className = "", onActionClick }: StatsCardsProps) {
         : "£0.00",
       change: statistics
         ? `${formatPercentageChange(
-            statistics.averageOrderValue.changePercent
+            statistics.averageOrderValue.changePercent,
           )} from last month`
         : "Loading...",
       icon: TrendingUp,
@@ -191,40 +191,46 @@ export function StatsCards({ className = "", onActionClick }: StatsCardsProps) {
     >
       {visibleStats.map((stat) => {
         const Icon = stat.icon;
-        
+
         // Get change percentage for styling (if available)
         let changePercent = 0;
         let showChangeBadge = false;
-        if (stat.id === 'revenue' && statistics) {
+        if (stat.id === "revenue" && statistics) {
           changePercent = statistics.revenue.changePercent;
           showChangeBadge = true;
-        } else if (stat.id === 'avg-order-value' && statistics) {
+        } else if (stat.id === "avg-order-value" && statistics) {
           changePercent = statistics.averageOrderValue.changePercent;
           showChangeBadge = true;
         }
-        
-        const changeSeverity = showChangeBadge ? getChangeSeverity(changePercent) : null;
+
+        const changeSeverity = showChangeBadge
+          ? getChangeSeverity(changePercent)
+          : null;
         const TrendIcon = changeSeverity?.icon;
-        
+
         return (
           <Card
             key={stat.id}
-            className={`shadow-sm hover:shadow-md transition-shadow ${changeSeverity && changeSeverity.severity !== 'neutral' ? changeSeverity.bgColor + ' border-2' : ''}`}
+            className={`shadow-sm hover:shadow-md transition-shadow ${changeSeverity && changeSeverity.severity !== "neutral" ? changeSeverity.bgColor + " border-2" : ""}`}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
                 {stat.title}
               </CardTitle>
               <div className="flex items-center gap-2">
-                {changeSeverity && changeSeverity.severity !== 'neutral' && TrendIcon && (
-                  <Badge
-                    variant="outline"
-                    className={`${changeSeverity.bgColor} ${changeSeverity.color} text-xs px-1.5 py-0.5 font-semibold uppercase`}
-                  >
-                    <TrendIcon className="h-3 w-3 mr-1" />
-                    {changeSeverity.severity === 'critical' ? 'Alert' : changeSeverity.severity}
-                  </Badge>
-                )}
+                {changeSeverity &&
+                  changeSeverity.severity !== "neutral" &&
+                  TrendIcon && (
+                    <Badge
+                      variant="outline"
+                      className={`${changeSeverity.bgColor} ${changeSeverity.color} text-xs px-1.5 py-0.5 font-semibold uppercase`}
+                    >
+                      <TrendIcon className="h-3 w-3 mr-1" />
+                      {changeSeverity.severity === "critical"
+                        ? "Alert"
+                        : changeSeverity.severity}
+                    </Badge>
+                  )}
                 <Icon className="h-4 w-4 text-muted-foreground" />
               </div>
             </CardHeader>
@@ -236,7 +242,9 @@ export function StatsCards({ className = "", onActionClick }: StatsCardsProps) {
                   stat.value
                 )}
               </div>
-              <p className={`text-caption mt-1 flex items-center gap-1 ${changeSeverity?.color || 'text-muted-foreground'}`}>
+              <p
+                className={`text-caption mt-1 flex items-center gap-1 ${changeSeverity?.color || "text-muted-foreground"}`}
+              >
                 {stat.isLoading ? (
                   <span className="animate-pulse">Loading...</span>
                 ) : (
@@ -248,7 +256,7 @@ export function StatsCards({ className = "", onActionClick }: StatsCardsProps) {
                   </>
                 )}
               </p>
-              {changeSeverity && changeSeverity.severity === 'critical' && (
+              {changeSeverity && changeSeverity.severity === "critical" && (
                 <p className="text-xs text-red-600 mt-2 flex items-center gap-1">
                   <AlertTriangle className="h-3 w-3" />
                   Significant decrease detected
@@ -288,7 +296,10 @@ export function StatsCards({ className = "", onActionClick }: StatsCardsProps) {
  *
  * Specialized stats cards for manager dashboard with real data from backend.
  */
-export const ManagerStatsCards = ({ className = "", onActionClick }: StatsCardsProps) => {
+export const ManagerStatsCards = ({
+  className = "",
+  onActionClick,
+}: StatsCardsProps) => {
   const { hasPermission, isLoading: permissionsLoading } = useUserPermissions();
   const { statistics, isLoading: statisticsLoading } = useDashboardStatistics();
   const { user } = useAuth();
@@ -308,11 +319,14 @@ export const ManagerStatsCards = ({ className = "", onActionClick }: StatsCardsP
       if (response.success && response.data) {
         setLowStockCount(response.data.lowStockCount || 0);
         logger.info(
-          `[ManagerStatsCards] Loaded low stock count: ${response.data.lowStockCount}`
+          `[ManagerStatsCards] Loaded low stock count: ${response.data.lowStockCount}`,
         );
       }
     } catch (error) {
-      logger.error("[ManagerStatsCards] Failed to load low stock count:", error);
+      logger.error(
+        "[ManagerStatsCards] Failed to load low stock count:",
+        error,
+      );
       setLowStockCount(0);
     } finally {
       setIsLoadingLowStock(false);
@@ -358,12 +372,10 @@ export const ManagerStatsCards = ({ className = "", onActionClick }: StatsCardsP
     {
       id: "weekly-revenue",
       title: "Monthly Revenue",
-      value: statistics
-        ? formatCurrency(statistics.revenue.current)
-        : "£0.00",
+      value: statistics ? formatCurrency(statistics.revenue.current) : "£0.00",
       change: statistics
         ? `${formatPercentageChange(
-            statistics.revenue.changePercent
+            statistics.revenue.changePercent,
           )} from last month`
         : "Loading...",
       icon: DollarSign,
@@ -377,8 +389,8 @@ export const ManagerStatsCards = ({ className = "", onActionClick }: StatsCardsP
       change: isLoadingLowStock
         ? "Loading..."
         : lowStockCount === 0
-        ? "All items in stock"
-        : `${lowStockCount} ${lowStockCount === 1 ? "item" : "items"} need reordering`,
+          ? "All items in stock"
+          : `${lowStockCount} ${lowStockCount === 1 ? "item" : "items"} need reordering`,
       icon: Package,
       permission: PERMISSIONS.INVENTORY_MANAGE,
       isLoading: isLoadingLowStock,
@@ -409,36 +421,44 @@ export const ManagerStatsCards = ({ className = "", onActionClick }: StatsCardsP
     >
       {visibleStats.map((stat) => {
         const Icon = stat.icon;
-        
+
         // Get change percentage for styling (if available)
         let changePercent = 0;
         let showChangeBadge = false;
-        if (stat.id === 'weekly-revenue' && statistics) {
+        if (stat.id === "weekly-revenue" && statistics) {
           changePercent = statistics.revenue.changePercent;
           showChangeBadge = true;
         }
-        
-        const changeSeverity = showChangeBadge ? getChangeSeverity(changePercent) : null;
+
+        const changeSeverity = showChangeBadge
+          ? getChangeSeverity(changePercent)
+          : null;
         const TrendIcon = changeSeverity?.icon;
-        
+
         return (
-          <Card 
+          <Card
             key={stat.id}
-            className={changeSeverity && changeSeverity.severity !== 'neutral' ? changeSeverity.bgColor + ' border-2' : ''}
+            className={
+              changeSeverity && changeSeverity.severity !== "neutral"
+                ? changeSeverity.bgColor + " border-2"
+                : ""
+            }
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xs sm:text-sm font-medium">
                 {stat.title}
               </CardTitle>
               <div className="flex items-center gap-1">
-                {changeSeverity && changeSeverity.severity !== 'neutral' && TrendIcon && (
-                  <Badge
-                    variant="outline"
-                    className={`${changeSeverity.bgColor} ${changeSeverity.color} text-[10px] px-1 py-0 font-bold uppercase`}
-                  >
-                    <TrendIcon className="h-2.5 w-2.5" />
-                  </Badge>
-                )}
+                {changeSeverity &&
+                  changeSeverity.severity !== "neutral" &&
+                  TrendIcon && (
+                    <Badge
+                      variant="outline"
+                      className={`${changeSeverity.bgColor} ${changeSeverity.color} text-[10px] px-1 py-0 font-bold uppercase`}
+                    >
+                      <TrendIcon className="h-2.5 w-2.5" />
+                    </Badge>
+                  )}
                 <Icon className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
               </div>
             </CardHeader>
@@ -450,7 +470,9 @@ export const ManagerStatsCards = ({ className = "", onActionClick }: StatsCardsP
                   stat.value
                 )}
               </div>
-              <p className={`text-caption ${changeSeverity?.color || 'text-muted-foreground'}`}>
+              <p
+                className={`text-caption ${changeSeverity?.color || "text-muted-foreground"}`}
+              >
                 {stat.isLoading ? (
                   <span className="animate-pulse">Loading...</span>
                 ) : (
