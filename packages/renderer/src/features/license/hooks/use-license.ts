@@ -18,7 +18,7 @@ export interface LicenseStatus {
   expiresAt?: string | null;
   trialEnd?: string | null;
   activatedAt?: string;
-  lastHeartbeat?: string;
+  lastHeartbeat?: string | null;
   daysSinceHeartbeat?: number | null;
   withinGracePeriod?: boolean;
   gracePeriodDays?: number;
@@ -29,6 +29,8 @@ export interface LicenseStatus {
   gracePeriodWarningLevel?: "none" | "low" | "high" | "expired"; // Progressive warning levels
   canRetryConnection?: boolean; // Whether user can manually retry connection
   lastConnectionAttempt?: string | null; // Timestamp of last connection attempt
+  isOnline?: boolean; // Whether license server is reachable
+  connectionError?: string | null; // Last connection error message
 }
 
 export interface LicenseActivationResult {

@@ -9,7 +9,7 @@
  */
 
 import { ipcMain, BrowserWindow } from "electron";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { getDrizzle } from "../database/drizzle.js";
 import {
   licenseActivation,
@@ -97,6 +97,26 @@ async function getLocalActivation() {
   } catch (error) {
     // If tables don't exist yet, return null
     logger.debug("Could not get local activation:", error);
+    return null;
+  }
+}
+
+/**
+ * Get the most recently updated activation (active or inactive).
+ * Used for offline re-activation flows where the active record is unavailable.
+ */
+async function getLatestActivation() {
+  try {
+    const drizzle = getDrizzle();
+    const [activation] = await drizzle
+      .select()
+      .from(licenseActivation)
+      .orderBy(desc(licenseActivation.updatedAt))
+      .limit(1);
+
+    return activation || null;
+  } catch (error) {
+    logger.debug("Could not get latest activation:", error);
     return null;
   }
 }
@@ -1354,7 +1374,12 @@ export function registerLicenseHandlers() {
    */
   ipcMain.handle("license:retryConnection", async () => {
     try {
-      const activation = await getLocalActivation();
+      let activation = await getLocalActivation();
+
+      if (!activation) {
+        // Fallback to most recent inactive record for one-click re-activation.
+        activation = await getLatestActivation();
+      }
 
       if (!activation) {
         return {

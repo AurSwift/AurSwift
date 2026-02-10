@@ -61,6 +61,12 @@ export function LicenseInfoModal({
     daysSinceHeartbeat,
     withinGracePeriod,
     gracePeriodDays,
+    isOnline,
+    isOfflineMode,
+    gracePeriodRemainingDays,
+    gracePeriodWarningLevel,
+    connectionError,
+    lastConnectionAttempt,
   } = licenseStatus;
 
   // Calculate days remaining for trial
@@ -117,8 +123,76 @@ export function LicenseInfoModal({
     );
   };
 
+  const formatGraceRemaining = (
+    remainingDays: number | null | undefined
+  ): string | null => {
+    if (remainingDays === null || remainingDays === undefined) {
+      return null;
+    }
+
+    if (remainingDays < 1) {
+      const hours = Math.round(remainingDays * 24);
+      return `${hours} hour${hours === 1 ? "" : "s"}`;
+    }
+
+    const roundedDays = Math.round(remainingDays * 10) / 10;
+    return `${roundedDays} day${roundedDays === 1 ? "" : "s"}`;
+  };
+
+  const warningLevel = gracePeriodWarningLevel ?? "none";
+  const offlineMode = isOfflineMode ?? false;
+
+  const graceRemainingLabel =
+    formatGraceRemaining(gracePeriodRemainingDays) ??
+    (typeof gracePeriodDays === "number"
+      ? `${gracePeriodDays} days`
+      : null);
+  const graceRemainingSuffix = graceRemainingLabel
+    ? ` (${graceRemainingLabel} left)`
+    : "";
+
   // Get connection status
   const getConnectionStatus = () => {
+    if (typeof isOnline === "boolean") {
+      if (isOnline) {
+        if (offlineMode && warningLevel !== "none") {
+          return {
+            icon: AlertCircle,
+            text: `Verification pending${graceRemainingSuffix}`,
+            className: "text-amber-600",
+          };
+        }
+
+        return { icon: Wifi, text: "Connected", className: "text-green-600" };
+      }
+
+      if (!lastHeartbeat) {
+        return {
+          icon: WifiOff,
+          text: "Never connected",
+          className: "text-gray-500",
+        };
+      }
+
+      if (warningLevel === "expired" || !withinGracePeriod) {
+        return {
+          icon: WifiOff,
+          text: "Grace period expired",
+          className: "text-red-600",
+        };
+      }
+
+      if (withinGracePeriod) {
+        return {
+          icon: AlertCircle,
+          text: `Grace period${graceRemainingSuffix}`,
+          className: "text-amber-600",
+        };
+      }
+
+      return { icon: WifiOff, text: "Disconnected", className: "text-red-600" };
+    }
+
     if (!lastHeartbeat) {
       return {
         icon: WifiOff,
@@ -127,9 +201,11 @@ export function LicenseInfoModal({
       };
     }
 
-    const hoursSinceHeartbeat = daysSinceHeartbeat
-      ? daysSinceHeartbeat * 24
-      : 0;
+    const hoursSinceHeartbeat = lastHeartbeat
+      ? (Date.now() - new Date(lastHeartbeat).getTime()) / (1000 * 60 * 60)
+      : daysSinceHeartbeat
+        ? daysSinceHeartbeat * 24
+        : 0;
 
     if (hoursSinceHeartbeat < 1) {
       return { icon: Wifi, text: "Connected", className: "text-green-600" };
@@ -144,7 +220,7 @@ export function LicenseInfoModal({
     if (withinGracePeriod) {
       return {
         icon: AlertCircle,
-        text: `Grace period (${gracePeriodDays} days left)`,
+        text: `Grace period${graceRemainingSuffix}`,
         className: "text-amber-600",
       };
     }
@@ -153,6 +229,8 @@ export function LicenseInfoModal({
 
   const connectionStatus = getConnectionStatus();
   const ConnectionIcon = connectionStatus.icon;
+  const showLastChecked =
+    lastConnectionAttempt && lastConnectionAttempt !== lastHeartbeat;
 
   const copyLicenseKey = () => {
     if (licenseKey) {
@@ -282,14 +360,27 @@ export function LicenseInfoModal({
 
             <div className="grid grid-cols-2 gap-4">
               <InfoRow label="Connection Status" icon={ConnectionIcon}>
-                <span
-                  className={cn(
-                    "text-sm font-medium",
-                    connectionStatus.className
+                <div className="space-y-1">
+                  <span
+                    className={cn(
+                      "text-sm font-medium",
+                      connectionStatus.className
+                    )}
+                  >
+                    {connectionStatus.text}
+                  </span>
+                  {connectionError && isOnline === false && (
+                    <div className="text-xs text-muted-foreground">
+                      {connectionError}
+                    </div>
                   )}
-                >
-                  {connectionStatus.text}
-                </span>
+                  {showLastChecked && (
+                    <div className="text-xs text-muted-foreground">
+                      Last checked{" "}
+                      {new Date(lastConnectionAttempt).toLocaleString()}
+                    </div>
+                  )}
+                </div>
               </InfoRow>
 
               <InfoRow label="Last Sync" icon={Clock}>

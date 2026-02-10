@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/shared/hooks/use-auth";
 import type { Product } from "@/types/domain";
@@ -26,10 +26,13 @@ import {
 
 interface ProductManagementViewProps {
   onBack: () => void;
+  openCreateProduct?: boolean;
+  openBatchManagement?: boolean;
 }
 
 const ProductManagementView: React.FC<ProductManagementViewProps> = ({
-  onBack: _onBack,
+  openCreateProduct = false,
+  openBatchManagement = false,
 }) => {
   const { user } = useAuth();
 
@@ -116,6 +119,8 @@ const ProductManagementView: React.FC<ProductManagementViewProps> = ({
   >("add");
   const [stockAdjustmentQuantity, setStockAdjustmentQuantity] = useState("");
   const [stockAdjustmentReason, setStockAdjustmentReason] = useState("");
+  const createIntentHandledRef = useRef(false);
+  const batchIntentHandledRef = useRef(false);
 
   // Stats are now loaded directly from backend aggregation
 
@@ -225,7 +230,8 @@ const ProductManagementView: React.FC<ProductManagementViewProps> = ({
       );
       if (response.success && response.vatCategories) {
         // Normalize VatCategory to match hook type (ratePercent instead of percentage)
-        const normalized = response.vatCategories.map((vat: any) => ({
+        const normalized = response.vatCategories.map(
+          (vat: { id: string; name: string; ratePercent?: number; percentage?: number }) => ({
           id: vat.id,
           name: vat.name,
           ratePercent: vat.ratePercent ?? vat.percentage ?? 0,
@@ -251,7 +257,6 @@ const ProductManagementView: React.FC<ProductManagementViewProps> = ({
   // Reset to page 1 when filters change (but NOT when page changes)
   useEffect(() => {
     setCurrentPage(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, filterCategory, filterStock, filterStatus]);
 
   // Load categories when navigating to category management view
@@ -385,6 +390,27 @@ const ProductManagementView: React.FC<ProductManagementViewProps> = ({
     }
     setIsDrawerOpen(true);
   }, [categories.length, user?.businessId, loadCategories]);
+
+  useEffect(() => {
+    if (!openBatchManagement || batchIntentHandledRef.current) return;
+
+    batchIntentHandledRef.current = true;
+    navigateTo(INVENTORY_ROUTES.BATCH_MANAGEMENT);
+  }, [openBatchManagement, navigateTo]);
+
+  useEffect(() => {
+    if (!openCreateProduct || createIntentHandledRef.current) return;
+
+    createIntentHandledRef.current = true;
+    const triggerCreateDrawer = async () => {
+      if (currentView !== INVENTORY_ROUTES.PRODUCT_LIST) {
+        navigateTo(INVENTORY_ROUTES.PRODUCT_LIST);
+      }
+      await openAddProductDrawer();
+    };
+
+    void triggerCreateDrawer();
+  }, [currentView, navigateTo, openAddProductDrawer, openCreateProduct]);
 
   const handleSaveProduct = useCallback(() => {
     // Invalidate caches on product create/update

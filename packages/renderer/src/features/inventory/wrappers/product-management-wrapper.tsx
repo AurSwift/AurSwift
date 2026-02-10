@@ -17,10 +17,24 @@ import { INVENTORY_ROUTES } from "../config/navigation";
  * Wraps ProductManagementView and provides nested navigation context.
  * ProductManagementView will use nested navigation internally.
  */
-export function ProductManagementWrapper() {
+interface ProductManagementWrapperProps {
+  openCreateProduct?: boolean;
+  openBatchManagement?: boolean;
+}
+
+export function ProductManagementWrapper({
+  openCreateProduct = false,
+  openBatchManagement = false,
+}: ProductManagementWrapperProps) {
   const { goBack } = useNestedNavigation(INVENTORY_ROUTES.PRODUCT_MANAGEMENT);
 
   // ProductManagementView will handle its own state and use nested navigation
   // We pass navigation functions via context
-  return <ProductManagementView onBack={goBack} />;
+  return (
+    <ProductManagementView
+      onBack={goBack}
+      openCreateProduct={openCreateProduct}
+      openBatchManagement={openBatchManagement}
+    />
+  );
 }

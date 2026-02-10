@@ -19,10 +19,17 @@ export interface LicenseStatus {
     expiresAt: string | null;
     trialEnd: string | null;
     activatedAt: string;
-    lastHeartbeat: string;
+    lastHeartbeat: string | null;
     daysSinceHeartbeat: number | null;
     withinGracePeriod: boolean;
     gracePeriodDays: number;
+    isOfflineMode?: boolean;
+    isOnline?: boolean;
+    gracePeriodRemainingDays?: number | null;
+    gracePeriodWarningLevel?: "none" | "low" | "high" | "expired";
+    canRetryConnection?: boolean;
+    lastConnectionAttempt?: string | null;
+    connectionError?: string | null;
   };
 }
 

@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { DashboardHeader } from "@/features/dashboard/components/dashboard-header";
+import { DashboardActionsProvider } from "@/features/dashboard/context";
 import { useShiftExpiryLogout } from "@/features/dashboard/hooks/use-shift-expiry-logout";
 import { useAuth } from "@/shared/hooks";
 import { getUserDisplayName } from "@/shared/utils/auth";
@@ -36,14 +37,15 @@ export function AuthenticatedAppShell() {
   }, [currentViewId, user, view?.metadata?.title]);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {showDashboardHeader && <DashboardHeader subtitle={subtitle} />}
-      <main className="flex-1 min-h-0 flex flex-col overflow-hidden">
-        <div className="flex-1 min-h-0 flex flex-col">
-          <NavigationContainer />
-        </div>
-      </main>
-    </div>
+    <DashboardActionsProvider>
+      <div className="min-h-screen bg-background flex flex-col">
+        {showDashboardHeader && <DashboardHeader subtitle={subtitle} />}
+        <main className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div className="flex-1 min-h-0 flex flex-col">
+            <NavigationContainer />
+          </div>
+        </main>
+      </div>
+    </DashboardActionsProvider>
   );
 }
-

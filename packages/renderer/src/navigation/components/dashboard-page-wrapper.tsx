@@ -14,7 +14,6 @@ import { USERS_ROUTES } from "@/features/users/config/navigation";
 import { SALES_ROUTES } from "@/features/sales/config/navigation";
 
 import { useNavigation } from "../hooks/use-navigation";
-import { useDashboardNavigation } from "../hooks/use-dashboard-navigation";
 import { LoadingScreen, ViewLoadingFallback } from "@/components";
 
 const AdminDashboardView = lazy(
@@ -34,10 +33,6 @@ export function DashboardPageWrapper() {
   const { user, isLoading } = useAuth();
   const { navigateTo } = useNavigation();
 
-  // Dashboard navigation handler for feature actions
-  // Must be called before any early returns (React Hooks rule)
-  const handleActionClick = useDashboardNavigation();
-
   if (isLoading || !user) {
     return <LoadingScreen />;
   }
@@ -55,17 +50,14 @@ export function DashboardPageWrapper() {
     case "admin":
       return (
         <Suspense fallback={<ViewLoadingFallback />}>
-          <AdminDashboardView
-            onFront={() => navigateTo(USERS_ROUTES.MANAGEMENT)}
-            onActionClick={handleActionClick}
-          />
+          <AdminDashboardView onFront={() => navigateTo(USERS_ROUTES.MANAGEMENT)} />
         </Suspense>
       );
 
     case "manager":
       return (
         <Suspense fallback={<ViewLoadingFallback />}>
-          <ManagerDashboardView onActionClick={handleActionClick} />
+          <ManagerDashboardView />
         </Suspense>
       );
 
