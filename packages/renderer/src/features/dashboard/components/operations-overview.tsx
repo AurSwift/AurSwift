@@ -3,13 +3,9 @@ import {
   AlertTriangle,
   ArrowDownRight,
   ArrowUpRight,
-  CheckCircle,
-  Clock,
-  Command,
   Copy,
   DollarSign,
   Info,
-  Package,
   PackageCheck,
   Plus,
   RefreshCw,
@@ -161,13 +157,6 @@ function formatDelta(value: number): string {
   if (!Number.isFinite(value)) return "No change";
   if (value === 0) return "0.0%";
   return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
-}
-
-function formatDuration(seconds: number): string {
-  if (!seconds || seconds < 0) return "0m";
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
 }
 
 function asNumber(value: unknown, fallback = 0): number {
@@ -386,18 +375,16 @@ export function OperationsOverview() {
   const { statistics, isLoading: statsLoading } = useDashboardStatistics();
   const { transactions, isLoading: transactionsLoading } =
     useTransactionHistory({ limit: 14 });
-  const { shift, activeBreak, workDuration, breakDuration } = useActiveShift(
-    user?.id,
-  );
+  useActiveShift(user?.id);
 
-  const [now, setNow] = useState(() => new Date());
-  const [density, setDensity] = useState<DensityMode>(parseDensity);
+  const [, setNow] = useState(() => new Date());
+  const [density] = useState<DensityMode>(parseDensity);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [lastSyncAt, setLastSyncAt] = useState<Date | null>(null);
 
   const [productStats, setProductStats] = useState<ProductStats>(emptyStats);
   const [inventoryLoading, setInventoryLoading] = useState(false);
-  const [lowStockItems, setLowStockItems] = useState<LowStockItem[]>([]);
+  const [, setLowStockItems] = useState<LowStockItem[]>([]);
 
   const [salesShift, setSalesShift] = useState<SalesShift | null>(null);
   const [shiftStats, setShiftStats] = useState<ShiftStats>(emptyShiftStats);
@@ -414,10 +401,6 @@ export function OperationsOverview() {
     null,
   );
   const [selectedAlertId, setSelectedAlertId] = useState<string | null>(null);
-
-  const isMac =
-    typeof navigator !== "undefined" && /mac/i.test(navigator.platform);
-  const paletteShortcut = isMac ? "Cmd+K" : "Ctrl+K";
 
   const canCreateSale = hasPermission(PERMISSIONS.SALES_WRITE);
   const canManageInventory = hasPermission(PERMISSIONS.INVENTORY_MANAGE);
@@ -720,26 +703,6 @@ export function OperationsOverview() {
   const exceptionCount =
     failedPaymentCount + Math.max(0, shiftStats.totalVoids);
 
-  const cashStatusLabel =
-    cashVariance === null
-      ? salesShift
-        ? "Awaiting count"
-        : "No drawer"
-      : Math.abs(cashVariance) < 0.5
-        ? "Balanced"
-        : `Variance ${cashVariance > 0 ? "+" : ""}${formatCurrency(cashVariance)}`;
-
-  const shiftStatusLabel = salesShift ? "Shift open" : "Off shift";
-
-  const lastSyncLabel = lastSyncAt
-    ? `${lastSyncAt.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      })}`
-    : "Syncing";
-
-  const storeName = user?.businessName || "Main Store";
-
   const runSalesReports = useCallback(() => {
     navigateTo(SALES_ROUTES.SALES_REPORTS);
   }, [navigateTo]);
@@ -815,25 +778,6 @@ export function OperationsOverview() {
     navigateTo(SALES_ROUTES.NEW_TRANSACTION);
     toast.info("Use the shift controls in sales workspace to cash up.");
   }, [canRunCashActions, navigateTo]);
-
-  const handleEndShift = useCallback(() => {
-    if (!canRunCashActions) {
-      toast.warning("End Shift requires manager-level cash permissions.");
-      return;
-    }
-    navigateTo(SALES_ROUTES.NEW_TRANSACTION);
-    toast.info("Finish End Shift from the sales workspace shift controls.");
-  }, [canRunCashActions, navigateTo]);
-
-  const handleReorderStock = useCallback(() => {
-    navigateTo(INVENTORY_ROUTES.PRODUCT_MANAGEMENT);
-    toast.info("Review low-stock items and create restock adjustments.");
-  }, [navigateTo]);
-
-  const handleCreatePO = useCallback(() => {
-    navigateTo(INVENTORY_ROUTES.PRODUCT_MANAGEMENT);
-    toast.info("Create PO from inventory supplier workflows.");
-  }, [navigateTo]);
 
   const commandActions = useMemo<CommandAction[]>(
     () => [
@@ -1143,21 +1087,6 @@ export function OperationsOverview() {
       transactionTrend,
     ],
   );
-
-  const chipClass =
-    density === "compact" ? "h-6 text-[11px] px-2" : "h-7 text-xs px-2.5";
-
-  const overviewDate = now.toLocaleDateString("en-GB", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-
-  const overviewTime = now.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 
   return (
     <div className="px-4 pb-6 pt-5 md:px-6 space-y-4 bg-[var(--color-ops-bg,#f4f6f7)] min-h-full">
@@ -1536,7 +1465,7 @@ export function OperationsOverview() {
                     variant="outline"
                     size="sm"
                     className="h-8"
-                    onClick={handleReprintReceipt}
+                    onClick={() => handleReprintReceipt()}
                   >
                     Reprint
                   </Button>

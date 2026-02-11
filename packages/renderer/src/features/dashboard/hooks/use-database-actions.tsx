@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -21,7 +22,7 @@ export interface DatabaseActions {
   openBackupDialog: () => void;
   openEmptyDialog: () => void;
   warnIfBusy: () => boolean;
-  dialogs: JSX.Element;
+  dialogs: ReactNode;
 }
 
 export function useDatabaseActions(): DatabaseActions {
@@ -212,11 +213,6 @@ export function useDatabaseActions(): DatabaseActions {
       setIsImporting(false);
       setImportProgress(null);
     }
-  }, []);
-
-  // Empty Database Handler
-  const handleEmptyDatabase = useCallback(() => {
-    setIsEmptyDialogOpen(true);
   }, []);
 
   const confirmEmptyDatabase = useCallback(async () => {

@@ -1,12 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import { Search } from "lucide-react";
 import { AdaptiveKeyboard } from "@/features/adaptive-keyboard/adaptive-keyboard";
 import { cn } from "@/shared/utils/cn";
@@ -22,8 +16,7 @@ interface UserFiltersProps {
 export function UserFilters({
   searchTerm,
   onSearchChange,
-  filterRole,
-  onRoleFilterChange,
+
   variant = "card",
 }: UserFiltersProps) {
   const [keyboardVisible, setKeyboardVisible] = useState(false);

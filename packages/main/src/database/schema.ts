@@ -1301,9 +1301,9 @@ export const ageVerificationRecords = createTable(
       .notNull()
       .references(() => products.id, { onDelete: "cascade" }),
 
-    // Verification method (simplified to manual only)
+    // Verification method (manual only for now; enum allows filter by scan/override for future use)
     verificationMethod: text("verification_method", {
-      enum: ["manual"],
+      enum: ["manual", "scan", "override"],
     }).notNull(),
 
     // Customer age information

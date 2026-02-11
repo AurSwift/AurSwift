@@ -9,7 +9,6 @@ import { MiniBar } from "@/components/mini-bar";
 import { getLogger } from "@/shared/utils/logger";
 const logger = getLogger("user-management-view");
 import {
-  UserStatsCards,
   UserFilters,
   UserTable,
   AddUserDrawer,
