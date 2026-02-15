@@ -185,6 +185,7 @@ export function AddBreakTypeForm({
                 <FormItem>
                   <FormControl>
                     <AdaptiveFormField
+                      variant="borderOnly"
                       {...form.register("name")}
                       label="Name *"
                       value={keyboard.formValues.name || ""}
@@ -192,9 +193,8 @@ export function AddBreakTypeForm({
                       onFocus={() => keyboard.handleFieldFocus("name")}
                       placeholder="Tea Break"
                       className={cn(
-                        "text-xs sm:text-sm md:text-base lg:text-base h-8 sm:h-9 md:h-10",
-                        keyboard.activeField === "name" &&
-                          "ring-2 ring-primary border-primary"
+                        "text-xs sm:text-sm md:text-base",
+                        keyboard.activeField === "name" && "border-primary"
                       )}
                       readOnly
                     />
@@ -211,6 +211,7 @@ export function AddBreakTypeForm({
                 <FormItem>
                   <FormControl>
                     <AdaptiveFormField
+                      variant="borderOnly"
                       {...form.register("code")}
                       label="Code *"
                       value={keyboard.formValues.code || ""}
@@ -218,9 +219,8 @@ export function AddBreakTypeForm({
                       onFocus={() => keyboard.handleFieldFocus("code")}
                       placeholder="tea"
                       className={cn(
-                        "text-xs sm:text-sm md:text-base lg:text-base h-8 sm:h-9 md:h-10",
-                        keyboard.activeField === "code" &&
-                          "ring-2 ring-primary border-primary"
+                        "text-xs sm:text-sm md:text-base",
+                        keyboard.activeField === "code" && "border-primary"
                       )}
                       readOnly
                     />
@@ -239,6 +239,7 @@ export function AddBreakTypeForm({
               <FormItem>
                 <FormControl>
                   <AdaptiveTextarea
+                    variant="borderOnly"
                     {...form.register("description")}
                     label="Description"
                     value={keyboard.formValues.description || ""}
@@ -246,8 +247,7 @@ export function AddBreakTypeForm({
                     onFocus={() => keyboard.handleFieldFocus("description")}
                     placeholder="Short break for tea/coffee"
                     className={cn(
-                      keyboard.activeField === "description" &&
-                        "ring-2 ring-primary border-primary"
+                      keyboard.activeField === "description" && "border-primary"
                     )}
                     readOnly
                   />
@@ -269,8 +269,12 @@ export function AddBreakTypeForm({
                     <input
                       type="number"
                       {...field}
+                      value={field.value ?? ""}
                       onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      className={cn(
+                        "w-full h-9 sm:h-10 bg-transparent border-0 border-b-2 rounded-none px-0 text-sm focus:outline-none focus-visible:ring-0",
+                        "border-input focus-visible:border-primary"
+                      )}
                     />
                   </FormControl>
                   <FormMessage />
@@ -288,8 +292,12 @@ export function AddBreakTypeForm({
                     <input
                       type="number"
                       {...field}
+                      value={field.value ?? ""}
                       onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      className={cn(
+                        "w-full h-9 sm:h-10 bg-transparent border-0 border-b-2 rounded-none px-0 text-sm focus:outline-none focus-visible:ring-0",
+                        "border-input focus-visible:border-primary"
+                      )}
                     />
                   </FormControl>
                   <FormMessage />
@@ -307,8 +315,12 @@ export function AddBreakTypeForm({
                     <input
                       type="number"
                       {...field}
+                      value={field.value ?? ""}
                       onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      className={cn(
+                        "w-full h-9 sm:h-10 bg-transparent border-0 border-b-2 rounded-none px-0 text-sm focus:outline-none focus-visible:ring-0",
+                        "border-input focus-visible:border-primary"
+                      )}
                     />
                   </FormControl>
                   <FormMessage />
@@ -415,15 +427,20 @@ export function AddBreakTypeForm({
               control={form.control}
               name="icon"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Icon</FormLabel>
+                <FormItem className="space-y-2">
+                  <FormLabel className="text-sm font-medium text-foreground">Icon</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
                     onOpenChange={() => keyboard.handleCloseKeyboard()}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger
+                        className={cn(
+                          "h-9 sm:h-10 bg-transparent border-0 border-b-2 rounded-none shadow-none px-0 focus-visible:ring-0",
+                          "border-input focus-visible:border-primary data-placeholder:text-muted-foreground"
+                        )}
+                      >
                         <SelectValue />
                       </SelectTrigger>
                     </FormControl>

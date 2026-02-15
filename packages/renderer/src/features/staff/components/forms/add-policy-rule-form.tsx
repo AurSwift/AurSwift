@@ -238,8 +238,8 @@ export function AddPolicyRuleForm({
             control={form.control}
             name="break_type_id"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Break Type *</FormLabel>
+              <FormItem className="space-y-2">
+                <FormLabel className="text-sm font-medium text-foreground">Break Type *</FormLabel>
                 <Select
                   onValueChange={(value) => {
                     field.onChange(parseInt(value));
@@ -249,7 +249,12 @@ export function AddPolicyRuleForm({
                   disabled={breakTypes.length === 0}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger
+                      className={cn(
+                        "h-9 sm:h-10 bg-transparent border-0 border-b-2 rounded-none shadow-none px-0 focus-visible:ring-0",
+                        "border-input focus-visible:border-primary data-placeholder:text-muted-foreground"
+                      )}
+                    >
                       <SelectValue placeholder="Select break type" />
                     </SelectTrigger>
                   </FormControl>
@@ -279,11 +284,11 @@ export function AddPolicyRuleForm({
               name="min_shift_hours"
               render={() => (
                 <FormItem>
-                  <FormLabel>Min Shift Hours *</FormLabel>
                   <FormControl>
                     <AdaptiveFormField
+                      variant="borderOnly"
                       {...form.register("min_shift_hours")}
-                      label=""
+                      label="Min Shift Hours *"
                       value={
                         keyboard.formValues.min_shift_hours ||
                         form.watch("min_shift_hours")?.toString() ||
@@ -294,9 +299,8 @@ export function AddPolicyRuleForm({
                       onClick={() => keyboard.handleFieldFocus("min_shift_hours")}
                       onFocus={() => keyboard.handleFieldFocus("min_shift_hours")}
                       className={cn(
-                        "text-xs sm:text-sm md:text-base lg:text-base h-8 sm:h-9 md:h-10",
-                        keyboard.activeField === "min_shift_hours" &&
-                          "ring-2 ring-primary border-primary"
+                        "text-xs sm:text-sm md:text-base",
+                        keyboard.activeField === "min_shift_hours" && "border-primary"
                       )}
                     />
                   </FormControl>
@@ -310,11 +314,11 @@ export function AddPolicyRuleForm({
               name="max_shift_hours"
               render={() => (
                 <FormItem>
-                  <FormLabel>Max Shift Hours (optional)</FormLabel>
                   <FormControl>
                     <AdaptiveFormField
+                      variant="borderOnly"
                       {...form.register("max_shift_hours")}
-                      label=""
+                      label="Max Shift Hours (optional)"
                       value={
                         keyboard.formValues.max_shift_hours ||
                         (form.watch("max_shift_hours") !== null && form.watch("max_shift_hours") !== undefined
@@ -327,9 +331,8 @@ export function AddPolicyRuleForm({
                       onClick={() => keyboard.handleFieldFocus("max_shift_hours")}
                       onFocus={() => keyboard.handleFieldFocus("max_shift_hours")}
                       className={cn(
-                        "text-xs sm:text-sm md:text-base lg:text-base h-8 sm:h-9 md:h-10",
-                        keyboard.activeField === "max_shift_hours" &&
-                          "ring-2 ring-primary border-primary"
+                        "text-xs sm:text-sm md:text-base",
+                        keyboard.activeField === "max_shift_hours" && "border-primary"
                       )}
                     />
                   </FormControl>
@@ -346,11 +349,11 @@ export function AddPolicyRuleForm({
               name="allowed_count"
               render={() => (
                 <FormItem>
-                  <FormLabel>Allowed Count *</FormLabel>
                   <FormControl>
                     <AdaptiveFormField
+                      variant="borderOnly"
                       {...form.register("allowed_count")}
-                      label=""
+                      label="Allowed Count *"
                       value={
                         keyboard.formValues.allowed_count ||
                         form.watch("allowed_count")?.toString() ||
@@ -361,9 +364,8 @@ export function AddPolicyRuleForm({
                       onClick={() => keyboard.handleFieldFocus("allowed_count")}
                       onFocus={() => keyboard.handleFieldFocus("allowed_count")}
                       className={cn(
-                        "text-xs sm:text-sm md:text-base lg:text-base h-8 sm:h-9 md:h-10",
-                        keyboard.activeField === "allowed_count" &&
-                          "ring-2 ring-primary border-primary"
+                        "text-xs sm:text-sm md:text-base",
+                        keyboard.activeField === "allowed_count" && "border-primary"
                       )}
                     />
                   </FormControl>
@@ -396,11 +398,11 @@ export function AddPolicyRuleForm({
               name="earliest_after_hours"
               render={() => (
                 <FormItem>
-                  <FormLabel>Earliest After (hours)</FormLabel>
                   <FormControl>
                     <AdaptiveFormField
+                      variant="borderOnly"
                       {...form.register("earliest_after_hours")}
-                      label=""
+                      label="Earliest After (hours)"
                       value={
                         keyboard.formValues.earliest_after_hours ||
                         (form.watch("earliest_after_hours") !== null && form.watch("earliest_after_hours") !== undefined
@@ -413,9 +415,8 @@ export function AddPolicyRuleForm({
                       onClick={() => keyboard.handleFieldFocus("earliest_after_hours")}
                       onFocus={() => keyboard.handleFieldFocus("earliest_after_hours")}
                       className={cn(
-                        "text-xs sm:text-sm md:text-base lg:text-base h-8 sm:h-9 md:h-10",
-                        keyboard.activeField === "earliest_after_hours" &&
-                          "ring-2 ring-primary border-primary"
+                        "text-xs sm:text-sm md:text-base",
+                        keyboard.activeField === "earliest_after_hours" && "border-primary"
                       )}
                     />
                   </FormControl>
@@ -429,11 +430,11 @@ export function AddPolicyRuleForm({
               name="latest_before_end_hours"
               render={() => (
                 <FormItem>
-                  <FormLabel>Latest Before End (hours)</FormLabel>
                   <FormControl>
                     <AdaptiveFormField
+                      variant="borderOnly"
                       {...form.register("latest_before_end_hours")}
-                      label=""
+                      label="Latest Before End (hours)"
                       value={
                         keyboard.formValues.latest_before_end_hours ||
                         (form.watch("latest_before_end_hours") !== null && form.watch("latest_before_end_hours") !== undefined
@@ -446,9 +447,8 @@ export function AddPolicyRuleForm({
                       onClick={() => keyboard.handleFieldFocus("latest_before_end_hours")}
                       onFocus={() => keyboard.handleFieldFocus("latest_before_end_hours")}
                       className={cn(
-                        "text-xs sm:text-sm md:text-base lg:text-base h-8 sm:h-9 md:h-10",
-                        keyboard.activeField === "latest_before_end_hours" &&
-                          "ring-2 ring-primary border-primary"
+                        "text-xs sm:text-sm md:text-base",
+                        keyboard.activeField === "latest_before_end_hours" && "border-primary"
                       )}
                     />
                   </FormControl>

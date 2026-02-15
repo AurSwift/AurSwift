@@ -26,7 +26,6 @@ import {
   Form,
   FormField,
   FormItem,
-  FormLabel,
   FormControl,
 } from "@/components/ui/form";
 import { AddBreakTypeDrawer } from "../components/dialogs/add-break-type-drawer";
@@ -47,9 +46,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  ChevronLeft,
   Plus,
   Pencil,
   Trash2,
@@ -62,6 +59,8 @@ import {
   Loader2,
   Sparkles,
 } from "lucide-react";
+import type { BreakPolicyTabId } from "../components/break-policy-layout";
+import { BreakPolicyLayout } from "../components/break-policy-layout";
 import { toast } from "sonner";
 import { useAuth } from "@/shared/hooks/use-auth";
 import { getLogger } from "@/shared/utils/logger";
@@ -143,7 +142,7 @@ export default function BreakPolicySettingsView({
   const [editingBreakType, setEditingBreakType] =
     useState<BreakTypeDefinition | null>(null);
   const [editingRule, setEditingRule] = useState<BreakPolicyRule | null>(null);
-  const [activeTab, setActiveTab] = useState("types");
+  const [activeTab, setActiveTab] = useState<BreakPolicyTabId>("types");
 
   // Form state (kept for backward compatibility, but not used in drawer mode)
   const [_breakTypeForm, setBreakTypeForm] =
@@ -439,31 +438,27 @@ export default function BreakPolicySettingsView({
   // Loading state
   if (isLoading) {
     return (
-      <div className="container mx-auto p-4 sm:p-6 lg:p-8 max-w-6xl">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="icon" onClick={onBack}>
-            <ChevronLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-2xl font-bold">Break Policies</h1>
-        </div>
+      <BreakPolicyLayout
+        activeTab="types"
+        onTabChange={setActiveTab}
+        onBack={onBack}
+      >
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
-      </div>
+      </BreakPolicyLayout>
     );
   }
 
   // No setup - show setup wizard
   if (!hasSetup) {
     return (
-      <div className="container mx-auto p-4 sm:p-6 lg:p-8 max-w-4xl">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="icon" onClick={onBack}>
-            <ChevronLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-2xl font-bold">Break Policies</h1>
-        </div>
-
+      <BreakPolicyLayout
+        activeTab="types"
+        onTabChange={setActiveTab}
+        onBack={onBack}
+      >
+        <div className="max-w-4xl">
         <Card className="border-dashed">
           <CardHeader className="text-center">
             <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
@@ -526,40 +521,28 @@ export default function BreakPolicySettingsView({
             </p>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </BreakPolicyLayout>
     );
   }
 
+  const handleTabChange = (value: BreakPolicyTabId) => {
+    setActiveTab(value);
+    if (value !== "settings") {
+      settingsKeyboard.handleCloseKeyboard();
+    }
+  };
+
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8 max-w-6xl">
-      {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" size="icon" onClick={onBack}>
-          <ChevronLeft className="w-5 h-5" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold">Break Policies</h1>
-          <p className="text-sm text-muted-foreground">
-            Configure break types and rules for your staff
-          </p>
-        </div>
-      </div>
-
-      <Tabs value={activeTab} onValueChange={(value) => {
-        setActiveTab(value);
-        // Close keyboard when switching tabs
-        if (value !== "settings") {
-          settingsKeyboard.handleCloseKeyboard();
-        }
-      }} className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="types">Break Types</TabsTrigger>
-          <TabsTrigger value="rules">Policy Rules</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-        </TabsList>
-
-        {/* Break Types Tab */}
-        <TabsContent value="types" className="space-y-4">
+    <BreakPolicyLayout
+      activeTab={activeTab}
+      onTabChange={handleTabChange}
+      onBack={onBack}
+    >
+      <div className="max-w-6xl space-y-6">
+      {/* Break Types Tab */}
+      {activeTab === "types" && (
+        <div className="space-y-4">
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-lg font-semibold">Break Types</h2>
@@ -645,10 +628,12 @@ export default function BreakPolicySettingsView({
               );
             })}
           </div>
-        </TabsContent>
+        </div>
+      )}
 
-        {/* Policy Rules Tab */}
-        <TabsContent value="rules" className="space-y-4">
+      {/* Policy Rules Tab */}
+      {activeTab === "rules" && (
+        <div className="space-y-4">
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-lg font-semibold">Policy Rules</h2>
@@ -776,10 +761,12 @@ export default function BreakPolicySettingsView({
               </CardContent>
             </Card>
           )}
-        </TabsContent>
+        </div>
+      )}
 
-        {/* Settings Tab */}
-        <TabsContent value="settings" className="space-y-4 relative">
+      {/* Settings Tab */}
+      {activeTab === "settings" && (
+        <div className="space-y-4 relative">
           {activePolicy && (
             <Card>
               <CardHeader>
@@ -799,13 +786,11 @@ export default function BreakPolicySettingsView({
                       name="max_consecutive_hours"
                       render={() => (
                         <FormItem>
-                          <FormLabel>
-                            Max Consecutive Hours (before required break)
-                          </FormLabel>
                           <FormControl>
                             <AdaptiveFormField
+                              variant="borderOnly"
                               {...settingsForm.register("max_consecutive_hours")}
-                              label=""
+                              label="Max Consecutive Hours (before required break)"
                               value={settingsKeyboard.formValues.max_consecutive_hours || ""}
                               placeholder="6.0"
                               readOnly
@@ -815,10 +800,11 @@ export default function BreakPolicySettingsView({
                               onFocus={() =>
                                 settingsKeyboard.handleFieldFocus("max_consecutive_hours")
                               }
+                              error={undefined}
                               className={cn(
-                                "text-xs sm:text-sm md:text-base lg:text-base h-8 sm:h-9 md:h-10",
+                                "text-xs sm:text-sm md:text-base",
                                 settingsKeyboard.activeField === "max_consecutive_hours" &&
-                                  "ring-2 ring-primary border-primary"
+                                  "border-primary"
                               )}
                             />
                           </FormControl>
@@ -853,13 +839,11 @@ export default function BreakPolicySettingsView({
                       name="warn_before_required_minutes"
                       render={() => (
                         <FormItem>
-                          <FormLabel>
-                            Warning Before Required Break (minutes)
-                          </FormLabel>
                           <FormControl>
                             <AdaptiveFormField
+                              variant="borderOnly"
                               {...settingsForm.register("warn_before_required_minutes")}
-                              label=""
+                              label="Warning Before Required Break (minutes)"
                               value={settingsKeyboard.formValues.warn_before_required_minutes || ""}
                               placeholder="15"
                               readOnly
@@ -869,10 +853,11 @@ export default function BreakPolicySettingsView({
                               onFocus={() =>
                                 settingsKeyboard.handleFieldFocus("warn_before_required_minutes")
                               }
+                              error={undefined}
                               className={cn(
-                                "text-xs sm:text-sm md:text-base lg:text-base h-8 sm:h-9 md:h-10",
+                                "text-xs sm:text-sm md:text-base",
                                 settingsKeyboard.activeField === "warn_before_required_minutes" &&
-                                  "ring-2 ring-primary border-primary"
+                                  "border-primary"
                               )}
                             />
                           </FormControl>
@@ -1014,8 +999,9 @@ export default function BreakPolicySettingsView({
               </div>
             </div>
           )}
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
+      </div>
 
       {/* Break Type Drawer */}
       <AddBreakTypeDrawer
@@ -1049,6 +1035,6 @@ export default function BreakPolicySettingsView({
           policyId={activePolicy.id}
         />
       )}
-    </div>
+    </BreakPolicyLayout>
   );
 }

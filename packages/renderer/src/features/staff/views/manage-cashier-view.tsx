@@ -125,7 +125,7 @@ export default function CashierManagementView({
 
       const response = await window.authAPI.getUsersByBusiness(
         sessionToken,
-        user.businessId
+        user.businessId,
       );
 
       if (response.success && response.users) {
@@ -163,7 +163,7 @@ export default function CashierManagementView({
   const handleDeleteUser = async (userId: string, userName: string) => {
     if (
       !confirm(
-        `Are you sure you want to delete ${userName}? This action cannot be undone.`
+        `Are you sure you want to delete ${userName}? This action cannot be undone.`,
       )
     ) {
       return;
@@ -583,7 +583,7 @@ export default function CashierManagementView({
                             onClick={() =>
                               handleDeleteUser(
                                 staffUser.id,
-                                getStaffDisplayName(staffUser)
+                                getStaffDisplayName(staffUser),
                               )
                             }
                           >
@@ -937,7 +937,7 @@ function EditCashierDialog({
       const response = await window.authAPI.updateUser(
         sessionToken,
         cashier.id,
-        updates
+        updates,
       );
 
       if (!response.success) {

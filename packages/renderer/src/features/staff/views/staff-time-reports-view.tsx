@@ -3,17 +3,18 @@ import { toast } from "sonner";
 import { format, startOfWeek, endOfWeek } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import {
-  ArrowLeft,
   Calendar as CalendarIcon,
   Loader2,
   ShieldAlert,
   Pencil,
   LogOut,
 } from "lucide-react";
+import type { TimeReportsTabId } from "../components/time-reports-layout";
+import { TimeReportsLayout } from "../components/time-reports-layout";
+import { cn } from "@/shared/utils/cn";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -135,7 +136,9 @@ export default function StaffTimeReportsView({
     return { from, to } satisfies DateRange;
   }, []);
 
-  const [activeTab, setActiveTab] = useState<string>(tab || "reports");
+  const [activeTab, setActiveTab] = useState<TimeReportsTabId>(
+    (tab as TimeReportsTabId) || "reports"
+  );
   const [range, setRange] = useState<DateRange>(defaultRange);
 
   // Filters (reports tab)
@@ -524,65 +527,43 @@ export default function StaffTimeReportsView({
     setEditBreakOpen(true);
   };
 
-  return (
-    <div className="w-full min-h-screen p-2 sm:p-3 md:p-4 lg:p-6 pb-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-start gap-2 sm:gap-3 mb-4 sm:mb-6 lg:mb-8">
-          <Button
-            onClick={onBack}
-            variant="ghost"
-            size="sm"
-            className="p-1.5 sm:p-2 shrink-0"
-            aria-label="Go back to previous page"
-          >
-            <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+  const toolbar = (
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className="w-full sm:w-auto justify-start">
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {range.from && range.to ? (
+              <span>
+                {format(range.from, "MMM d, yyyy")} – {format(range.to, "MMM d, yyyy")}
+              </span>
+            ) : (
+              <span>Select date range</span>
+            )}
           </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="end">
+          <Calendar
+            mode="range"
+            selected={range}
+            onSelect={(next) => next && setRange(next)}
+            initialFocus
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
 
-          <div className="min-w-0 flex-1">
-            <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-slate-900 mb-0.5 sm:mb-1 lg:mb-2 break-word">
-              Time & Break Reports
-            </h1>
-            <p className="text-xs sm:text-sm md:text-base text-slate-600 line-clamp-2">
-              Review staff shifts and breaks, spot compliance issues, and apply
-              manager overrides with audit trail.
-            </p>
-          </div>
-        </div>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="gap-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <TabsList className="w-full sm:w-auto">
-              <TabsTrigger value="reports">Shifts</TabsTrigger>
-              <TabsTrigger value="compliance">Compliance</TabsTrigger>
-              <TabsTrigger value="payroll">Payroll</TabsTrigger>
-              <TabsTrigger value="live">Live</TabsTrigger>
-            </TabsList>
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full sm:w-auto justify-start">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {range.from && range.to ? (
-                    <span>
-                      {format(range.from, "MMM d, yyyy")} – {format(range.to, "MMM d, yyyy")}
-                    </span>
-                  ) : (
-                    <span>Select date range</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
-                <Calendar
-                  mode="range"
-                  selected={range}
-                  onSelect={(next) => next && setRange(next)}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          <TabsContent value="reports" className="space-y-4">
+  return (
+    <TimeReportsLayout
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      onBack={onBack}
+      toolbar={toolbar}
+    >
+      <div className="max-w-7xl mx-auto space-y-4">
+      {activeTab === "reports" && (
+        <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <Card>
                 <CardHeader className="pb-2">
@@ -634,12 +615,17 @@ export default function StaffTimeReportsView({
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-3">
                 <div className="space-y-2">
-                  <Label>Staff</Label>
+                  <Label className="text-sm font-medium text-foreground">Staff</Label>
                   <Select
                     value={selectedStaffId}
                     onValueChange={(v) => setSelectedStaffId(v)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger
+                      className={cn(
+                        "h-9 sm:h-10 bg-transparent border-0 border-b-2 rounded-none shadow-none px-0 focus-visible:ring-0",
+                        "border-input focus-visible:border-primary data-placeholder:text-muted-foreground"
+                      )}
+                    >
                       <SelectValue placeholder="All staff" />
                     </SelectTrigger>
                     <SelectContent>
@@ -654,23 +640,32 @@ export default function StaffTimeReportsView({
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Search</Label>
+                  <Label className="text-sm font-medium text-foreground">Search</Label>
                   <Input
                     value={staffQuery}
                     onChange={(e) => setStaffQuery(e.target.value)}
                     placeholder="Search staff name…"
+                    className={cn(
+                      "h-9 sm:h-10 bg-transparent border-0 border-b-2 rounded-none shadow-none px-0 focus-visible:ring-0",
+                      "border-input focus-visible:border-primary placeholder:text-muted-foreground"
+                    )}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Status</Label>
+                  <Label className="text-sm font-medium text-foreground">Status</Label>
                   <Select
                     value={statusFilter}
                     onValueChange={(v) =>
                       setStatusFilter(v as typeof statusFilter)
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger
+                      className={cn(
+                        "h-9 sm:h-10 bg-transparent border-0 border-b-2 rounded-none shadow-none px-0 focus-visible:ring-0",
+                        "border-input focus-visible:border-primary data-placeholder:text-muted-foreground"
+                      )}
+                    >
                       <SelectValue placeholder="All" />
                     </SelectTrigger>
                     <SelectContent>
@@ -810,9 +805,11 @@ export default function StaffTimeReportsView({
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+        </div>
+      )}
 
-          <TabsContent value="compliance" className="space-y-4">
+      {activeTab === "compliance" && (
+        <div className="space-y-4">
             <Card className="bg-white border-slate-200 shadow-sm">
               <CardHeader className="pb-3 flex-row items-center justify-between">
                 <CardTitle className="text-base sm:text-lg">
@@ -869,9 +866,11 @@ export default function StaffTimeReportsView({
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+        </div>
+      )}
 
-          <TabsContent value="payroll" className="space-y-4">
+      {activeTab === "payroll" && (
+        <div className="space-y-4">
             <Card className="bg-white border-slate-200 shadow-sm">
               <CardHeader className="pb-3 flex-row items-center justify-between">
                 <CardTitle className="text-base sm:text-lg">
@@ -932,9 +931,11 @@ export default function StaffTimeReportsView({
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+        </div>
+      )}
 
-          <TabsContent value="live" className="space-y-4">
+      {activeTab === "live" && (
+        <div className="space-y-4">
             <Card className="bg-white border-slate-200 shadow-sm">
               <CardHeader className="pb-3 flex-row items-center justify-between">
                 <CardTitle className="text-base sm:text-lg">
@@ -1009,8 +1010,8 @@ export default function StaffTimeReportsView({
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+        </div>
+      )}
       </div>
 
       {/* Shift Details Sheet */}
@@ -1373,7 +1374,7 @@ export default function StaffTimeReportsView({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </TimeReportsLayout>
   );
 }
 
