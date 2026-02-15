@@ -7,12 +7,7 @@
 import { useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Loader2,
-  AlertCircle,
-  ChevronLeft,
-  Package,
-} from "lucide-react";
+import { Loader2, AlertCircle, ChevronLeft, Package } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 import { QuickSellPanel } from "./quick-sell-panel";
 import { Breadcrumb } from "./breadcrumb";

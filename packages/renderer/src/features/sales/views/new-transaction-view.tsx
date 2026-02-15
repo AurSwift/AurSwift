@@ -1,9 +1,10 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
 import { toast } from "sonner";
+import { MiniBar } from "@/components/mini-bar";
 
 // Hooks
 import { useAuth } from "@/shared/hooks/use-auth";
@@ -45,7 +46,6 @@ import {
   WeightInputDisplay,
   CategoryPriceInputDisplay,
 } from "../components";
-import { ReceiptOptionsModal } from "../components/payment/receipt-options-modal";
 import { LockTillBreakDialog } from "../components/lock-till-break-dialog";
 import { LockScreen } from "../components/lock-screen";
 
@@ -60,12 +60,23 @@ import {
   AgeVerificationModal,
   BatchSelectionModal,
   GenericItemPriceModal,
-  RefundTransactionView,
-  CashDrawerCountModal,
   QuantityModal,
-  SaveBasketModal,
   ItemEnquiryModal,
 } from "../components/modals";
+
+// Lazy-load heavier modals for code-splitting
+const RefundTransactionView = lazy(() =>
+  import("../components/modals").then((mod) => ({ default: mod.RefundTransactionView })),
+);
+const CashDrawerCountModal = lazy(() =>
+  import("../components/modals").then((mod) => ({ default: mod.CashDrawerCountModal })),
+);
+const SaveBasketModal = lazy(() =>
+  import("../components/modals").then((mod) => ({ default: mod.SaveBasketModal })),
+);
+const ReceiptOptionsModal = lazy(() =>
+  import("../components/payment/receipt-options-modal").then((mod) => ({ default: mod.ReceiptOptionsModal })),
+);
 import type {
   AgeVerificationData,
   SelectedBatchData,
@@ -103,7 +114,7 @@ interface NewTransactionViewProps {
 }
 
 export function NewTransactionView({
-  onBack: _onBack,
+  onBack,
   embeddedInDashboard = false,
 }: NewTransactionViewProps) {
   const { user, logout } = useAuth();
@@ -1176,25 +1187,33 @@ export function NewTransactionView({
         : categories.getCurrentCategoryProducts();
 
   return (
-    <>
-      {/* Shift Banners (only shown for cashier mode) */}
-      {salesMode.requiresShift && (
-        <>
-          <OvertimeWarning
-            show={shift.showOvertimeWarning}
-            minutes={shift.overtimeMinutes}
-          />
-          <ShiftBanner
-            isOperationsDisabled={isOperationsDisabled}
-            todaySchedule={shift.todaySchedule}
-            shiftTimingInfo={shift.shiftTimingInfo}
-            onStartShift={shift.handleStartShiftClick}
-          />
-        </>
-      )}
+    <div className="container mx-auto p-1 max-w-[1600px] flex flex-col flex-1 min-h-0 h-full">
+      <MiniBar
+        className="shrink-0"
+        title="New Transaction"
+        onBack={onBack}
+        backAriaLabel="Back to Dashboard"
+      />
 
-      {/* Main Layout */}
-      <div className="flex p-2 sm:p-3 lg:p-4 flex-col lg:flex-row gap-2 sm:gap-3 h-screen overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+        {/* Shift Banners (only shown for cashier mode) */}
+        {salesMode.requiresShift && (
+          <>
+            <OvertimeWarning
+              show={shift.showOvertimeWarning}
+              minutes={shift.overtimeMinutes}
+            />
+            <ShiftBanner
+              isOperationsDisabled={isOperationsDisabled}
+              todaySchedule={shift.todaySchedule}
+              shiftTimingInfo={shift.shiftTimingInfo}
+              onStartShift={shift.handleStartShiftClick}
+            />
+          </>
+        )}
+
+        {/* Main Layout */}
+        <div className="flex p-2 sm:p-3 lg:p-4 flex-col lg:flex-row gap-2 sm:gap-3 flex-1 min-h-0 overflow-hidden">
         {/* Left Column - Product Selection */}
         <div className="flex mb-0 lg:mb-2 flex-col flex-1 min-h-0 min-w-0 gap-2 sm:gap-3">
           <ProductSelectionPanel
@@ -1561,6 +1580,7 @@ export function NewTransactionView({
           </div>
         </div>
       </div>
+      </div>
 
       {/* Modals */}
       <StartShiftDialog
@@ -1629,19 +1649,22 @@ export function NewTransactionView({
       )}
 
       {showRefundModal && (
-        <RefundTransactionView
-          isOpen={showRefundModal}
-          onClose={() => setShowRefundModal(false)}
-          onRefundProcessed={() => {
-            setShowRefundModal(false);
-            toast.success("Refund processed successfully!");
-          }}
-          activeShiftId={salesMode.activeShift?.id || shift.activeShift?.id}
-        />
+        <Suspense fallback={null}>
+          <RefundTransactionView
+            isOpen={showRefundModal}
+            onClose={() => setShowRefundModal(false)}
+            onRefundProcessed={() => {
+              setShowRefundModal(false);
+              toast.success("Refund processed successfully!");
+            }}
+            activeShiftId={salesMode.activeShift?.id || shift.activeShift?.id}
+          />
+        </Suspense>
       )}
 
       {showCountModal && user && (
-        <CashDrawerCountModal
+        <Suspense fallback={null}>
+          <CashDrawerCountModal
           isOpen={showCountModal}
           onClose={() => setShowCountModal(false)}
           onCountComplete={() => {
@@ -1652,11 +1675,13 @@ export function NewTransactionView({
           countType="mid-shift"
           startingCash={0}
         />
+        </Suspense>
       )}
 
       {/* Receipt Options Modal */}
       {payment.showReceiptOptions && payment.completedTransactionData && (
-        <ReceiptOptionsModal
+        <Suspense fallback={null}>
+          <ReceiptOptionsModal
           isOpen={payment.showReceiptOptions}
           transactionData={payment.completedTransactionData}
           onPrint={payment.handlePrintReceipt}
@@ -1671,6 +1696,7 @@ export function NewTransactionView({
           onRetryPrint={handleRetryPrint}
           onCancelPrint={handleCancelPrint}
         />
+        </Suspense>
       )}
 
       {/* Quantity Modal */}
@@ -1698,8 +1724,9 @@ export function NewTransactionView({
       )}
 
       {/* Save Basket Modal */}
-      <SaveBasketModal
-        isOpen={showSaveBasketModal}
+      <Suspense fallback={null}>
+        <SaveBasketModal
+          isOpen={showSaveBasketModal}
         cartItems={cart.cartItems}
         cartSessionId={cart.cartSession?.id || null}
         businessId={user?.businessId}
@@ -1713,6 +1740,7 @@ export function NewTransactionView({
           }
         }}
       />
+      </Suspense>
 
       {/* Lock Till & Break Dialog */}
       <LockTillBreakDialog
@@ -1736,7 +1764,7 @@ export function NewTransactionView({
           userName={`${user.firstName || ""} ${user.lastName || ""}`.trim()}
         />
       )}
-    </>
+    </div>
   );
 }
 

@@ -15,13 +15,21 @@ export type {
 } from "./sales-reports-transaction-list";
 
 export { SalesReportsTransactionTable } from "./sales-reports-transaction-table";
-export type { SalesReportsTransactionTableProps } from "./sales-reports-transaction-table";
+export type {
+  SalesReportsTransactionTableProps,
+  FilterSummary,
+  SortField,
+  SortDirection,
+} from "./sales-reports-transaction-table";
 
 export { TransactionRow } from "./transaction-row";
 export type { TransactionRowProps } from "./transaction-row";
 
-export { TransactionDetails } from "./transaction-details";
+export { TransactionDetails, TransactionDetailsContent } from "./transaction-details";
 export type { TransactionDetailsProps } from "./transaction-details";
+
+export { TransactionDetailDrawer } from "./transaction-detail-drawer";
+export type { TransactionDetailDrawerProps } from "./transaction-detail-drawer";
 
 export { TransactionTableFilters } from "./transaction-table-filters";
 export type { TransactionTableFiltersProps } from "./transaction-table-filters";
@@ -44,6 +52,7 @@ export type {
 export { SalesReportsHeader } from "./sales-reports-header";
 export type { SalesReportsHeaderProps } from "./sales-reports-header";
 
+/** Chart component; available for future use (e.g. Charts section or detail panel). */
 export { SalesReportsChart } from "./sales-reports-chart";
 export type { SalesReportsChartProps } from "./sales-reports-chart";
 

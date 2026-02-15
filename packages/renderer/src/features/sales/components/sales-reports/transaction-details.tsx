@@ -2,6 +2,7 @@
  * Transaction Details Component
  *
  * Expandable details view showing transaction items and additional information.
+ * TransactionDetailsContent is shared for both table expand and detail drawer.
  */
 
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -22,12 +23,12 @@ export interface TransactionDetailsProps {
   isExpanded: boolean;
 }
 
-export function TransactionDetails({
+/** Shared content for table row expand and detail drawer */
+export function TransactionDetailsContent({
   transaction,
-  isExpanded,
-}: TransactionDetailsProps) {
-  if (!isExpanded) return null;
-
+}: {
+  transaction: Transaction;
+}) {
   const getStatusBadge = (status: Transaction["status"]) => {
     switch (status) {
       case "completed":
@@ -52,12 +53,9 @@ export function TransactionDetails({
   };
 
   return (
-    <TableRow>
-      <TableCell colSpan={7} className="p-0">
-        <div className="bg-muted/30 p-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Transaction Items */}
-            <Card className="bg-white">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* Transaction Items */}
+      <Card className="bg-white">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <Package className="h-4 w-4" />
@@ -196,7 +194,21 @@ export function TransactionDetails({
                 </div>
               </CardContent>
             </Card>
-          </div>
+    </div>
+  );
+}
+
+export function TransactionDetails({
+  transaction,
+  isExpanded,
+}: TransactionDetailsProps) {
+  if (!isExpanded) return null;
+
+  return (
+    <TableRow>
+      <TableCell colSpan={7} className="p-0">
+        <div className="bg-muted/30 p-4">
+          <TransactionDetailsContent transaction={transaction} />
         </div>
       </TableCell>
     </TableRow>

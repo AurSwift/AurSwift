@@ -23,6 +23,8 @@ export interface TransactionRowProps {
   isExpanded: boolean;
   onToggleExpand: () => void;
   showItemsColumn?: boolean;
+  /** When true, render only table cells (no TableRow). Used when embedding in a row with checkbox/actions. */
+  cellsOnly?: boolean;
 }
 
 export function TransactionRow({
@@ -30,6 +32,7 @@ export function TransactionRow({
   isExpanded,
   onToggleExpand,
   showItemsColumn = true,
+  cellsOnly = false,
 }: TransactionRowProps) {
   const getTypeIcon = (type: Transaction["type"]) => {
     switch (type) {
@@ -64,33 +67,9 @@ export function TransactionRow({
     }
   };
 
-  return (
+  const dataCells = (
     <>
-      <TableRow
-        className={cn(
-          "cursor-pointer hover:bg-muted/50",
-          isExpanded && "bg-muted/30",
-        )}
-        onClick={onToggleExpand}
-      >
-        <TableCell className="w-12">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0"
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleExpand();
-            }}
-          >
-            {isExpanded ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronRight className="h-4 w-4" />
-            )}
-          </Button>
-        </TableCell>
-        <TableCell className="w-20">
+      <TableCell className="w-20">
           <div
             className={cn(
               "flex items-center justify-center w-8 h-8 rounded-full",
@@ -153,7 +132,39 @@ export function TransactionRow({
               : `-£${Math.abs(transaction.total).toFixed(2)}`}
           </div>
         </TableCell>
-      </TableRow>
     </>
+  );
+
+  if (cellsOnly) {
+    return dataCells;
+  }
+
+  return (
+    <TableRow
+      className={cn(
+        "cursor-pointer hover:bg-muted/50",
+        isExpanded && "bg-muted/30",
+      )}
+      onClick={onToggleExpand}
+    >
+      <TableCell className="w-12">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 w-6 p-0"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleExpand();
+          }}
+        >
+          {isExpanded ? (
+            <ChevronDown className="h-4 w-4" />
+          ) : (
+            <ChevronRight className="h-4 w-4" />
+          )}
+        </Button>
+      </TableCell>
+      {dataCells}
+    </TableRow>
   );
 }

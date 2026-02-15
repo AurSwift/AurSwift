@@ -2,27 +2,30 @@
  * Sales Reports View
  *
  * Comprehensive sales analytics and reports view.
- * Consolidates components and functionality from both Cashier and Manager dashboards.
+ * Follows mini-bar + detail pattern: MiniBar, metrics, table with toolbar, transaction detail drawer.
  */
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import "./sales-reports-view.css";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { getLogger } from "@/shared/utils/logger";
 import { useSalesReportsData } from "../hooks/use-sales-reports-data";
+import { MiniBar } from "@/components/mini-bar";
 import {
-  SalesReportsHeader,
   SalesReportsStatsCard,
   SalesReportsTransactionTable,
   SalesReportsFilters,
+  SalesReportsPerformanceMetrics,
+  TransactionDetailDrawer,
 } from "../components/sales-reports";
 import {
   DollarSign,
   ShoppingCart,
   TrendingUp,
   RefreshCw,
-  ArrowLeft,
 } from "lucide-react";
 import { useNavigation } from "@/navigation/hooks/use-navigation";
 import type {
@@ -31,6 +34,7 @@ import type {
   TimePeriod,
   DateRange,
 } from "../components/sales-reports";
+import type { Transaction } from "../components/sales-reports";
 import { useUserPermissions } from "@/features/dashboard/hooks/use-user-permissions";
 import { PERMISSIONS } from "@app/shared/constants/permissions";
 import { useExportReports } from "../hooks/use-export-reports";
@@ -48,13 +52,21 @@ const SalesReportsView = ({ onBack }: SalesReportsViewProps) => {
   const { goToRoot } = useNavigation();
   const { exportToCSV, exportToPDF } = useExportReports();
 
-  // Filter state
+  // Filter state (for data fetch)
   const [transactionType, setTransactionType] =
     useState<TransactionTypeFilter>("all");
   const [paymentMethod, setPaymentMethod] =
     useState<PaymentMethodFilter>("all");
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("month");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+
+  // View state: search and pagination (lifted for MiniBar)
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<Transaction | null>(null);
+  const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
 
   // Calculate date range based on time period
   const calculatedDateRange = useMemo((): DateRange => {
@@ -72,38 +84,32 @@ const SalesReportsView = ({ onBack }: SalesReportsViewProps) => {
         end.setHours(23, 59, 59, 999);
         break;
       case "week":
-        // This week (Sunday to Saturday)
         start.setDate(now.getDate() - now.getDay());
         start.setHours(0, 0, 0, 0);
         end.setHours(23, 59, 59, 999);
         break;
       case "month":
-        // This month
         start.setDate(1);
         start.setHours(0, 0, 0, 0);
         end.setMonth(now.getMonth() + 1, 0);
         end.setHours(23, 59, 59, 999);
         break;
       case "lastWeek": {
-        // Last week (previous Sunday to Saturday)
         const lastWeekEnd = new Date(now);
-        lastWeekEnd.setDate(now.getDate() - now.getDay() - 1); // Last Saturday
+        lastWeekEnd.setDate(now.getDate() - now.getDay() - 1);
         lastWeekEnd.setHours(23, 59, 59, 999);
         end.setTime(lastWeekEnd.getTime());
-
-        start.setDate(lastWeekEnd.getDate() - 6); // Previous Sunday
+        start.setDate(lastWeekEnd.getDate() - 6);
         start.setHours(0, 0, 0, 0);
         break;
       }
       case "lastMonth":
-        // Last month
         start.setMonth(now.getMonth() - 1, 1);
         start.setHours(0, 0, 0, 0);
-        end.setMonth(now.getMonth(), 0); // Last day of previous month
+        end.setMonth(now.getMonth(), 0);
         end.setHours(23, 59, 59, 999);
         break;
       case "custom":
-        // Fallback to current month if custom date range is not set
         if (!dateRange) {
           start.setDate(1);
           start.setHours(0, 0, 0, 0);
@@ -117,12 +123,12 @@ const SalesReportsView = ({ onBack }: SalesReportsViewProps) => {
     return { start, end };
   }, [timePeriod, dateRange]);
 
-  // Fetch data using the main hook
   const {
     transactions,
     totalSales,
     totalRefunds,
     totalVoids,
+    performanceMetrics,
     isLoading,
     isLoadingTransactions,
     error,
@@ -135,29 +141,36 @@ const SalesReportsView = ({ onBack }: SalesReportsViewProps) => {
     limit: 50,
   });
 
-  // Calculate stats from filtered transactions (synced with filters)
-  // NOTE: These stats are calculated from the filtered transaction list
-  // - revenue: Total sales amount (from hook's totalSales, which sums transaction.total for all sales)
-  // - salesCount: Number of sale transactions
-  // - refundsCount: Number of refund transactions
-  // - averageOrderValue: Average transaction value (revenue / salesCount)
+  // Client-side search filter for table
+  const filteredTransactions = useMemo(() => {
+    if (!searchTerm.trim()) return transactions;
+    const q = searchTerm.toLowerCase();
+    return transactions.filter(
+      (t) =>
+        t.receiptNumber.toLowerCase().includes(q) ||
+        t.timestamp.toLowerCase().includes(q) ||
+        t.items.some((item) => item.productName.toLowerCase().includes(q)),
+    );
+  }, [transactions, searchTerm]);
+
+  const totalItems = filteredTransactions.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
+
   const filteredStats = useMemo(() => {
     const sales = transactions.filter((t) => t.type === "sale");
-    const refunds = transactions.filter((t) => t.type === "refund");
-
-    // Use totalSales from the hook for revenue (already calculated correctly)
-    // Calculate average order value from filtered sales
     const filteredAOV = sales.length > 0 ? totalSales / sales.length : 0;
-
     return {
-      revenue: totalSales, // Use the hook's calculated totalSales
+      revenue: totalSales,
       salesCount: sales.length,
-      refundsCount: refunds.length,
+      refundsCount: transactions.filter((t) => t.type === "refund").length,
       averageOrderValue: filteredAOV,
     };
   }, [transactions, totalSales]);
 
-  // Get time period label for dynamic text
   const getTimePeriodLabel = useCallback((): string => {
     switch (timePeriod) {
       case "today":
@@ -180,28 +193,20 @@ const SalesReportsView = ({ onBack }: SalesReportsViewProps) => {
     }
   }, [timePeriod, calculatedDateRange]);
 
-  // Calculate adjustments value (refunds only, voids don't have monetary value)
-  const adjustmentsValue = useMemo(() => {
-    return totalRefunds;
-  }, [totalRefunds]);
+  const adjustmentsValue = useMemo(() => totalRefunds, [totalRefunds]);
 
-  // Handle export
   const handleExport = useCallback(
     async (format: "csv" | "pdf") => {
       try {
         logger.info(`Exporting sales report as ${format}`);
-
         if (!calculatedDateRange) {
-          logger.error("Cannot export: date range is not defined");
           toast.error("Cannot export report: date range is not defined");
           return;
         }
-
         if (transactions.length === 0) {
           toast.warning("No transactions to export");
           return;
         }
-
         const statistics = {
           totalSales,
           totalRefunds,
@@ -210,15 +215,13 @@ const SalesReportsView = ({ onBack }: SalesReportsViewProps) => {
           averageOrderValue: filteredStats.averageOrderValue,
           transactionCount: filteredStats.salesCount,
         };
-
         if (format === "csv") {
           await exportToCSV(transactions, calculatedDateRange, statistics);
         } else if (format === "pdf") {
           await exportToPDF(transactions, calculatedDateRange, statistics);
         }
-      } catch (error) {
-        // Error handling is done in the hook
-        logger.error("Export failed:", error);
+      } catch (err) {
+        logger.error("Export failed:", err);
       }
     },
     [
@@ -233,7 +236,6 @@ const SalesReportsView = ({ onBack }: SalesReportsViewProps) => {
     ],
   );
 
-  // Handle filter reset
   const handleResetFilters = useCallback(() => {
     setTransactionType("all");
     setPaymentMethod("all");
@@ -241,27 +243,24 @@ const SalesReportsView = ({ onBack }: SalesReportsViewProps) => {
     setDateRange(undefined);
   }, []);
 
-  // Check permissions
-  const canViewFinancials = hasPermission(PERMISSIONS.REPORTS_READ);
-  const canExport = hasPermission(PERMISSIONS.REPORTS_READ); // Can be enhanced with REPORTS_EXPORT permission
+  const openDetailDrawer = useCallback((transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    setDetailDrawerOpen(true);
+  }, []);
 
-  // Early returns for error states
+  const canViewFinancials = hasPermission(PERMISSIONS.REPORTS_READ);
+  const canExport = hasPermission(PERMISSIONS.REPORTS_READ);
+
   if (!canViewFinancials) {
     return (
-      <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+      <div className="container mx-auto p-1 max-w-[1600px] flex flex-col flex-1 min-h-0">
         <Card>
           <CardContent className="py-8 text-center">
             <p className="text-muted-foreground">
               You don't have permission to view sales reports.
             </p>
             {onBack && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onBack}
-                className="mt-4"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
+              <Button variant="outline" size="sm" onClick={onBack} className="mt-4">
                 Go Back
               </Button>
             )}
@@ -273,13 +272,11 @@ const SalesReportsView = ({ onBack }: SalesReportsViewProps) => {
 
   if (error) {
     return (
-      <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+      <div className="container mx-auto p-1 max-w-[1600px] flex flex-col flex-1 min-h-0">
         <Card>
           <CardContent className="py-8 text-center">
             <p className="text-red-600 mb-4">Error loading sales reports</p>
-            <p className="text-sm text-muted-foreground mb-4">
-              {error.message}
-            </p>
+            <p className="text-sm text-muted-foreground mb-4">{error.message}</p>
             <Button variant="outline" size="sm" onClick={() => refetch()}>
               Try again
             </Button>
@@ -290,32 +287,61 @@ const SalesReportsView = ({ onBack }: SalesReportsViewProps) => {
   }
 
   return (
-    <div className="sales-reports-view p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
-      {/* Back Button */}
-      <div className="no-print">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onBack || goToRoot}
-          aria-label="Back to Dashboard"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
-        </Button>
-      </div>
-
-      {/* Header */}
-      <SalesReportsHeader
+    <div className="sales-reports-view container mx-auto p-1 max-w-[1600px] flex flex-col flex-1 min-h-0 gap-4 sm:gap-6">
+      <MiniBar
+        className="shrink-0"
         title="Sales Reports"
-        subtitle="Comprehensive sales analytics and insights"
-        dateRange={calculatedDateRange}
-        onExport={canExport ? handleExport : undefined}
-        showExport={canExport}
-        showPrint={false}
+        onBack={onBack || goToRoot}
+        backAriaLabel="Back to Dashboard"
+        center={
+          <div className="w-full max-w-md">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by receipt or description..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="pl-9 h-8"
+              />
+            </div>
+          </div>
+        }
+        right={
+          <div className="flex items-center gap-1 sm:gap-2">
+            <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
+              {totalItems === 0
+                ? "0 / 0"
+                : `${(currentPage - 1) * pageSize + 1}-${Math.min(currentPage * pageSize, totalItems)} / ${totalItems}`}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage <= 1 || totalPages <= 1}
+              aria-label="Previous page"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage >= totalPages || totalPages <= 1}
+              aria-label="Next page"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        }
       />
 
-      {/* Filters */}
-      <div className="no-print">
+      {/* Filters (compact: used by table toolbar; keep for date/period/type/method) */}
+      <div className="no-print shrink-0">
         <SalesReportsFilters
           transactionType={transactionType}
           paymentMethod={paymentMethod}
@@ -329,48 +355,35 @@ const SalesReportsView = ({ onBack }: SalesReportsViewProps) => {
         />
       </div>
 
-      {/* Stats Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        {/* Revenue Card */}
+      {/* Metrics: 4 stats cards + performance */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 shrink-0">
         <SalesReportsStatsCard
           title="Total Revenue"
           value={filteredStats.revenue}
-          change={`${getTimePeriodLabel()} • £${filteredStats.revenue.toFixed(
-            2,
-          )}`}
+          change={`${getTimePeriodLabel()} • £${filteredStats.revenue.toFixed(2)}`}
           icon={DollarSign}
           colorTheme="green"
           isLoading={isLoading}
           valueFormat="currency"
         />
-
-        {/* Sales Count Card */}
         <SalesReportsStatsCard
           title="Sales"
           value={`${filteredStats.salesCount}`}
-          change={`${getTimePeriodLabel()} • ${
-            filteredStats.salesCount
-          } transaction${filteredStats.salesCount !== 1 ? "s" : ""}`}
+          change={`${getTimePeriodLabel()} • ${filteredStats.salesCount} transaction${filteredStats.salesCount !== 1 ? "s" : ""}`}
           icon={ShoppingCart}
           colorTheme="blue"
           isLoading={isLoading}
           valueFormat="count"
         />
-
-        {/* Average Order Value Card */}
         <SalesReportsStatsCard
           title="Average Order Value"
           value={filteredStats.averageOrderValue}
-          change={`${getTimePeriodLabel()} • £${filteredStats.averageOrderValue.toFixed(
-            2,
-          )}`}
+          change={`${getTimePeriodLabel()} • £${filteredStats.averageOrderValue.toFixed(2)}`}
           icon={TrendingUp}
           colorTheme="purple"
           isLoading={isLoading}
           valueFormat="currency"
         />
-
-        {/* Adjustments Card */}
         <SalesReportsStatsCard
           title="Adjustments"
           value={-adjustmentsValue}
@@ -383,13 +396,46 @@ const SalesReportsView = ({ onBack }: SalesReportsViewProps) => {
         />
       </div>
 
-      {/* Additional Stats Section */}
+      {performanceMetrics && (
+        <div className="shrink-0">
+          <SalesReportsPerformanceMetrics metrics={performanceMetrics} />
+        </div>
+      )}
 
-      {/* Transaction Table */}
-      <SalesReportsTransactionTable
-        transactions={transactions}
-        isLoading={isLoadingTransactions}
-        emptyStateMessage="No transactions found for the selected filters"
+      {/* Table block with toolbar and selection footer */}
+      <div className="flex-1 min-h-0 flex flex-col">
+        <SalesReportsTransactionTable
+          transactions={filteredTransactions}
+          isLoading={isLoadingTransactions}
+          emptyStateMessage="No transactions found for the selected filters"
+          pagination={{
+            currentPage,
+            pageSize,
+            onPageChange: setCurrentPage,
+            onPageSizeChange: (size) => {
+              setPageSize(size);
+              setCurrentPage(1);
+            },
+          }}
+          onExport={canExport ? handleExport : undefined}
+          onViewTransaction={openDetailDrawer}
+          filterSummary={{
+            transactionType,
+            paymentMethod,
+            timePeriod,
+            dateRange: calculatedDateRange,
+          }}
+          onResetFilters={handleResetFilters}
+        />
+      </div>
+
+      <TransactionDetailDrawer
+        transaction={selectedTransaction}
+        open={detailDrawerOpen}
+        onOpenChange={(open) => {
+          setDetailDrawerOpen(open);
+          if (!open) setSelectedTransaction(null);
+        }}
       />
     </div>
   );

@@ -94,7 +94,7 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
 
     if (calculatedAge < requiredAge) {
       toast.error(
-        `Customer is ${calculatedAge} years old. Minimum age required: ${requiredAge}`
+        `Customer is ${calculatedAge} years old. Minimum age required: ${requiredAge}`,
       );
       return;
     }
@@ -181,9 +181,7 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
                       isEligible ? "bg-green-600" : "bg-red-600"
                     }`}
                   >
-                    {isEligible
-                      ? "Eligible to purchase"
-                      : "Below required age"}
+                    {isEligible ? "Eligible to purchase" : "Below required age"}
                   </Badge>
                 </div>
               </div>
@@ -204,7 +202,8 @@ export const AgeVerificationModal: React.FC<AgeVerificationModalProps> = ({
               className="w-full h-10 sm:h-11 text-sm sm:text-base"
             />
             <p className="text-caption text-slate-500">
-              Add any additional notes about this verification for audit purposes.
+              Add any additional notes about this verification for audit
+              purposes.
             </p>
           </div>
         </div>
