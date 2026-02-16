@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -28,8 +27,11 @@ import {
   DEFAULT_FIXED_SALES_UNIT,
 } from "@/types/domain/sales-unit";
 import { invalidateSalesUnitSettingsCache } from "@/shared/hooks/use-sales-unit-settings";
+import { cn } from "@/shared/utils/cn";
 import { BusinessForm } from "../components/business-form";
 import { ReceiptEmailSettingsForm } from "../components/receipt-email-settings-form";
+import { SettingsLayout } from "../components/settings-layout";
+import { SETTINGS_ROUTES } from "../config/navigation";
 
 const logger = getLogger("general-settings-view");
 
@@ -135,29 +137,23 @@ export default function GeneralSettingsView({
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-4 sm:p-6 lg:p-8 max-w-4xl">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="icon" onClick={onBack}>
-            <ChevronLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-2xl font-bold">General Settings</h1>
-        </div>
+      <SettingsLayout
+        activeTab={SETTINGS_ROUTES.GENERAL}
+        onBack={onBack}
+      >
         <div className="flex items-center justify-center py-12">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
-      </div>
+      </SettingsLayout>
     );
   }
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8 max-w-4xl">
-      <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" size="icon" onClick={onBack}>
-          <ChevronLeft className="w-5 h-5" />
-        </Button>
-        <h1 className="text-2xl font-bold">General Settings</h1>
-      </div>
-
+    <SettingsLayout
+      activeTab={SETTINGS_ROUTES.GENERAL}
+      onBack={onBack}
+    >
+      <div className="max-w-4xl space-y-6">
       <div className="bg-white rounded-lg border shadow-sm p-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -166,15 +162,22 @@ export default function GeneralSettingsView({
               control={form.control}
               name="salesUnitMode"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Sales Unit Mode</FormLabel>
+                <FormItem className="space-y-2">
+                  <FormLabel className="text-sm font-medium text-foreground">
+                    Sales Unit Mode
+                  </FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
                     disabled={isSaving}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger
+                        className={cn(
+                          "h-9 sm:h-10 bg-transparent border-0 border-b-2 rounded-none shadow-none px-0 focus-visible:ring-0",
+                          "border-input focus-visible:border-primary data-placeholder:text-muted-foreground"
+                        )}
+                      >
                         <SelectValue placeholder="Select sales unit mode" />
                       </SelectTrigger>
                     </FormControl>
@@ -183,7 +186,7 @@ export default function GeneralSettingsView({
                       <SelectItem value="Varying">Varying</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormDescription>
+                  <FormDescription className="text-xs text-muted-foreground">
                     Choose whether to use a fixed sales unit for all products or
                     allow varying units per product.
                   </FormDescription>
@@ -198,15 +201,22 @@ export default function GeneralSettingsView({
                 control={form.control}
                 name="fixedSalesUnit"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fixed Sales Unit</FormLabel>
+                  <FormItem className="space-y-2">
+                    <FormLabel className="text-sm font-medium text-foreground">
+                      Fixed Sales Unit
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value}
                       disabled={isSaving}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger
+                          className={cn(
+                            "h-9 sm:h-10 bg-transparent border-0 border-b-2 rounded-none shadow-none px-0 focus-visible:ring-0",
+                            "border-input focus-visible:border-primary data-placeholder:text-muted-foreground"
+                          )}
+                        >
                           <SelectValue placeholder="Select fixed sales unit" />
                         </SelectTrigger>
                       </FormControl>
@@ -218,7 +228,7 @@ export default function GeneralSettingsView({
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormDescription>
+                    <FormDescription className="text-xs text-muted-foreground">
                       All products will use this unit for sales in the
                       transaction view.
                     </FormDescription>
@@ -247,7 +257,7 @@ export default function GeneralSettingsView({
       </div>
 
       {/* Business Information Form */}
-      <div className="bg-white rounded-lg border shadow-sm p-6 mt-6">
+      <div className="bg-white rounded-lg border shadow-sm p-6">
         <h2 className="text-xl font-semibold mb-4">Business Information</h2>
         <p className="text-sm text-muted-foreground mb-6">
           Update your business details and contact information.
@@ -256,13 +266,14 @@ export default function GeneralSettingsView({
       </div>
 
       {/* Receipt Email (Gmail) */}
-      <div className="bg-white rounded-lg border shadow-sm p-6 mt-6">
+      <div className="bg-white rounded-lg border shadow-sm p-6">
         <h2 className="text-xl font-semibold mb-4">Receipt Email (Gmail)</h2>
         <p className="text-sm text-muted-foreground mb-6">
           Configure the Gmail account used to send receipt emails to customers.
         </p>
         <ReceiptEmailSettingsForm />
       </div>
-    </div>
+      </div>
+    </SettingsLayout>
   );
 }

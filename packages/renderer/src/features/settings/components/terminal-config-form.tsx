@@ -24,8 +24,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { AdaptiveFormField } from "@/features/adaptive-keyboard/adaptive-form-field";
+import { cn } from "@/shared/utils/cn";
 import {
   Select,
   SelectContent,
@@ -203,11 +204,16 @@ export function TerminalConfigForm({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Terminal Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Counter 1 Terminal" {...field} />
+                    <AdaptiveFormField
+                      variant="borderOnly"
+                      label="Terminal Name"
+                      id="name"
+                      placeholder="e.g., Counter 1 Terminal"
+                      {...field}
+                    />
                   </FormControl>
-                  <FormDescription>
+                  <FormDescription className="text-xs text-muted-foreground">
                     A friendly name to identify this terminal
                   </FormDescription>
                   <FormMessage />
@@ -220,15 +226,18 @@ export function TerminalConfigForm({
               name="ipAddress"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>IP Address</FormLabel>
                   <FormControl>
-                    <Input
+                    <AdaptiveFormField
+                      variant="borderOnly"
+                      label="IP Address"
+                      id="ipAddress"
                       placeholder="192.168.1.100"
                       {...field}
                       onChange={(e) => field.onChange(e.target.value)}
+                      error={form.formState.errors.ipAddress?.message}
                     />
                   </FormControl>
-                  <FormDescription>
+                  <FormDescription className="text-xs text-muted-foreground">
                     The IP address of the terminal on your local network
                   </FormDescription>
                   <FormMessage />
@@ -241,18 +250,24 @@ export function TerminalConfigForm({
               name="port"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Port</FormLabel>
                   <FormControl>
-                    <Input
+                    <AdaptiveFormField
+                      variant="borderOnly"
+                      label="Port"
+                      id="port"
+                      name={field.name}
+                      ref={field.ref}
                       type="number"
                       placeholder="8080"
-                      {...field}
+                      value={field.value === undefined ? "" : String(field.value)}
                       onChange={(e) =>
                         field.onChange(parseInt(e.target.value, 10) || 8080)
                       }
+                      onBlur={field.onBlur}
+                      error={form.formState.errors.port?.message}
                     />
                   </FormControl>
-                  <FormDescription>
+                  <FormDescription className="text-xs text-muted-foreground">
                     The port number the terminal is listening on (default: 8080)
                   </FormDescription>
                   <FormMessage />
@@ -265,15 +280,18 @@ export function TerminalConfigForm({
               name="apiKey"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>API Key</FormLabel>
                   <FormControl>
-                    <Input
+                    <AdaptiveFormField
+                      variant="borderOnly"
+                      label="API Key"
+                      id="apiKey"
                       type="password"
                       placeholder="Enter API key"
                       {...field}
+                      error={form.formState.errors.apiKey?.message}
                     />
                   </FormControl>
-                  <FormDescription>
+                  <FormDescription className="text-xs text-muted-foreground">
                     The API key for authenticating with the terminal
                   </FormDescription>
                   <FormMessage />
@@ -285,14 +303,21 @@ export function TerminalConfigForm({
               control={form.control}
               name="terminalType"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Terminal Type</FormLabel>
+                <FormItem className="space-y-2">
+                  <FormLabel className="text-sm font-medium text-foreground">
+                    Terminal Type
+                  </FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value || ""}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger
+                        className={cn(
+                          "h-9 sm:h-10 bg-transparent border-0 border-b-2 rounded-none shadow-none px-0 focus-visible:ring-0",
+                          "border-input focus-visible:border-primary data-placeholder:text-muted-foreground"
+                        )}
+                      >
                         <SelectValue placeholder="Select terminal type" />
                       </SelectTrigger>
                     </FormControl>
@@ -305,7 +330,7 @@ export function TerminalConfigForm({
                       </SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormDescription>
+                  <FormDescription className="text-xs text-muted-foreground">
                     Select the type of terminal you're configuring
                   </FormDescription>
                   <FormMessage />

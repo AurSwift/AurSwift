@@ -274,6 +274,7 @@ export function ReceiptEmailSettingsForm() {
               <FormItem>
                 <FormControl>
                   <AdaptiveFormField
+                    variant="borderOnly"
                     label="Gmail Address"
                     id="gmailUser"
                     {...field}
@@ -303,6 +304,7 @@ export function ReceiptEmailSettingsForm() {
               <FormItem>
                 <FormControl>
                   <AdaptiveFormField
+                    variant="borderOnly"
                     label="Gmail App Password"
                     id="gmailAppPassword"
                     {...field}

@@ -251,16 +251,19 @@ export function TerminalForm({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <AdaptiveFormField
-                    label="Terminal Name"
-                    id="name"
-                    placeholder="e.g., Counter 1, Main Register"
-                    {...field}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    onFocus={() => keyboard.handleFieldFocus("name")}
-                    error={form.formState.errors.name?.message}
-                  />
-                  <FormDescription className="text-xs">
+                  <FormControl>
+                    <AdaptiveFormField
+                      variant="borderOnly"
+                      label="Terminal Name"
+                      id="name"
+                      placeholder="e.g., Counter 1, Main Register"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      onFocus={() => keyboard.handleFieldFocus("name")}
+                      error={form.formState.errors.name?.message}
+                    />
+                  </FormControl>
+                  <FormDescription className="text-xs text-muted-foreground">
                     A friendly name to identify this terminal in your store
                   </FormDescription>
                   <FormMessage />
@@ -274,17 +277,20 @@ export function TerminalForm({
               name="terminalNumber"
               render={({ field }) => (
                 <FormItem>
-                  <AdaptiveFormField
-                    label="Terminal Number"
-                    id="terminalNumber"
-                    type="tel"
-                    placeholder="e.g., 001, 002"
-                    {...field}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    onFocus={() => keyboard.handleFieldFocus("terminalNumber")}
-                    error={form.formState.errors.terminalNumber?.message}
-                  />
-                  <FormDescription className="text-xs">
+                  <FormControl>
+                    <AdaptiveFormField
+                      variant="borderOnly"
+                      label="Terminal Number"
+                      id="terminalNumber"
+                      type="tel"
+                      placeholder="e.g., 001, 002"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      onFocus={() => keyboard.handleFieldFocus("terminalNumber")}
+                      error={form.formState.errors.terminalNumber?.message}
+                    />
+                  </FormControl>
+                  <FormDescription className="text-xs text-muted-foreground">
                     Unique number for this terminal (useful for multi-terminal
                     setups)
                   </FormDescription>
@@ -299,15 +305,22 @@ export function TerminalForm({
                 control={form.control}
                 name="type"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Terminal Type</FormLabel>
+                  <FormItem className="space-y-2">
+                    <FormLabel className="text-sm font-medium text-foreground">
+                      Terminal Type
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value}
                       disabled={isSaving}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger
+                          className={cn(
+                            "h-9 sm:h-10 bg-transparent border-0 border-b-2 rounded-none shadow-none px-0 focus-visible:ring-0",
+                            "border-input focus-visible:border-primary data-placeholder:text-muted-foreground"
+                          )}
+                        >
                           <SelectValue placeholder="Select terminal type" />
                         </SelectTrigger>
                       </FormControl>
@@ -328,15 +341,22 @@ export function TerminalForm({
                 control={form.control}
                 name="status"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
+                  <FormItem className="space-y-2">
+                    <FormLabel className="text-sm font-medium text-foreground">
+                      Status
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value}
                       disabled={isSaving}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger
+                          className={cn(
+                            "h-9 sm:h-10 bg-transparent border-0 border-b-2 rounded-none shadow-none px-0 focus-visible:ring-0",
+                            "border-input focus-visible:border-primary data-placeholder:text-muted-foreground"
+                          )}
+                        >
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
                       </FormControl>

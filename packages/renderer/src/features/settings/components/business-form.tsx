@@ -19,6 +19,7 @@ import {
 import { toast } from "sonner";
 import { getLogger } from "@/shared/utils/logger";
 import { useAuth } from "@/shared/hooks/use-auth";
+import { cn } from "@/shared/utils/cn";
 import { AdaptiveFormField } from "@/features/adaptive-keyboard/adaptive-form-field";
 import { AdaptiveTextarea } from "@/features/adaptive-keyboard/adaptive-textarea";
 import { AdaptiveKeyboard } from "@/features/adaptive-keyboard/adaptive-keyboard";
@@ -287,14 +288,17 @@ export function BusinessForm({ onCancel }: BusinessFormProps) {
             name="businessName"
             render={({ field }) => (
               <FormItem>
-                <AdaptiveFormField
-                  label="Business Name"
-                  id="businessName"
-                  {...field}
-                  onChange={(e) => field.onChange(e.target.value)}
-                  onFocus={() => keyboard.handleFieldFocus("businessName")}
-                  error={form.formState.errors.businessName?.message}
-                />
+                <FormControl>
+                  <AdaptiveFormField
+                    variant="borderOnly"
+                    label="Business Name"
+                    id="businessName"
+                    {...field}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    onFocus={() => keyboard.handleFieldFocus("businessName")}
+                    error={form.formState.errors.businessName?.message}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -307,14 +311,17 @@ export function BusinessForm({ onCancel }: BusinessFormProps) {
               name="firstName"
               render={({ field }) => (
                 <FormItem>
-                  <AdaptiveFormField
-                    label="First Name"
-                    id="firstName"
-                    {...field}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    onFocus={() => keyboard.handleFieldFocus("firstName")}
-                    error={form.formState.errors.firstName?.message}
-                  />
+                  <FormControl>
+                    <AdaptiveFormField
+                      variant="borderOnly"
+                      label="First Name"
+                      id="firstName"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      onFocus={() => keyboard.handleFieldFocus("firstName")}
+                      error={form.formState.errors.firstName?.message}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -325,14 +332,17 @@ export function BusinessForm({ onCancel }: BusinessFormProps) {
               name="lastName"
               render={({ field }) => (
                 <FormItem>
-                  <AdaptiveFormField
-                    label="Last Name"
-                    id="lastName"
-                    {...field}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    onFocus={() => keyboard.handleFieldFocus("lastName")}
-                    error={form.formState.errors.lastName?.message}
-                  />
+                  <FormControl>
+                    <AdaptiveFormField
+                      variant="borderOnly"
+                      label="Last Name"
+                      id="lastName"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      onFocus={() => keyboard.handleFieldFocus("lastName")}
+                      error={form.formState.errors.lastName?.message}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -346,15 +356,18 @@ export function BusinessForm({ onCancel }: BusinessFormProps) {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <AdaptiveFormField
-                    label="Email"
-                    id="email"
-                    type="email"
-                    {...field}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    onFocus={() => keyboard.handleFieldFocus("email")}
-                    error={form.formState.errors.email?.message}
-                  />
+                  <FormControl>
+                    <AdaptiveFormField
+                      variant="borderOnly"
+                      label="Email"
+                      id="email"
+                      type="email"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      onFocus={() => keyboard.handleFieldFocus("email")}
+                      error={form.formState.errors.email?.message}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -365,15 +378,18 @@ export function BusinessForm({ onCancel }: BusinessFormProps) {
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <AdaptiveFormField
-                    label="Contact Number"
-                    id="phone"
-                    type="tel"
-                    {...field}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    onFocus={() => keyboard.handleFieldFocus("phone")}
-                    error={form.formState.errors.phone?.message}
-                  />
+                  <FormControl>
+                    <AdaptiveFormField
+                      variant="borderOnly"
+                      label="Contact Number"
+                      id="phone"
+                      type="tel"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      onFocus={() => keyboard.handleFieldFocus("phone")}
+                      error={form.formState.errors.phone?.message}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -385,16 +401,19 @@ export function BusinessForm({ onCancel }: BusinessFormProps) {
             name="website"
             render={({ field }) => (
               <FormItem>
-                <AdaptiveFormField
-                  label="Website"
-                  id="website"
-                  type="url"
-                  placeholder="https://example.com"
-                  {...field}
-                  onChange={(e) => field.onChange(e.target.value)}
-                  onFocus={() => keyboard.handleFieldFocus("website")}
-                  error={form.formState.errors.website?.message}
-                />
+                <FormControl>
+                  <AdaptiveFormField
+                    variant="borderOnly"
+                    label="Website"
+                    id="website"
+                    type="url"
+                    placeholder="https://example.com"
+                    {...field}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    onFocus={() => keyboard.handleFieldFocus("website")}
+                    error={form.formState.errors.website?.message}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -406,15 +425,18 @@ export function BusinessForm({ onCancel }: BusinessFormProps) {
             name="address"
             render={({ field }) => (
               <FormItem>
-                <AdaptiveTextarea
-                  label="Address"
-                  id="address"
-                  rows={2}
-                  {...field}
-                  onChange={(e) => field.onChange(e.target.value)}
-                  onFocus={() => keyboard.handleFieldFocus("address")}
-                  error={form.formState.errors.address?.message}
-                />
+                <FormControl>
+                  <AdaptiveTextarea
+                    variant="borderOnly"
+                    label="Address"
+                    id="address"
+                    rows={2}
+                    {...field}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    onFocus={() => keyboard.handleFieldFocus("address")}
+                    error={form.formState.errors.address?.message}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -427,14 +449,17 @@ export function BusinessForm({ onCancel }: BusinessFormProps) {
               name="country"
               render={({ field }) => (
                 <FormItem>
-                  <AdaptiveFormField
-                    label="Country"
-                    id="country"
-                    {...field}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    onFocus={() => keyboard.handleFieldFocus("country")}
-                    error={form.formState.errors.country?.message}
-                  />
+                  <FormControl>
+                    <AdaptiveFormField
+                      variant="borderOnly"
+                      label="Country"
+                      id="country"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      onFocus={() => keyboard.handleFieldFocus("country")}
+                      error={form.formState.errors.country?.message}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -445,14 +470,17 @@ export function BusinessForm({ onCancel }: BusinessFormProps) {
               name="city"
               render={({ field }) => (
                 <FormItem>
-                  <AdaptiveFormField
-                    label="City"
-                    id="city"
-                    {...field}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    onFocus={() => keyboard.handleFieldFocus("city")}
-                    error={form.formState.errors.city?.message}
-                  />
+                  <FormControl>
+                    <AdaptiveFormField
+                      variant="borderOnly"
+                      label="City"
+                      id="city"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      onFocus={() => keyboard.handleFieldFocus("city")}
+                      error={form.formState.errors.city?.message}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -463,15 +491,18 @@ export function BusinessForm({ onCancel }: BusinessFormProps) {
               name="postalCode"
               render={({ field }) => (
                 <FormItem>
-                  <AdaptiveFormField
-                    label="Postal Code"
-                    id="postalCode"
-                    type="tel"
-                    {...field}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    onFocus={() => keyboard.handleFieldFocus("postalCode")}
-                    error={form.formState.errors.postalCode?.message}
-                  />
+                  <FormControl>
+                    <AdaptiveFormField
+                      variant="borderOnly"
+                      label="Postal Code"
+                      id="postalCode"
+                      type="tel"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      onFocus={() => keyboard.handleFieldFocus("postalCode")}
+                      error={form.formState.errors.postalCode?.message}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -485,14 +516,17 @@ export function BusinessForm({ onCancel }: BusinessFormProps) {
               name="vatNumber"
               render={({ field }) => (
                 <FormItem>
-                  <AdaptiveFormField
-                    label="VAT Number"
-                    id="vatNumber"
-                    {...field}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    onFocus={() => keyboard.handleFieldFocus("vatNumber")}
-                    error={form.formState.errors.vatNumber?.message}
-                  />
+                  <FormControl>
+                    <AdaptiveFormField
+                      variant="borderOnly"
+                      label="VAT Number"
+                      id="vatNumber"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      onFocus={() => keyboard.handleFieldFocus("vatNumber")}
+                      error={form.formState.errors.vatNumber?.message}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -502,15 +536,22 @@ export function BusinessForm({ onCancel }: BusinessFormProps) {
               control={form.control}
               name="businessType"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Business Type</FormLabel>
+                <FormItem className="space-y-2">
+                  <FormLabel className="text-sm font-medium text-foreground">
+                    Business Type
+                  </FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
                     disabled={isSaving}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger
+                        className={cn(
+                          "h-9 sm:h-10 bg-transparent border-0 border-b-2 rounded-none shadow-none px-0 focus-visible:ring-0",
+                          "border-input focus-visible:border-primary data-placeholder:text-muted-foreground"
+                        )}
+                      >
                         <SelectValue placeholder="Select business type" />
                       </SelectTrigger>
                     </FormControl>
@@ -534,15 +575,22 @@ export function BusinessForm({ onCancel }: BusinessFormProps) {
               control={form.control}
               name="currency"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Currency</FormLabel>
+                <FormItem className="space-y-2">
+                  <FormLabel className="text-sm font-medium text-foreground">
+                    Currency
+                  </FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
                     disabled={isSaving}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger
+                        className={cn(
+                          "h-9 sm:h-10 bg-transparent border-0 border-b-2 rounded-none shadow-none px-0 focus-visible:ring-0",
+                          "border-input focus-visible:border-primary data-placeholder:text-muted-foreground"
+                        )}
+                      >
                         <SelectValue placeholder="Select currency" />
                       </SelectTrigger>
                     </FormControl>
@@ -563,15 +611,22 @@ export function BusinessForm({ onCancel }: BusinessFormProps) {
               control={form.control}
               name="timezone"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Timezone</FormLabel>
+                <FormItem className="space-y-2">
+                  <FormLabel className="text-sm font-medium text-foreground">
+                    Timezone
+                  </FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
                     disabled={isSaving}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger
+                        className={cn(
+                          "h-9 sm:h-10 bg-transparent border-0 border-b-2 rounded-none shadow-none px-0 focus-visible:ring-0",
+                          "border-input focus-visible:border-primary data-placeholder:text-muted-foreground"
+                        )}
+                      >
                         <SelectValue placeholder="Select timezone" />
                       </SelectTrigger>
                     </FormControl>

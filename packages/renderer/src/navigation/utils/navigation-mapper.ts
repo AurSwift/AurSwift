@@ -60,6 +60,7 @@ export function mapActionToView(
     "system-settings": {
       "general-settings": SETTINGS_ROUTES.GENERAL,
       "store-configuration": SETTINGS_ROUTES.STORE_CONFIGURATION,
+      "viva-wallet-settings": SETTINGS_ROUTES.VIVA_WALLET,
       "quick-sell-config": QUICK_SELL_ROUTES.CONFIG,
       "break-policies": STAFF_ROUTES.BREAK_POLICIES,
     },

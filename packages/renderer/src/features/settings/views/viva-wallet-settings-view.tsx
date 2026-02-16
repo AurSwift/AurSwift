@@ -14,8 +14,10 @@ import {
 } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { SettingsLayout } from "../components/settings-layout";
+import { SETTINGS_ROUTES } from "../config/navigation";
 import { TerminalList } from "../components/terminal-list";
 import { TerminalDiscoveryPanel } from "../components/terminal-discovery-panel";
 import { TerminalConfigForm } from "../components/terminal-config-form";
@@ -106,38 +108,23 @@ export default function VivaWalletSettingsView({
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-4 sm:p-6 lg:p-8 max-w-6xl">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="icon" onClick={onBack}>
-            <ChevronLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-2xl font-bold">Viva Wallet Settings</h1>
-        </div>
+      <SettingsLayout
+        activeTab={SETTINGS_ROUTES.VIVA_WALLET}
+        onBack={onBack}
+      >
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
         </div>
-      </div>
+      </SettingsLayout>
     );
   }
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8 max-w-6xl">
-      {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" size="icon" onClick={onBack}>
-          <ChevronLeft className="w-5 h-5" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">
-            Viva Wallet Settings
-          </h1>
-          <p className="text-sm text-slate-500">
-            Configure payment terminals for Viva Wallet
-          </p>
-        </div>
-      </div>
-
-      <div className="space-y-6">
+    <SettingsLayout
+      activeTab={SETTINGS_ROUTES.VIVA_WALLET}
+      onBack={onBack}
+    >
+      <div className="max-w-6xl space-y-6">
         {/* Enable/Disable Toggle */}
         <Card>
           <CardHeader>
@@ -230,6 +217,6 @@ export default function VivaWalletSettingsView({
           onTestConnection={handleTestConnectionFromForm}
         />
       </div>
-    </div>
+    </SettingsLayout>
   );
 }
