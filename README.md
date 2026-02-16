@@ -2,36 +2,49 @@
 
 Modern Electron-based Point of Sale system for supermarkets with integrated hardware support, real-time synchronization, and automated updates.
 
+## 🚀 Quick Setup
+
+- **Windows Developers:** [Complete Windows Setup Guide](WINDOWS_SETUP.md) - Node.js version management, Build Tools, and native modules
+- **Mac/Linux Developers:** See [Getting Started](#getting-started) section below
+
+---
+
 ## 🏗️ Architecture Overview
 
 ### Technology Stack
 
 **Core Framework:**
+
 - **Electron** 38.1.2 (Multi-process architecture)
 - **React** 18 with TypeScript 5.9.2
 - **Node.js** ≥22.12.0
 
 **Build & Development:**
+
 - **Vite** 7.1.6 (Build tool)
 - **electron-builder** 26.0.12 (Packaging & distribution)
 - **Playwright** 1.55.0 (E2E testing)
 
 **UI & Styling:**
+
 - **Radix UI** (Component library)
 - **Tailwind CSS** 4.1.13
 - **Framer Motion** (Animations)
 
 **Database:**
+
 - **SQLite** via better-sqlite3 12.5.0
 - **Drizzle ORM** (Schema management & migrations)
 
 **Hardware Integration:**
+
 - **Thermal Printers:** node-thermal-printer (ESC/POS protocol)
 - **Card Readers:** Viva Wallet integration
 - **Barcode Scanners:** USB HID device support
 - **Digital Scales:** Serial port communication
 
 **State Management:**
+
 - **Redux Toolkit** (Global state)
 - **TanStack Query** (Server state & caching)
 
@@ -99,24 +112,28 @@ packages/
 ### Core Tables
 
 **User Management:**
+
 - `users` - Authentication, roles, permissions
 - `businesses` - Multi-tenant support
 - `attendance_reports` - Staff clock-in/out tracking
 - `pos_shift_reports` - Cashier shift management
 
 **Inventory:**
+
 - `products` - Product catalog with modifiers
 - `categories` - Product categorization
 - `stock_adjustments` - Inventory change tracking
 - `suppliers` - Supplier management
 
 **Sales & Transactions:**
+
 - `transactions` - Sales records
 - `transaction_items` - Line items with modifiers
 - `payment_methods` - Payment type configuration
 - `cash_drawer_counts` - Cash reconciliation
 
 **Audit & Compliance:**
+
 - `audit_logs` - Comprehensive activity tracking
 - `licenses` - Software licensing
 - `subscriptions` - Subscription management
@@ -156,10 +173,12 @@ npm run db:studio         # Open Drizzle Studio
 **Service:** `packages/main/src/services/thermalPrinterService.ts`
 
 **Supported Devices:**
+
 - USB: Epson TM Series, Star TSP Series, Citizen CT, Bixolon SRP
 - Bluetooth: DIERI BT, Epson TM-P Series, Star SM-L Series
 
 **Features:**
+
 - Auto-detection of USB/Bluetooth printers
 - Print queue management
 - Receipt formatting with custom layouts
@@ -172,6 +191,7 @@ npm run db:studio         # Open Drizzle Studio
 **Provider:** Viva Wallet
 
 **Features:**
+
 - Card payment processing (swipe/tap/chip)
 - Payment intent creation
 - Transaction verification
@@ -183,6 +203,7 @@ npm run db:studio         # Open Drizzle Studio
 **Hook:** `packages/renderer/src/hooks/useProductionScanner.ts`
 
 **Features:**
+
 - USB HID scanner support
 - Automatic product lookup
 - Audio feedback on scan
@@ -193,6 +214,7 @@ npm run db:studio         # Open Drizzle Studio
 **Service:** `packages/main/src/services/scaleService.ts`
 
 **Features:**
+
 - Serial port communication
 - Real-time weight reading
 - Automatic price calculation for weight-based products
@@ -202,18 +224,21 @@ npm run db:studio         # Open Drizzle Studio
 ## 🔐 Security & Authentication
 
 **Authentication:**
+
 - bcryptjs password hashing
 - Session-based authentication with token expiration
 - Role-based access control (RBAC)
 - IPC handler protection
 
 **Licensing:**
+
 - Machine fingerprinting
 - License activation & validation
 - Subscription management
 - Real-time sync with web platform
 
 **Data Security:**
+
 - SQLite database encryption support
 - Secure IPC communication via contextBridge
 - No remote code execution vulnerabilities
@@ -229,26 +254,31 @@ npm run db:studio         # Open Drizzle Studio
 ### Update Strategy
 
 **Smart Scheduling:**
+
 - Checks for updates every 4 hours
 - Skips checks if user idle >30 minutes
 - 5-second startup delay
 - 15-minute cache to avoid redundant downloads
 
 **Differential Updates:**
+
 - Uses `.blockmap` files for block-level updates
 - Downloads only changed blocks (saves bandwidth)
 - Falls back to full installer if differential not available
 
 **User Experience:**
+
 - Background download with progress tracking
 - "Install Now" / "Remind Me Later" / "Skip Version" options
 - 2-hour postpone interval (max 3 times)
 - SHA512 checksum verification
 
 **Supported Platforms:**
+
 - Windows: NSIS (one-click installer) + Squirrel (delta updates)
 
 **Configuration:**
+
 ```typescript
 // Update check interval: 4 hours
 // Idle threshold: 30 minutes
@@ -291,6 +321,7 @@ These are automatically rebuilt via `electron-rebuild` after installation.
 ### Build Targets
 
 **Windows (Primary):**
+
 - **NSIS Installer:** One-click installation to user profile (no admin required)
 - **Squirrel Package:** Delta updates via `.nupkg` files
 - **Architecture:** x64
@@ -315,6 +346,7 @@ dist/
 **Repository:** [AurSwift/AurSwift](https://github.com/AurSwift/AurSwift)
 
 **Release Automation:**
+
 - Semantic versioning via `semantic-release`
 - Automated changelog generation
 - Conventional commit message parsing
@@ -328,15 +360,15 @@ dist/
 
 The project uses **Conventional Commits** for automated versioning:
 
-| Commit Type | Example | Release Type | Version Impact |
-|------------|---------|--------------|----------------|
-| `feat` | `feat: add offline mode` | Minor | `1.0.0` → `1.1.0` |
-| `fix` | `fix: login crash` | Patch | `1.0.1` → `1.0.2` |
-| `perf` | `perf: improve startup` | Patch | `1.0.1` → `1.0.2` |
-| `refactor` | `refactor: user context` | Patch | `1.0.1` → `1.0.2` |
-| `build` | `build: update deps` | Patch | `1.0.1` → `1.0.2` |
-| `feat!` or `BREAKING CHANGE` | `feat!: drop win7 support` | Major | `1.0.0` → `2.0.0` |
-| `docs`, `style`, `test`, `chore`, `ci` | - | None | No release |
+| Commit Type                            | Example                    | Release Type | Version Impact    |
+| -------------------------------------- | -------------------------- | ------------ | ----------------- |
+| `feat`                                 | `feat: add offline mode`   | Minor        | `1.0.0` → `1.1.0` |
+| `fix`                                  | `fix: login crash`         | Patch        | `1.0.1` → `1.0.2` |
+| `perf`                                 | `perf: improve startup`    | Patch        | `1.0.1` → `1.0.2` |
+| `refactor`                             | `refactor: user context`   | Patch        | `1.0.1` → `1.0.2` |
+| `build`                                | `build: update deps`       | Patch        | `1.0.1` → `1.0.2` |
+| `feat!` or `BREAKING CHANGE`           | `feat!: drop win7 support` | Major        | `1.0.0` → `2.0.0` |
+| `docs`, `style`, `test`, `chore`, `ci` | -                          | None         | No release        |
 
 ### CI/CD Pipeline
 
@@ -352,6 +384,7 @@ The project uses **Conventional Commits** for automated versioning:
 5. **Semantic Release** - Generate changelog, create GitHub release, upload assets
 
 **Optimizations:**
+
 - Skip Electron download when not needed (`ELECTRON_SKIP_BINARY_DOWNLOAD=1`)
 - Skip Playwright browsers when not testing (`PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1`)
 - Conditional job execution based on commit types
@@ -412,6 +445,8 @@ ELECTRON_UPDATER_DISABLED=1
 - **npm:** ≥10.0.0
 - **Python:** 3.x (for native module compilation)
 - **Visual Studio Build Tools** (Windows)
+
+> **📖 Windows Developers:** See [WINDOWS_SETUP.md](WINDOWS_SETUP.md) for detailed setup instructions including Node version management and native module compilation.
 
 ### Getting Started
 
