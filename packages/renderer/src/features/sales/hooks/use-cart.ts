@@ -13,6 +13,7 @@ import type { Product } from "@/types/domain";
 import type { Category } from "@/types/domain/category";
 
 import { getLogger } from "@/shared/utils/logger";
+import { SuccessAudio } from "@/shared/services/success-audio";
 const logger = getLogger("use-cart");
 import {
   calculateItemPrice,
@@ -278,6 +279,7 @@ export function useCart({
               setCartItems(itemsResponse.data as CartItemWithProduct[]);
             }
 
+            SuccessAudio.play();
             toast.success(
               `Added ${product.name}${
                 existingItem.itemType === "UNIT"
@@ -332,6 +334,7 @@ export function useCart({
               setCartItems(itemsResponse.data as CartItemWithProduct[]);
             }
 
+            SuccessAudio.play();
             toast.success(
               `Added ${product.name}${
                 isWeighted && weight
@@ -443,6 +446,7 @@ export function useCart({
             setCartItems(itemsResponse.data as CartItemWithProduct[]);
           }
 
+          SuccessAudio.play();
           toast.success(`Added ${category.name} @ £${price.toFixed(2)}`);
         } else {
           const errorMessage =

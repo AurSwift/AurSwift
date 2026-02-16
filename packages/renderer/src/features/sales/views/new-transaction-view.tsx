@@ -98,6 +98,7 @@ import {
 } from "@/shared/hooks/use-sales-unit-settings";
 
 import { getLogger } from "@/shared/utils/logger";
+import { SuccessAudio } from "@/shared/services/success-audio";
 const logger = getLogger("index");
 
 // Constants
@@ -1038,6 +1039,11 @@ export function NewTransactionView({
   const handleBackOffice = useCallback(() => {
     navigateTo("dashboard");
   }, [navigateTo]);
+
+  // Preload success audio for zero-latency when items are added to cart
+  useEffect(() => {
+    SuccessAudio.preload();
+  }, []);
 
   // Clear selected item if it's no longer in the cart (EPOS-style)
   useEffect(() => {
