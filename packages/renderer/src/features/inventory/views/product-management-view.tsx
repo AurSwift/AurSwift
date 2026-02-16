@@ -16,6 +16,7 @@ import BatchManagementView from "./batch-management-view";
 import StockMovementHistoryView from "./stock-movement-history-view";
 
 import { getLogger } from "@/shared/utils/logger";
+import { SuccessAudio } from "@/shared/services/success-audio";
 const logger = getLogger("manage-product-view");
 import type { Category, VatCategory } from "../hooks/use-product-data";
 import {
@@ -242,6 +243,11 @@ const ProductManagementView: React.FC<ProductManagementViewProps> = ({
       logger.error("Error loading VAT categories:", error);
     }
   }, [user?.businessId]);
+
+  // Preload success audio for zero-latency on first product creation
+  useEffect(() => {
+    SuccessAudio.preload();
+  }, []);
 
   // Load data on mount and when dependencies change
   useEffect(() => {

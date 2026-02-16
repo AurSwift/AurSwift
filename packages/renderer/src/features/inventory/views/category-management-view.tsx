@@ -34,6 +34,7 @@ import { CategoryFormDrawer } from "@/features/inventory/components/category/cat
 import { ImportBookerModal } from "@/features/inventory/components/shared/import-booker-modal";
 
 import { getLogger } from "@/shared/utils/logger";
+import { SuccessAudio } from "@/shared/services/success-audio";
 const logger = getLogger("manage-categories-view");
 
 interface ManageCategoriesViewProps {
@@ -184,6 +185,11 @@ const ManageCategoriesView: React.FC<ManageCategoriesViewProps> = ({
       logger.error("Error loading category stats:", error);
     }
   }, [user?.businessId]);
+
+  // Preload success audio for zero-latency on first category creation
+  useEffect(() => {
+    SuccessAudio.preload();
+  }, []);
 
   useEffect(() => {
     loadVatCategories();

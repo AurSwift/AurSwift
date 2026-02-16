@@ -15,6 +15,7 @@ import {
   type ProductUpdateData,
 } from "../schemas/product-schema";
 import { useFormNotification } from "@/shared/hooks/use-form-notification";
+import { SuccessAudio } from "@/shared/services/success-audio";
 import type { Product } from "@/types/domain";
 import type { Category, VatCategory } from "./use-product-data";
 
@@ -260,6 +261,10 @@ export function useProductForm({
       try {
         await onSubmit(data);
         notifySuccess(isEditMode ? "update" : "create");
+
+        if (!isEditMode) {
+          SuccessAudio.play();
+        }
 
         // Reset form after successful creation (not on update)
         if (!isEditMode) {

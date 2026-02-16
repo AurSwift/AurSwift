@@ -15,6 +15,7 @@ import {
   type CategoryUpdateData,
 } from "../schemas/category-schema";
 import { useFormNotification } from "@/shared/hooks/use-form-notification";
+import { SuccessAudio } from "@/shared/services/success-audio";
 import type { Category } from "./use-product-data";
 
 import { getLogger } from "@/shared/utils/logger";
@@ -128,6 +129,10 @@ export function useCategoryForm({
       try {
         await onSubmit(data);
         notifySuccess(isEditMode ? "update" : "create");
+
+        if (!isEditMode) {
+          SuccessAudio.play();
+        }
 
         // Reset form after successful creation (not on update)
         if (!isEditMode) {
