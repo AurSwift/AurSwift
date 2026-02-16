@@ -1,10 +1,16 @@
-import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from "react";
+import {
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  lazy,
+  Suspense,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import { CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
 import { toast } from "sonner";
-import { MiniBar } from "@/components/mini-bar";
 
 // Hooks
 import { useAuth } from "@/shared/hooks/use-auth";
@@ -66,16 +72,24 @@ import {
 
 // Lazy-load heavier modals for code-splitting
 const RefundTransactionView = lazy(() =>
-  import("../components/modals").then((mod) => ({ default: mod.RefundTransactionView })),
+  import("../components/modals").then((mod) => ({
+    default: mod.RefundTransactionView,
+  })),
 );
 const CashDrawerCountModal = lazy(() =>
-  import("../components/modals").then((mod) => ({ default: mod.CashDrawerCountModal })),
+  import("../components/modals").then((mod) => ({
+    default: mod.CashDrawerCountModal,
+  })),
 );
 const SaveBasketModal = lazy(() =>
-  import("../components/modals").then((mod) => ({ default: mod.SaveBasketModal })),
+  import("../components/modals").then((mod) => ({
+    default: mod.SaveBasketModal,
+  })),
 );
 const ReceiptOptionsModal = lazy(() =>
-  import("../components/payment/receipt-options-modal").then((mod) => ({ default: mod.ReceiptOptionsModal })),
+  import("../components/payment/receipt-options-modal").then((mod) => ({
+    default: mod.ReceiptOptionsModal,
+  })),
 );
 import type {
   AgeVerificationData,
@@ -1194,13 +1208,6 @@ export function NewTransactionView({
 
   return (
     <div className="container mx-auto p-1 max-w-[1600px] flex flex-col flex-1 min-h-0 h-full">
-      <MiniBar
-        className="shrink-0"
-        title="New Transaction"
-        onBack={onBack}
-        backAriaLabel="Back to Dashboard"
-      />
-
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
         {/* Shift Banners (only shown for cashier mode) */}
         {salesMode.requiresShift && (
@@ -1220,133 +1227,174 @@ export function NewTransactionView({
 
         {/* Main Layout */}
         <div className="flex p-2 sm:p-3 lg:p-4 flex-col lg:flex-row gap-2 sm:gap-3 flex-1 min-h-0 overflow-hidden">
-        {/* Left Column - Product Selection */}
-        <div className="flex mb-0 lg:mb-2 flex-col flex-1 min-h-0 min-w-0 gap-2 sm:gap-3">
-          <ProductSelectionPanel
-            products={displayProducts}
-            categories={categories.categories}
-            currentCategories={categories.currentCategories}
-            breadcrumb={categories.breadcrumb}
-            searchQuery={searchQuery}
-            selectedWeightProductId={
-              weightInput.selectedWeightProduct?.id || null
-            }
-            loading={products.loading}
-            error={products.error}
-            lastClickTime={lastClickTime}
-            onProductClick={handleProductClick}
-            onGenericItemClick={handleGenericItemClick}
-            onCategoryClick={categories.handleCategoryClick}
-            onBreadcrumbClick={categories.handleBreadcrumbClick}
-            onSetLastClickTime={setLastClickTime}
-            onRetry={() => {
-              products.loadProducts();
-              categories.loadCategories();
-            }}
-            DOUBLE_CLICK_DELAY={DOUBLE_CLICK_DELAY}
-            onLoadMore={
-              USE_VIRTUALIZED_PRODUCTS ? paginatedProducts.loadMore : undefined
-            }
-            hasMore={
-              USE_VIRTUALIZED_PRODUCTS ? paginatedProducts.hasMore : false
-            }
-            isLoadingMore={
-              USE_VIRTUALIZED_PRODUCTS ? paginatedProducts.loading : false
-            }
-            // Quick Sell Props
-            quickSellPages={quickSell.pagesWithButtons}
-            quickSellPageIndex={quickSell.selectedPageIndex}
-            onQuickSellPageChange={quickSell.setSelectedPageIndex}
-            quickSellButtons={quickSell.currentButtons}
-            quickSellLoading={quickSell.isLoading}
-            onQuickSellProductClick={handleQuickSellProductClick}
-          />
-          {!payment.paymentStep && (
-            <div className="shrink-0">
-              <QuickActionButtons
-                onQuantity={handleQuantityClick}
-                onLineVoid={handleLineVoid}
-                onPriceOverride={handlePriceOverride}
-                onLockTill={handleLockTill}
-                onVoidBasket={handleVoidBasket}
-                onSaveBasket={handleSaveBasket}
-                onItemEnquiry={handleItemEnquiry}
-              />
-            </div>
-          )}
-        </div>
+          {/* Left Column - Product Selection */}
+          <div className="flex mb-0 lg:mb-2 flex-col flex-1 min-h-0 min-w-0 gap-2 sm:gap-3">
+            <ProductSelectionPanel
+              products={displayProducts}
+              categories={categories.categories}
+              currentCategories={categories.currentCategories}
+              breadcrumb={categories.breadcrumb}
+              searchQuery={searchQuery}
+              selectedWeightProductId={
+                weightInput.selectedWeightProduct?.id || null
+              }
+              loading={products.loading}
+              error={products.error}
+              lastClickTime={lastClickTime}
+              onProductClick={handleProductClick}
+              onGenericItemClick={handleGenericItemClick}
+              onCategoryClick={categories.handleCategoryClick}
+              onBreadcrumbClick={categories.handleBreadcrumbClick}
+              onSetLastClickTime={setLastClickTime}
+              onRetry={() => {
+                products.loadProducts();
+                categories.loadCategories();
+              }}
+              DOUBLE_CLICK_DELAY={DOUBLE_CLICK_DELAY}
+              onLoadMore={
+                USE_VIRTUALIZED_PRODUCTS
+                  ? paginatedProducts.loadMore
+                  : undefined
+              }
+              hasMore={
+                USE_VIRTUALIZED_PRODUCTS ? paginatedProducts.hasMore : false
+              }
+              isLoadingMore={
+                USE_VIRTUALIZED_PRODUCTS ? paginatedProducts.loading : false
+              }
+              // Quick Sell Props
+              quickSellPages={quickSell.pagesWithButtons}
+              quickSellPageIndex={quickSell.selectedPageIndex}
+              onQuickSellPageChange={quickSell.setSelectedPageIndex}
+              quickSellButtons={quickSell.currentButtons}
+              quickSellLoading={quickSell.isLoading}
+              onQuickSellProductClick={handleQuickSellProductClick}
+            />
+            {!payment.paymentStep && (
+              <div className="shrink-0">
+                <QuickActionButtons
+                  onQuantity={handleQuantityClick}
+                  onLineVoid={handleLineVoid}
+                  onPriceOverride={handlePriceOverride}
+                  onLockTill={handleLockTill}
+                  onVoidBasket={handleVoidBasket}
+                  onSaveBasket={handleSaveBasket}
+                  onItemEnquiry={handleItemEnquiry}
+                />
+              </div>
+            )}
+          </div>
 
-        {/* Right Column - Cart & Payment */}
-        <div className="flex flex-col w-full lg:flex-[0_1_480px] lg:w-[480px] lg:max-w-[520px] min-h-0">
-          <QuickActionsCarousel
-            onRefund={() => setShowRefundModal(true)}
-            onCount={() => setShowCountModal(true)}
-            onReceipts={handleReceipts}
-            onLogOff={logout}
-            onBackOffice={handleBackOffice}
-            hasActiveShift={!!shift.activeShift}
-          />
+          {/* Right Column - Cart & Payment */}
+          <div className="flex flex-col w-full lg:flex-[0_1_480px] lg:w-[480px] lg:max-w-[520px] min-h-0">
+            <QuickActionsCarousel
+              onRefund={() => setShowRefundModal(true)}
+              onCount={() => setShowCountModal(true)}
+              onReceipts={handleReceipts}
+              onLogOff={logout}
+              onBackOffice={handleBackOffice}
+              hasActiveShift={!!shift.activeShift}
+            />
 
-          {/**input for products */}
-          <CardContent className="p-1">
-            {/* Scale Display for Weighted Products (shown by default) */}
-            {weightInput.selectedWeightProduct &&
-              isWeightedProduct(weightInput.selectedWeightProduct) &&
-              !categoryPriceInput.pendingCategory &&
-              showScaleDisplay && (
-                <div className="mt-1 space-y-2">
-                  <ScaleDisplay
-                    selectedProduct={{
-                      id: weightInput.selectedWeightProduct.id,
-                      name: weightInput.selectedWeightProduct.name,
-                      productType: "WEIGHTED",
-                      basePrice: weightInput.selectedWeightProduct.basePrice,
-                      pricePerUnit:
-                        weightInput.selectedWeightProduct.pricePerKg,
-                      unitOfMeasure: getEffectiveSalesUnit(
-                        weightInput.selectedWeightProduct.salesUnit || "KG",
-                        salesUnitSettings,
-                      ),
-                    }}
-                    onWeightConfirmed={async (weight, scaleReading) => {
-                      const product = weightInput.selectedWeightProduct;
-                      if (!product) return;
+            {/**input for products */}
+            <CardContent className="p-1">
+              {/* Scale Display for Weighted Products (shown by default) */}
+              {weightInput.selectedWeightProduct &&
+                isWeightedProduct(weightInput.selectedWeightProduct) &&
+                !categoryPriceInput.pendingCategory &&
+                showScaleDisplay && (
+                  <div className="mt-1 space-y-2">
+                    <ScaleDisplay
+                      selectedProduct={{
+                        id: weightInput.selectedWeightProduct.id,
+                        name: weightInput.selectedWeightProduct.name,
+                        productType: "WEIGHTED",
+                        basePrice: weightInput.selectedWeightProduct.basePrice,
+                        pricePerUnit:
+                          weightInput.selectedWeightProduct.pricePerKg,
+                        unitOfMeasure: getEffectiveSalesUnit(
+                          weightInput.selectedWeightProduct.salesUnit || "KG",
+                          salesUnitSettings,
+                        ),
+                      }}
+                      onWeightConfirmed={async (weight, scaleReading) => {
+                        const product = weightInput.selectedWeightProduct;
+                        if (!product) return;
 
-                      // Check if product requires batch tracking (expiry checking)
-                      const requiresBatchTracking =
-                        product.requiresBatchTracking === true;
+                        // Check if product requires batch tracking (expiry checking)
+                        const requiresBatchTracking =
+                          product.requiresBatchTracking === true;
 
-                      // Age verification should already be completed at this point
-                      // (it was shown first before the scale display)
+                        // Age verification should already be completed at this point
+                        // (it was shown first before the scale display)
 
-                      if (requiresBatchTracking) {
-                        // Each cart addition = 1 item (quantity = 1, regardless of weight value)
-                        // Check if batch has enough quantity (1 item) available
-                        const batchResult = await autoSelectBatches(
-                          product,
-                          1, // Check batch has >= 1 item available (quantity check, not weight)
-                          false, // Don't allow partial - need exactly 1 item
-                        );
-
-                        if (batchResult.success && batchResult.primaryBatch) {
-                          // Batch has enough quantity (>= 1) - add 1 item to cart
-                          // Cart item: quantity = 1 (for batch deduction), weight = weight value (for pricing only)
-                          const ageVerified =
-                            ageVerifiedForProduct[product.id] || false;
-
-                          await cart.addToCart(
+                        if (requiresBatchTracking) {
+                          // Each cart addition = 1 item (quantity = 1, regardless of weight value)
+                          // Check if batch has enough quantity (1 item) available
+                          const batchResult = await autoSelectBatches(
                             product,
-                            weight, // Weight value (stored in item.weight, used for pricing only)
-                            undefined,
-                            ageVerified,
-                            undefined,
-                            batchResult.primaryBatch,
-                            scaleReading,
+                            1, // Check batch has >= 1 item available (quantity check, not weight)
+                            false, // Don't allow partial - need exactly 1 item
                           );
 
-                          // Show success message
-                          toast.success(`Added ${product.name} to cart`);
+                          if (batchResult.success && batchResult.primaryBatch) {
+                            // Batch has enough quantity (>= 1) - add 1 item to cart
+                            // Cart item: quantity = 1 (for batch deduction), weight = weight value (for pricing only)
+                            const ageVerified =
+                              ageVerifiedForProduct[product.id] || false;
 
+                            await cart.addToCart(
+                              product,
+                              weight, // Weight value (stored in item.weight, used for pricing only)
+                              undefined,
+                              ageVerified,
+                              undefined,
+                              batchResult.primaryBatch,
+                              scaleReading,
+                            );
+
+                            // Show success message
+                            toast.success(`Added ${product.name} to cart`);
+
+                            weightInput.resetWeightInput();
+                            // Clear age verification for this product after use
+                            setAgeVerifiedForProduct((prev) => {
+                              const next = { ...prev };
+                              delete next[product.id];
+                              return next;
+                            });
+                            setShowScaleDisplay(false);
+                          } else if (batchResult.shouldShowModal) {
+                            // Show batch selection modal for manual selection
+                            setPendingWeightForBatchSelection(weight);
+                            setPendingProductForBatchSelection(product);
+                            setPendingQuantityForBatchSelection(weight);
+                            setShowBatchSelectionModal(true);
+                            weightInput.resetWeightInput();
+                            setShowScaleDisplay(false);
+                          } else {
+                            // No batches available - show error
+                            toast.error(
+                              batchResult.error ||
+                                "No batches available for this product",
+                            );
+                            weightInput.resetWeightInput();
+                            setShowScaleDisplay(false);
+                          }
+                        } else {
+                          // No batch tracking, add directly with age verification (already completed)
+                          // Check if age verification was completed for this product
+                          const ageVerified =
+                            ageVerifiedForProduct[product.id] || false;
+                          await cart.addToCart(
+                            product,
+                            weight,
+                            undefined,
+                            ageVerified, // Use the tracked age verification status
+                            undefined,
+                            null,
+                            scaleReading || null,
+                          );
                           weightInput.resetWeightInput();
                           // Clear age verification for this product after use
                           setAgeVerifiedForProduct((prev) => {
@@ -1355,237 +1403,200 @@ export function NewTransactionView({
                             return next;
                           });
                           setShowScaleDisplay(false);
-                        } else if (batchResult.shouldShowModal) {
-                          // Show batch selection modal for manual selection
-                          setPendingWeightForBatchSelection(weight);
-                          setPendingProductForBatchSelection(product);
-                          setPendingQuantityForBatchSelection(weight);
-                          setShowBatchSelectionModal(true);
-                          weightInput.resetWeightInput();
-                          setShowScaleDisplay(false);
-                        } else {
-                          // No batches available - show error
-                          toast.error(
-                            batchResult.error ||
-                              "No batches available for this product",
-                          );
-                          weightInput.resetWeightInput();
-                          setShowScaleDisplay(false);
                         }
-                      } else {
-                        // No batch tracking, add directly with age verification (already completed)
-                        // Check if age verification was completed for this product
-                        const ageVerified =
-                          ageVerifiedForProduct[product.id] || false;
-                        await cart.addToCart(
-                          product,
-                          weight,
-                          undefined,
-                          ageVerified, // Use the tracked age verification status
-                          undefined,
-                          null,
-                          scaleReading || null,
-                        );
-                        weightInput.resetWeightInput();
-                        // Clear age verification for this product after use
-                        setAgeVerifiedForProduct((prev) => {
-                          const next = { ...prev };
-                          delete next[product.id];
-                          return next;
-                        });
+                      }}
+                      onCancel={() => {
                         setShowScaleDisplay(false);
-                      }
-                    }}
-                    onCancel={() => {
-                      setShowScaleDisplay(false);
-                      weightInput.resetWeightInput();
-                    }}
-                    onManualEntryRequest={() => setShowScaleDisplay(false)}
-                    autoAddOnStable={true}
-                    minWeight={0.001}
-                    maxWeight={50}
+                        weightInput.resetWeightInput();
+                      }}
+                      onManualEntryRequest={() => setShowScaleDisplay(false)}
+                      autoAddOnStable={true}
+                      minWeight={0.001}
+                      maxWeight={50}
+                    />
+                  </div>
+                )}
+
+              {/* Weight Input Display for Weighted Products (manual entry) */}
+              {weightInput.selectedWeightProduct &&
+                isWeightedProduct(weightInput.selectedWeightProduct) &&
+                !categoryPriceInput.pendingCategory &&
+                !showScaleDisplay && (
+                  <WeightInputDisplay
+                    selectedProduct={weightInput.selectedWeightProduct}
+                    weightDisplayPrice={weightInput.weightDisplayPrice}
+                    businessId={user?.businessId}
+                    onShowScaleDisplay={() => setShowScaleDisplay(true)}
                   />
+                )}
+
+              {/* Category Price Input Display */}
+              {categoryPriceInput.pendingCategory &&
+                !weightInput.selectedWeightProduct && (
+                  <CategoryPriceInputDisplay
+                    pendingCategory={categoryPriceInput.pendingCategory}
+                    categoryDisplayPrice={
+                      categoryPriceInput.categoryDisplayPrice
+                    }
+                  />
+                )}
+            </CardContent>
+
+            <CartPanel
+              cartItems={cart.cartItems}
+              loadingCart={cart.loadingCart}
+              subtotal={cart.subtotal}
+              tax={cart.tax}
+              total={cart.total}
+              onRemoveItem={(itemId) => {
+                cart.removeFromCart(itemId);
+                // Clear selection if the selected item was removed
+                if (selectedCartItem?.id === itemId) {
+                  setSelectedCartItem(null);
+                }
+              }}
+              selectedItemId={selectedCartItem?.id || null}
+              onItemSelect={handleCartItemSelect}
+            />
+
+            {/* Transaction Complete Message */}
+            {payment.transactionComplete && !payment.showReceiptOptions && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-70 p-4 animate-fade-in">
+                <div className="bg-white p-4 sm:p-6 rounded-lg text-center w-full max-w-sm animate-modal-enter">
+                  <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 text-green-500 mx-auto mb-3 sm:mb-4" />
+                  <h2 className="text-lg sm:text-xl font-bold mb-2 text-slate-800">
+                    Transaction Complete!
+                  </h2>
+                  <p className="text-sm sm:text-base text-slate-600">
+                    Thank you for shopping with us.
+                  </p>
+                  <p className="mt-2 text-sm sm:text-base text-slate-700 font-semibold">
+                    Total: £{cart.total.toFixed(2)}
+                  </p>
+                  <Button
+                    className="mt-4 bg-sky-600 hover:bg-sky-700 min-h-11 h-10 sm:h-11 text-sm sm:text-base touch-manipulation"
+                    onClick={() => {
+                      payment.setTransactionComplete(false);
+                    }}
+                  >
+                    OK
+                  </Button>
                 </div>
-              )}
-
-            {/* Weight Input Display for Weighted Products (manual entry) */}
-            {weightInput.selectedWeightProduct &&
-              isWeightedProduct(weightInput.selectedWeightProduct) &&
-              !categoryPriceInput.pendingCategory &&
-              !showScaleDisplay && (
-                <WeightInputDisplay
-                  selectedProduct={weightInput.selectedWeightProduct}
-                  weightDisplayPrice={weightInput.weightDisplayPrice}
-                  businessId={user?.businessId}
-                  onShowScaleDisplay={() => setShowScaleDisplay(true)}
-                />
-              )}
-
-            {/* Category Price Input Display */}
-            {categoryPriceInput.pendingCategory &&
-              !weightInput.selectedWeightProduct && (
-                <CategoryPriceInputDisplay
-                  pendingCategory={categoryPriceInput.pendingCategory}
-                  categoryDisplayPrice={categoryPriceInput.categoryDisplayPrice}
-                />
-              )}
-          </CardContent>
-
-          <CartPanel
-            cartItems={cart.cartItems}
-            loadingCart={cart.loadingCart}
-            subtotal={cart.subtotal}
-            tax={cart.tax}
-            total={cart.total}
-            onRemoveItem={(itemId) => {
-              cart.removeFromCart(itemId);
-              // Clear selection if the selected item was removed
-              if (selectedCartItem?.id === itemId) {
-                setSelectedCartItem(null);
-              }
-            }}
-            selectedItemId={selectedCartItem?.id || null}
-            onItemSelect={handleCartItemSelect}
-          />
-
-          {/* Transaction Complete Message */}
-          {payment.transactionComplete && !payment.showReceiptOptions && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-70 p-4 animate-fade-in">
-              <div className="bg-white p-4 sm:p-6 rounded-lg text-center w-full max-w-sm animate-modal-enter">
-                <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 text-green-500 mx-auto mb-3 sm:mb-4" />
-                <h2 className="text-lg sm:text-xl font-bold mb-2 text-slate-800">
-                  Transaction Complete!
-                </h2>
-                <p className="text-sm sm:text-base text-slate-600">
-                  Thank you for shopping with us.
-                </p>
-                <p className="mt-2 text-sm sm:text-base text-slate-700 font-semibold">
-                  Total: £{cart.total.toFixed(2)}
-                </p>
-                <Button
-                  className="mt-4 bg-sky-600 hover:bg-sky-700 min-h-11 h-10 sm:h-11 text-sm sm:text-base touch-manipulation"
-                  onClick={() => {
-                    payment.setTransactionComplete(false);
-                  }}
-                >
-                  OK
-                </Button>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Payment Panel / Numeric Keypad Container with Transition */}
-          <div className="relative shrink-0 overflow-hidden">
-            <AnimatePresence
-              mode="wait"
-              exitAnimation="slide-left-exit"
-              exitDuration={300}
-            >
-              {payment.paymentStep && (
-                <PaymentPanel
-                  key="payment-panel"
-                  paymentStep={payment.paymentStep}
-                  paymentMethod={payment.paymentMethod}
-                  total={cart.total}
-                  cashAmount={payment.cashAmount}
-                  cardReaderReady={true}
-                  onPaymentMethodSelect={payment.handlePayment}
-                  onCashAmountChange={payment.setCashAmount}
-                  onCompleteTransaction={() => payment.completeTransaction()}
-                  onCancel={() => {
-                    payment.setPaymentStep(false);
-                    payment.setPaymentMethod(null);
-                  }}
-                />
-              )}
-            </AnimatePresence>
-            <AnimatePresence
-              mode="wait"
-              exitAnimation="slide-right-exit"
-              exitDuration={300}
-            >
-              {!payment.paymentStep && (
-                <div
-                  key="numeric-keypad"
-                  className="shrink-0 animate-slide-right"
-                >
-                  <NumericKeypad
-                    onInput={async (value) => {
-                      // Handle weight input
-                      if (
-                        weightInput.selectedWeightProduct &&
-                        !categoryPriceInput.pendingCategory
-                      ) {
-                        const weightValue =
-                          weightInput.handleWeightInput(value);
-                        if (
-                          value === "Enter" &&
-                          weightValue !== undefined &&
-                          weightValue > 0
-                        ) {
-                          await handleProductClick(
-                            weightInput.selectedWeightProduct,
-                            weightValue,
-                          );
-                          setShowScaleDisplay(false); // Reset scale display after adding via keypad
-                        }
-                        return;
-                      }
-
-                      // Handle category price input
-                      if (categoryPriceInput.pendingCategory) {
-                        const priceValue =
-                          categoryPriceInput.handlePriceInput(value);
-                        if (
-                          value === "Enter" &&
-                          priceValue !== undefined &&
-                          priceValue > 0
-                        ) {
-                          await cart.addCategoryToCart(
-                            categoryPriceInput.pendingCategory!,
-                            priceValue,
-                          );
-                          categoryPriceInput.resetPriceInput();
-                        }
-                        return;
-                      }
-
-                      // Handle other numeric keypad input
+            {/* Payment Panel / Numeric Keypad Container with Transition */}
+            <div className="relative shrink-0 overflow-hidden">
+              <AnimatePresence
+                mode="wait"
+                exitAnimation="slide-left-exit"
+                exitDuration={300}
+              >
+                {payment.paymentStep && (
+                  <PaymentPanel
+                    key="payment-panel"
+                    paymentStep={payment.paymentStep}
+                    paymentMethod={payment.paymentMethod}
+                    total={cart.total}
+                    cashAmount={payment.cashAmount}
+                    cardReaderReady={true}
+                    onPaymentMethodSelect={payment.handlePayment}
+                    onCashAmountChange={payment.setCashAmount}
+                    onCompleteTransaction={() => payment.completeTransaction()}
+                    onCancel={() => {
+                      payment.setPaymentStep(false);
+                      payment.setPaymentMethod(null);
                     }}
-                    keysOverride={[
-                      ["7", "8", "9", "Enter"],
-                      ["4", "5", "6", "Clear"],
-                      [
-                        "1",
-                        "2",
-                        "3",
-                        weightInput.selectedWeightProduct &&
-                        !categoryPriceInput.pendingCategory ? (
-                          "."
-                        ) : categoryPriceInput.pendingCategory ? (
-                          "."
-                        ) : (
-                          <Button
-                            className="w-full h-full min-h-11 py-3 sm:py-4 font-semibold text-sm sm:text-lg rounded transition-colors bg-sky-600 hover:bg-sky-700 text-white touch-manipulation"
-                            style={{ minHeight: 44, minWidth: 0 }}
-                            onClick={() => payment.setPaymentStep(true)}
-                            disabled={
-                              cart.cartItems.length === 0 || !cart.cartSession
-                            }
-                          >
-                            Checkout
-                          </Button>
-                        ),
-                      ],
-                      ["0", "00", "", ""],
-                    ]}
                   />
-                </div>
-              )}
-            </AnimatePresence>
+                )}
+              </AnimatePresence>
+              <AnimatePresence
+                mode="wait"
+                exitAnimation="slide-right-exit"
+                exitDuration={300}
+              >
+                {!payment.paymentStep && (
+                  <div
+                    key="numeric-keypad"
+                    className="shrink-0 animate-slide-right"
+                  >
+                    <NumericKeypad
+                      onInput={async (value) => {
+                        // Handle weight input
+                        if (
+                          weightInput.selectedWeightProduct &&
+                          !categoryPriceInput.pendingCategory
+                        ) {
+                          const weightValue =
+                            weightInput.handleWeightInput(value);
+                          if (
+                            value === "Enter" &&
+                            weightValue !== undefined &&
+                            weightValue > 0
+                          ) {
+                            await handleProductClick(
+                              weightInput.selectedWeightProduct,
+                              weightValue,
+                            );
+                            setShowScaleDisplay(false); // Reset scale display after adding via keypad
+                          }
+                          return;
+                        }
+
+                        // Handle category price input
+                        if (categoryPriceInput.pendingCategory) {
+                          const priceValue =
+                            categoryPriceInput.handlePriceInput(value);
+                          if (
+                            value === "Enter" &&
+                            priceValue !== undefined &&
+                            priceValue > 0
+                          ) {
+                            await cart.addCategoryToCart(
+                              categoryPriceInput.pendingCategory!,
+                              priceValue,
+                            );
+                            categoryPriceInput.resetPriceInput();
+                          }
+                          return;
+                        }
+
+                        // Handle other numeric keypad input
+                      }}
+                      keysOverride={[
+                        ["7", "8", "9", "Enter"],
+                        ["4", "5", "6", "Clear"],
+                        [
+                          "1",
+                          "2",
+                          "3",
+                          weightInput.selectedWeightProduct &&
+                          !categoryPriceInput.pendingCategory ? (
+                            "."
+                          ) : categoryPriceInput.pendingCategory ? (
+                            "."
+                          ) : (
+                            <Button
+                              className="w-full h-full min-h-11 py-3 sm:py-4 font-semibold text-sm sm:text-lg rounded transition-colors bg-sky-600 hover:bg-sky-700 text-white touch-manipulation"
+                              style={{ minHeight: 44, minWidth: 0 }}
+                              onClick={() => payment.setPaymentStep(true)}
+                              disabled={
+                                cart.cartItems.length === 0 || !cart.cartSession
+                              }
+                            >
+                              Checkout
+                            </Button>
+                          ),
+                        ],
+                        ["0", "00", "", ""],
+                      ]}
+                    />
+                  </div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
-      </div>
       </div>
 
       {/* Modals */}
@@ -1671,16 +1682,16 @@ export function NewTransactionView({
       {showCountModal && user && (
         <Suspense fallback={null}>
           <CashDrawerCountModal
-          isOpen={showCountModal}
-          onClose={() => setShowCountModal(false)}
-          onCountComplete={() => {
-            setShowCountModal(false);
-            toast.success("Cash count completed successfully!");
-          }}
-          activeShiftId={user.id}
-          countType="mid-shift"
-          startingCash={0}
-        />
+            isOpen={showCountModal}
+            onClose={() => setShowCountModal(false)}
+            onCountComplete={() => {
+              setShowCountModal(false);
+              toast.success("Cash count completed successfully!");
+            }}
+            activeShiftId={user.id}
+            countType="mid-shift"
+            startingCash={0}
+          />
         </Suspense>
       )}
 
@@ -1688,20 +1699,20 @@ export function NewTransactionView({
       {payment.showReceiptOptions && payment.completedTransactionData && (
         <Suspense fallback={null}>
           <ReceiptOptionsModal
-          isOpen={payment.showReceiptOptions}
-          transactionData={payment.completedTransactionData}
-          onPrint={payment.handlePrintReceipt}
-          onDownload={payment.handleDownloadReceipt}
-          onEmail={payment.handleEmailReceiptOption}
-          onClose={payment.handleCloseReceiptOptions}
-          onCancel={payment.handleCancelPayment}
-          printerStatus={payment.printerStatus}
-          // Enhanced print status props
-          printStatus={printStatus}
-          printerError={printerError}
-          onRetryPrint={handleRetryPrint}
-          onCancelPrint={handleCancelPrint}
-        />
+            isOpen={payment.showReceiptOptions}
+            transactionData={payment.completedTransactionData}
+            onPrint={payment.handlePrintReceipt}
+            onDownload={payment.handleDownloadReceipt}
+            onEmail={payment.handleEmailReceiptOption}
+            onClose={payment.handleCloseReceiptOptions}
+            onCancel={payment.handleCancelPayment}
+            printerStatus={payment.printerStatus}
+            // Enhanced print status props
+            printStatus={printStatus}
+            printerError={printerError}
+            onRetryPrint={handleRetryPrint}
+            onCancelPrint={handleCancelPrint}
+          />
         </Suspense>
       )}
 
@@ -1733,19 +1744,19 @@ export function NewTransactionView({
       <Suspense fallback={null}>
         <SaveBasketModal
           isOpen={showSaveBasketModal}
-        cartItems={cart.cartItems}
-        cartSessionId={cart.cartSession?.id || null}
-        businessId={user?.businessId}
-        userId={user?.id}
-        shiftId={shift.activeShift?.id || null}
-        onSave={cart.saveBasket}
-        onClose={() => setShowSaveBasketModal(false)}
-        onClearCart={async () => {
-          if (cart.cartSession) {
-            await cart.clearCart();
-          }
-        }}
-      />
+          cartItems={cart.cartItems}
+          cartSessionId={cart.cartSession?.id || null}
+          businessId={user?.businessId}
+          userId={user?.id}
+          shiftId={shift.activeShift?.id || null}
+          onSave={cart.saveBasket}
+          onClose={() => setShowSaveBasketModal(false)}
+          onClearCart={async () => {
+            if (cart.cartSession) {
+              await cart.clearCart();
+            }
+          }}
+        />
       </Suspense>
 
       {/* Lock Till & Break Dialog */}
