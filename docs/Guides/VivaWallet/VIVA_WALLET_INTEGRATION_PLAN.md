@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document outlines a comprehensive, strategic plan for integrating Viva Wallet's Local Terminal API into the AuraSwift Electron.js POS system. The integration will enable peer-to-peer communication between the POS application and Viva Wallet payment terminals over local network, providing a seamless, secure payment processing experience.
+This document outlines a comprehensive, strategic plan for integrating Viva Wallet's Local Terminal API into the Aurswift Electron.js POS system. The integration will enable peer-to-peer communication between the POS application and Viva Wallet payment terminals over local network, providing a seamless, secure payment processing experience.
 
 **Key Objectives:**
 
@@ -97,7 +97,6 @@ The Viva Wallet Local Terminal API enables **peer-to-peer communication** betwee
 ### Key Concepts
 
 1. **Peer-to-Peer Communication**
-
    - Direct HTTP/HTTPS communication between POS app and terminal
    - No external API gateway required for transaction initiation
    - Terminal acts as both payment processor and hardware interface
@@ -132,14 +131,12 @@ One of the most powerful features of Viva Wallet's Local Terminal API is the abi
 **Supported Scenarios:**
 
 1. **Smartphone/Tablet as Terminal**
-
    - Android or iOS device running Viva.com Terminal app
    - Acts as standalone payment terminal
    - Can accept card payments via NFC/Tap-to-Pay
    - Ideal for mobile/market stall scenarios
 
 2. **Device with External Card Reader**
-
    - Compatible device + external card reader attachment
    - Enhanced card acceptance (chip, swipe, tap)
    - Better for high-volume scenarios
@@ -160,7 +157,6 @@ One of the most powerful features of Viva Wallet's Local Terminal API is the abi
 ### Terminal Configuration Requirements
 
 1. **Enable Peer-to-Peer Mode**
-
    - Open Viva.com Terminal app
    - Navigate to: **More > Integrations > Viva Peer to Peer**
    - Toggle **Enable Peer to Peer** to ON
@@ -168,7 +164,6 @@ One of the most powerful features of Viva Wallet's Local Terminal API is the abi
    - Set PIN (if required)
 
 2. **Network Configuration**
-
    - Terminal must be on same local network as POS system
    - Note terminal's IP address and port
    - Ensure firewall allows communication on terminal port
@@ -185,7 +180,7 @@ One of the most powerful features of Viva Wallet's Local Terminal API is the abi
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    AuraSwift POS (Electron)                  │
+│                    Aurswift POS (Electron)                  │
 │  ┌────────────────────────────────────────────────────────┐ │
 │  │           Renderer Process (React/TypeScript)          │ │
 │  │  ┌──────────────────────────────────────────────────┐  │ │
@@ -374,13 +369,11 @@ The device-as-terminal capability allows any compatible smartphone, tablet, or d
 **Approach:**
 
 1. **Unified Terminal Interface**
-
    - Design terminal abstraction that doesn't differentiate between terminal types
    - Same API calls work for dedicated terminals and device-based terminals
    - Terminal type detection is informational only
 
 2. **Capability Detection**
-
    - Query terminal capabilities on connection
    - Store capability metadata for UI/UX optimization
    - Gracefully handle differences (e.g., NFC-only devices)
@@ -2129,7 +2122,10 @@ export class TransactionPoller {
   private pollingStrategy: PollingStrategy;
   private eventEmitter: EventEmitter;
 
-  constructor(private httpClient: VivaWalletHTTPClient, private transactionManager: TransactionManager) {
+  constructor(
+    private httpClient: VivaWalletHTTPClient,
+    private transactionManager: TransactionManager,
+  ) {
     this.pollingStrategy = new PollingStrategy();
     this.eventEmitter = new EventEmitter();
   }
@@ -2414,7 +2410,7 @@ export class NetworkError extends Error implements VivaWalletError {
       retryable?: boolean;
       context?: Record<string, any>;
       originalError?: Error;
-    }
+    },
   ) {
     super(message);
     this.name = "NetworkError";
@@ -2932,7 +2928,10 @@ export class CircuitBreaker {
   private lastFailureTime: Date | null = null;
   private nextAttemptTime: Date | null = null;
 
-  constructor(private readonly terminalId: string, private readonly config: CircuitBreakerConfig) {}
+  constructor(
+    private readonly terminalId: string,
+    private readonly config: CircuitBreakerConfig,
+  ) {}
 
   async execute<T>(operation: () => Promise<T>): Promise<T> {
     // Check if we should attempt the operation
@@ -3326,7 +3325,7 @@ export function useVivaWallet() {
         setIsConnecting(false);
       }
     },
-    [terminals]
+    [terminals],
   );
 
   // Get terminal status
@@ -4349,7 +4348,7 @@ class VivaWalletHTTPClient {
         // Log request (without sensitive data)
         return config;
       },
-      (error) => Promise.reject(error)
+      (error) => Promise.reject(error),
     );
 
     // Response interceptor
@@ -4358,7 +4357,7 @@ class VivaWalletHTTPClient {
       async (error: AxiosError) => {
         // Error handling with retry logic
         return this.handleError(error);
-      }
+      },
     );
   }
 }
@@ -4373,21 +4372,18 @@ class VivaWalletHTTPClient {
 **Key Requirements:**
 
 1. **Card Data Handling**
-
    - ✅ Never store card data in POS application
    - ✅ Terminal handles all card data
    - ✅ Only receive tokenized/truncated card information
    - ✅ Mask card details in logs
 
 2. **Network Security**
-
    - Use HTTPS for terminal communication (if supported)
    - Implement certificate pinning
    - Use local network isolation
    - Disable external network access for terminal communication
 
 3. **Access Control**
-
    - Secure API key storage
    - Use environment-specific keys
    - Implement key rotation mechanism
@@ -4651,13 +4647,11 @@ class TransactionRecovery {
 **Recovery Scenarios:**
 
 1. **App Restart During Transaction**
-
    - Resume polling on startup
    - Check transaction status with terminal
    - Update local transaction state
 
 2. **Network Interruption**
-
    - Automatically reconnect
    - Resume polling from last known state
    - Handle duplicate transaction prevention
@@ -4741,7 +4735,6 @@ describe("ErrorHandler", () => {
 **Test Scenarios:**
 
 1. **End-to-End Payment Flow**
-
    - Select Viva Wallet payment method
    - Connect to terminal
    - Initiate transaction
@@ -4749,7 +4742,6 @@ describe("ErrorHandler", () => {
    - Verify transaction completion
 
 2. **Error Recovery**
-
    - Simulate network interruption
    - Verify automatic reconnection
    - Test transaction recovery
@@ -4781,14 +4773,12 @@ describe("ErrorHandler", () => {
 **Test Cases:**
 
 1. **Connection Testing**
-
    - [ ] Successful terminal discovery
    - [ ] Terminal connection
    - [ ] Connection health monitoring
    - [ ] Reconnection after disconnection
 
 2. **Transaction Testing**
-
    - [ ] Successful sale transaction
    - [ ] Card decline handling
    - [ ] Transaction timeout
@@ -4796,7 +4786,6 @@ describe("ErrorHandler", () => {
    - [ ] Refund transaction
 
 3. **Network Scenarios**
-
    - [ ] Network interruption during transaction
    - [ ] Terminal IP address change
    - [ ] Firewall blocking
@@ -4930,13 +4919,11 @@ describe("ErrorHandler", () => {
 **Rollback Procedure:**
 
 1. **Immediate Actions:**
-
    - Disable Viva Wallet provider
    - Revert to previous payment method
    - Notify all locations
 
 2. **Investigation:**
-
    - Analyze failure logs
    - Identify root cause
    - Develop fix
@@ -4951,14 +4938,12 @@ describe("ErrorHandler", () => {
 **Key Metrics to Monitor:**
 
 1. **Transaction Metrics**
-
    - Success rate
    - Average processing time
    - Failure rate by error type
    - Refund rate
 
 2. **System Metrics**
-
    - Terminal connectivity
    - Network latency
    - Error rates
@@ -5355,7 +5340,7 @@ describe("ErrorHandler", () => {
 
 ## Conclusion
 
-This integration plan provides a comprehensive roadmap for integrating Viva Wallet's Local Terminal API into the AuraSwift POS system. The phased approach ensures systematic development, thorough testing, and successful deployment.
+This integration plan provides a comprehensive roadmap for integrating Viva Wallet's Local Terminal API into the Aurswift POS system. The phased approach ensures systematic development, thorough testing, and successful deployment.
 
 **Key Success Factors:**
 
@@ -5393,21 +5378,18 @@ This integration plan provides a comprehensive roadmap for integrating Viva Wall
 **Setting Up Device as Terminal:**
 
 1. **Install Viva.com Terminal App**
-
    - Download from Google Play Store (Android) or App Store (iOS)
    - Complete merchant registration
    - Configure account settings
 
 2. **Enable Peer-to-Peer Mode**
-
    - Open Viva.com Terminal app
    - Navigate to: **More > Integrations > Viva Peer to Peer**
    - Toggle **Enable Peer to Peer** to ON
    - Note the IP address and port displayed
 
 3. **Configure in POS System**
-
-   - Open AuraSwift Settings
+   - Open Aurswift Settings
    - Navigate to Payment Settings > Viva Wallet
    - Click "Discover Terminals" or manually enter:
      - Terminal name (e.g., "Counter Tablet", "Mobile Terminal")
@@ -5416,7 +5398,6 @@ This integration plan provides a comprehensive roadmap for integrating Viva Wall
      - API key (if required)
 
 4. **Test Connection**
-
    - Use "Test Connection" button in settings
    - Verify terminal appears as available
    - Check terminal capabilities are detected correctly
@@ -5452,14 +5433,12 @@ This integration plan provides a comprehensive roadmap for integrating Viva Wall
 **Common Issues:**
 
 1. **Terminal Not Discovered**
-
    - Check network connectivity
    - Verify terminal peer-to-peer enabled
    - Check firewall settings
    - Verify IP address range
 
 2. **Connection Failed**
-
    - Verify terminal IP and port
    - Check API key
    - Test network connectivity

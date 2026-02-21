@@ -1,6 +1,7 @@
-# Comprehensive Testing Plan for AuraSwift POS System
+# Comprehensive Testing Plan for Aurswift POS System
 
 ## Table of Contents
+
 1. [Overview & Philosophy](#overview--philosophy)
 2. [Testing Strategy](#testing-strategy)
 3. [Infrastructure Setup](#infrastructure-setup)
@@ -15,12 +16,14 @@
 ## Overview & Philosophy
 
 ### Project Context
+
 - **Tech Stack**: Electron + React 18 + TypeScript + Vite
 - **Architecture**: Multi-process (Main, Preload, Renderer)
 - **Domain**: Point-of-Sale System with hardware integration
 - **Scale**: Enterprise-grade with RBAC, inventory, transactions, payments
 
 ### Testing Philosophy
+
 - **Test Pyramid**: Many unit tests → Fewer integration tests → Few E2E tests
 - **Pragmatic Coverage**: Focus on business logic and critical paths
 - **Fast Feedback**: Unit tests run in <1s, full suite in <5min
@@ -32,9 +35,11 @@
 ## Testing Strategy
 
 ### 1. Unit Tests (70% of test suite)
+
 **Purpose**: Test isolated functions, utilities, and business logic
 
 **Tools**:
+
 ```json
 {
   "vitest": "^2.1.0",
@@ -47,6 +52,7 @@
 ```
 
 **What to Test**:
+
 - ✅ Pure functions and utilities
 - ✅ Validators (scheduleValidator, transactionValidator)
 - ✅ Managers (businessManager, productManager, etc.)
@@ -56,11 +62,13 @@
 - ❌ Don't test: Third-party libraries, trivial getters/setters
 
 ### 2. Component Tests (20% of test suite)
+
 **Purpose**: Test React components in isolation with mocked dependencies
 
 **Tools**: Same as Unit Tests + React Testing Library
 
 **What to Test**:
+
 - ✅ Component rendering with different props
 - ✅ User interactions (click, type, submit)
 - ✅ Conditional rendering logic
@@ -69,9 +77,11 @@
 - ❌ Don't test: Styling details, exact DOM structure
 
 ### 3. Integration Tests (8% of test suite)
+
 **Purpose**: Test interactions between multiple modules/services
 
 **Tools**:
+
 ```json
 {
   "msw": "^2.6.0",
@@ -80,6 +90,7 @@
 ```
 
 **What to Test**:
+
 - ✅ IPC communication (Main ↔ Renderer)
 - ✅ Database operations (CRUD with real SQLite)
 - ✅ Service interactions (e.g., transaction + inventory + audit)
@@ -87,9 +98,11 @@
 - ✅ Hardware service integration (with simulation mode)
 
 ### 4. E2E Tests (2% of test suite)
+
 **Purpose**: Test complete user workflows in real Electron environment
 
 **Tools**:
+
 ```json
 {
   "playwright": "^1.55.0",
@@ -98,6 +111,7 @@
 ```
 
 **What to Test**:
+
 - ✅ Critical user journeys (login → sale → payment → receipt)
 - ✅ Multi-window workflows (main + receipt printer)
 - ✅ Electron-specific features (menu, tray, shortcuts)
@@ -112,6 +126,7 @@
 ### 1. Vitest Configuration
 
 **Current Setup** (`vitest.config.ts`):
+
 ```typescript
 export default defineConfig({
   plugins: [react()],
@@ -124,41 +139,34 @@ export default defineConfig({
       "node_modules",
       "dist",
       "tests/e2e",
-      "tests/**/*.spec.ts" // Playwright specs
+      "tests/**/*.spec.ts", // Playwright specs
     ],
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html", "lcov"],
-      exclude: [
-        "node_modules/",
-        "tests/",
-        "**/*.d.ts",
-        "**/*.config.*",
-        "**/dist/",
-        "**/migrations/",
-        "**/seed.ts"
-      ],
+      exclude: ["node_modules/", "tests/", "**/*.d.ts", "**/*.config.*", "**/dist/", "**/migrations/", "**/seed.ts"],
       thresholds: {
         lines: 70,
         functions: 70,
         branches: 65,
-        statements: 70
-      }
+        statements: 70,
+      },
     },
     testTimeout: 10000,
-    hookTimeout: 10000
+    hookTimeout: 10000,
   },
   resolve: {
     alias: {
       "@": "./packages/renderer/src",
       "@app/main": "./packages/main/src",
-      "@app/preload": "./packages/preload/src"
-    }
-  }
+      "@app/preload": "./packages/preload/src",
+    },
+  },
 });
 ```
 
 **Enhancement Recommendations**:
+
 1. Add workspace-specific configs for renderer/main/preload
 2. Enable parallel test execution with `--threads`
 3. Add custom reporters for CI (JUnit XML)
@@ -166,41 +174,39 @@ export default defineConfig({
 ### 2. Playwright Configuration
 
 **Create** `playwright.config.ts`:
+
 ```typescript
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
-  testDir: './tests/e2e',
+  testDir: "./tests/e2e",
   fullyParallel: false, // Sequential for Electron
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: 1, // One worker for Electron tests
-  reporter: [
-    ['html'],
-    ['junit', { outputFile: 'test-results/junit.xml' }],
-    ['list']
-  ],
+  reporter: [["html"], ["junit", { outputFile: "test-results/junit.xml" }], ["list"]],
   timeout: 60000,
   expect: {
-    timeout: 10000
+    timeout: 10000,
   },
   use: {
-    trace: 'retain-on-failure',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure'
+    trace: "retain-on-failure",
+    screenshot: "only-on-failure",
+    video: "retain-on-failure",
   },
   projects: [
     {
-      name: 'electron',
+      name: "electron",
       testMatch: /.*\.spec\.ts/,
-    }
-  ]
+    },
+  ],
 });
 ```
 
 ### 3. Test Setup File
 
 **Enhance** `tests/setup.ts`:
+
 ```typescript
 import { expect, afterEach, vi, beforeAll, afterAll } from "vitest";
 import { cleanup } from "@testing-library/react";
@@ -284,7 +290,7 @@ vi.mock("electron", () => ({
       if (name === "userData") return "/tmp/test-user-data";
       return "/tmp/test-path";
     }),
-    getName: vi.fn(() => "AuraSwift"),
+    getName: vi.fn(() => "Aurswift"),
     getVersion: vi.fn(() => "1.16.0"),
   },
   ipcMain: {
@@ -329,36 +335,38 @@ expect.extend({
 ### 4. MSW Setup for API Mocking
 
 **Create** `tests/mocks/handlers.ts`:
+
 ```typescript
-import { http, HttpResponse } from 'msw';
+import { http, HttpResponse } from "msw";
 
 export const handlers = [
   // Example: Mock Viva Wallet API
-  http.post('/api/viva-wallet/payment', async ({ request }) => {
+  http.post("/api/viva-wallet/payment", async ({ request }) => {
     const body = await request.json();
     return HttpResponse.json({
-      transactionId: 'mock-txn-123',
-      status: 'COMPLETED',
+      transactionId: "mock-txn-123",
+      status: "COMPLETED",
       amount: body.amount,
     });
   }),
 
   // Mock external receipt printer service
-  http.post('/api/printer/print', () => {
-    return HttpResponse.json({ success: true, jobId: 'print-job-123' });
+  http.post("/api/printer/print", () => {
+    return HttpResponse.json({ success: true, jobId: "print-job-123" });
   }),
 ];
 ```
 
 **Create** `tests/mocks/server.ts`:
+
 ```typescript
-import { setupServer } from 'msw/node';
-import { handlers } from './handlers';
+import { setupServer } from "msw/node";
+import { handlers } from "./handlers";
 
 export const server = setupServer(...handlers);
 
 // Start server before all tests
-beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }));
+beforeAll(() => server.listen({ onUnhandledRequest: "warn" }));
 
 // Reset handlers after each test
 afterEach(() => server.resetHandlers());
@@ -473,6 +481,7 @@ tests/
 5. **Helpers**: `{purpose}-helper.ts`
 
 **Examples**:
+
 ```typescript
 // ✅ Good
 describe('TransactionManager', () => {
@@ -495,30 +504,26 @@ describe('Tests', () => {
 
 ```typescript
 // packages/main/src/utils/discountCalculator.ts
-export function calculateDiscount(
-  subtotal: number,
-  discountType: 'percentage' | 'fixed',
-  discountValue: number
-): number {
-  if (subtotal < 0) throw new Error('Subtotal cannot be negative');
-  if (discountValue < 0) throw new Error('Discount value cannot be negative');
+export function calculateDiscount(subtotal: number, discountType: "percentage" | "fixed", discountValue: number): number {
+  if (subtotal < 0) throw new Error("Subtotal cannot be negative");
+  if (discountValue < 0) throw new Error("Discount value cannot be negative");
 
-  if (discountType === 'percentage') {
+  if (discountType === "percentage") {
     return subtotal * (discountValue / 100);
   }
   return Math.min(discountValue, subtotal);
 }
 
 // tests/unit/main/utils/discountCalculator.test.ts
-import { describe, it, expect } from 'vitest';
-import { calculateDiscount } from '@app/main/utils/discountCalculator';
+import { describe, it, expect } from "vitest";
+import { calculateDiscount } from "@app/main/utils/discountCalculator";
 
-describe('calculateDiscount', () => {
-  describe('percentage discounts', () => {
-    it('should calculate 10% discount correctly', () => {
+describe("calculateDiscount", () => {
+  describe("percentage discounts", () => {
+    it("should calculate 10% discount correctly", () => {
       // Arrange
       const subtotal = 100;
-      const discountType = 'percentage';
+      const discountType = "percentage";
       const discountValue = 10;
 
       // Act
@@ -528,38 +533,36 @@ describe('calculateDiscount', () => {
       expect(result).toBe(10);
     });
 
-    it('should handle 0% discount', () => {
-      const result = calculateDiscount(100, 'percentage', 0);
+    it("should handle 0% discount", () => {
+      const result = calculateDiscount(100, "percentage", 0);
       expect(result).toBe(0);
     });
 
-    it('should handle 100% discount', () => {
-      const result = calculateDiscount(100, 'percentage', 100);
+    it("should handle 100% discount", () => {
+      const result = calculateDiscount(100, "percentage", 100);
       expect(result).toBe(100);
     });
   });
 
-  describe('fixed discounts', () => {
-    it('should apply full discount when less than subtotal', () => {
-      const result = calculateDiscount(100, 'fixed', 20);
+  describe("fixed discounts", () => {
+    it("should apply full discount when less than subtotal", () => {
+      const result = calculateDiscount(100, "fixed", 20);
       expect(result).toBe(20);
     });
 
-    it('should cap discount at subtotal amount', () => {
-      const result = calculateDiscount(100, 'fixed', 150);
+    it("should cap discount at subtotal amount", () => {
+      const result = calculateDiscount(100, "fixed", 150);
       expect(result).toBe(100);
     });
   });
 
-  describe('error handling', () => {
-    it('should throw error for negative subtotal', () => {
-      expect(() => calculateDiscount(-100, 'percentage', 10))
-        .toThrow('Subtotal cannot be negative');
+  describe("error handling", () => {
+    it("should throw error for negative subtotal", () => {
+      expect(() => calculateDiscount(-100, "percentage", 10)).toThrow("Subtotal cannot be negative");
     });
 
-    it('should throw error for negative discount value', () => {
-      expect(() => calculateDiscount(100, 'percentage', -10))
-        .toThrow('Discount value cannot be negative');
+    it("should throw error for negative discount value", () => {
+      expect(() => calculateDiscount(100, "percentage", -10)).toThrow("Discount value cannot be negative");
     });
   });
 });
@@ -582,7 +585,7 @@ export function ProductCard({ product, onAddToCart, disabled }: ProductCardProps
       <h3>{product.name}</h3>
       <p>£{product.price.toFixed(2)}</p>
       {product.stock === 0 && <span>Out of Stock</span>}
-      <button 
+      <button
         onClick={() => onAddToCart(product)}
         disabled={disabled || product.stock === 0}
       >
@@ -665,63 +668,63 @@ describe('ProductCard', () => {
 
 ```typescript
 // tests/integration/main/ipc-communication.test.ts
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { ipcMain, ipcRenderer } from 'electron';
-import { setupAuthHandlers } from '@app/main/ipc/auth.handlers';
-import { UserManager } from '@app/main/database/managers/userManager';
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { ipcMain, ipcRenderer } from "electron";
+import { setupAuthHandlers } from "@app/main/ipc/auth.handlers";
+import { UserManager } from "@app/main/database/managers/userManager";
 
-describe('IPC Communication - Auth', () => {
+describe("IPC Communication - Auth", () => {
   let userManager: UserManager;
 
   beforeEach(async () => {
     // Setup test database
     const db = await createTestDatabase();
     userManager = new UserManager(db);
-    
+
     // Register IPC handlers
     setupAuthHandlers(userManager);
   });
 
   afterEach(async () => {
     // Clean up IPC handlers
-    ipcMain.removeHandler('auth:login');
-    ipcMain.removeHandler('auth:register');
-    
+    ipcMain.removeHandler("auth:login");
+    ipcMain.removeHandler("auth:register");
+
     // Clean up database
     await cleanupTestDatabase();
   });
 
-  it('should authenticate user via IPC and return user data', async () => {
+  it("should authenticate user via IPC and return user data", async () => {
     // Arrange: Create test user
     await userManager.create({
-      email: 'test@example.com',
-      password: 'hashedPassword123',
-      role: 'cashier'
+      email: "test@example.com",
+      password: "hashedPassword123",
+      role: "cashier",
     });
 
     // Act: Simulate IPC call from renderer
-    const result = await ipcRenderer.invoke('auth:login', {
-      email: 'test@example.com',
-      password: 'password123'
+    const result = await ipcRenderer.invoke("auth:login", {
+      email: "test@example.com",
+      password: "password123",
     });
 
     // Assert
     expect(result.success).toBe(true);
     expect(result.user).toMatchObject({
-      email: 'test@example.com',
-      role: 'cashier'
+      email: "test@example.com",
+      role: "cashier",
     });
     expect(result.user.password).toBeUndefined(); // Password should not be returned
   });
 
-  it('should return error for invalid credentials', async () => {
-    const result = await ipcRenderer.invoke('auth:login', {
-      email: 'nonexistent@example.com',
-      password: 'wrongpassword'
+  it("should return error for invalid credentials", async () => {
+    const result = await ipcRenderer.invoke("auth:login", {
+      email: "nonexistent@example.com",
+      password: "wrongpassword",
     });
 
     expect(result.success).toBe(false);
-    expect(result.error).toBe('Invalid credentials');
+    expect(result.error).toBe("Invalid credentials");
   });
 });
 ```
@@ -734,7 +737,7 @@ export class LoginPage {
   constructor(private page: Page) {}
 
   async navigate() {
-    await this.page.waitForLoadState('domcontentloaded');
+    await this.page.waitForLoadState("domcontentloaded");
     await this.page.waitForTimeout(2000);
   }
 
@@ -746,16 +749,16 @@ export class LoginPage {
 
   async isLoggedIn() {
     await this.page.waitForURL(/.*#\/dashboard/, { timeout: 5000 });
-    return this.page.url().includes('#/dashboard');
+    return this.page.url().includes("#/dashboard");
   }
 }
 
 // tests/e2e/sales.spec.ts
-import { test, expect } from '@playwright/test';
-import { LoginPage } from './page-objects/LoginPage';
-import { SalesPage } from './page-objects/SalesPage';
+import { test, expect } from "@playwright/test";
+import { LoginPage } from "./page-objects/LoginPage";
+import { SalesPage } from "./page-objects/SalesPage";
 
-test.describe('Complete Sale Workflow', () => {
+test.describe("Complete Sale Workflow", () => {
   let loginPage: LoginPage;
   let salesPage: SalesPage;
 
@@ -763,33 +766,33 @@ test.describe('Complete Sale Workflow', () => {
     const page = await electronApp.firstWindow();
     loginPage = new LoginPage(page);
     salesPage = new SalesPage(page);
-    
+
     await loginPage.navigate();
-    await loginPage.login('cashier@test.com', 'password123');
+    await loginPage.login("cashier@test.com", "password123");
   });
 
-  test('should complete a cash sale with receipt printing', async ({ electronApp }) => {
+  test("should complete a cash sale with receipt printing", async ({ electronApp }) => {
     const page = await electronApp.firstWindow();
-    
+
     // Navigate to sales
     await page.click('[data-testid="nav-sales"]');
-    
+
     // Add products to cart
-    await salesPage.addProductToCart('Product-123');
-    await salesPage.addProductToCart('Product-456');
-    
+    await salesPage.addProductToCart("Product-123");
+    await salesPage.addProductToCart("Product-456");
+
     // Verify cart total
     const total = await salesPage.getCartTotal();
     expect(total).toBeGreaterThan(0);
-    
+
     // Process payment
-    await salesPage.selectPaymentMethod('cash');
+    await salesPage.selectPaymentMethod("cash");
     await salesPage.enterCashAmount(100);
     await salesPage.clickCompletePayment();
-    
+
     // Verify success
-    await expect(page.locator('.payment-success')).toBeVisible();
-    
+    await expect(page.locator(".payment-success")).toBeVisible();
+
     // Verify receipt printed
     const receiptPrinted = await page.evaluate(() => {
       return (window as any).printerAPI.printReceipt.mock.calls.length > 0;
@@ -825,8 +828,8 @@ export function createMockProduct(overrides?: Partial<Product>): Product {
 }
 
 export function createMockProducts(count: number): Product[] {
-  return Array.from({ length: count }, (_, i) => 
-    createMockProduct({ 
+  return Array.from({ length: count }, (_, i) =>
+    createMockProduct({
       id: `product-${i}`,
       name: `Product ${i}`,
       barcode: `123456789000${i}`
@@ -897,16 +900,18 @@ export function render(ui: React.ReactElement, options = {}) {
 ## Coverage Targets
 
 ### Overall Targets
-| Category | Minimum | Target | Aspirational |
-|----------|---------|--------|--------------|
-| **Lines** | 70% | 80% | 90% |
-| **Functions** | 70% | 80% | 90% |
-| **Branches** | 65% | 75% | 85% |
-| **Statements** | 70% | 80% | 90% |
+
+| Category       | Minimum | Target | Aspirational |
+| -------------- | ------- | ------ | ------------ |
+| **Lines**      | 70%     | 80%    | 90%          |
+| **Functions**  | 70%     | 80%    | 90%          |
+| **Branches**   | 65%     | 75%    | 85%          |
+| **Statements** | 70%     | 80%    | 90%          |
 
 ### Category-Specific Targets
 
 #### Critical Business Logic (95%+)
+
 - Transaction calculations
 - Discount & tax logic
 - RBAC permission checks
@@ -915,22 +920,26 @@ export function render(ui: React.ReactElement, options = {}) {
 - Shift validation
 
 #### Services & Managers (85%+)
+
 - Database managers (UserManager, ProductManager, etc.)
 - Business services (VivaWallet, PDF generation)
 - Hardware services (Printer, Scale)
 
 #### React Components (75%+)
+
 - Form components
 - Interactive UI components
 - Feature views (Sales, Inventory)
 
 #### Utilities (90%+)
+
 - Validators
 - Helpers
 - Formatters
 - Constants
 
 #### Infrastructure (<50%)
+
 - Configuration files
 - Build scripts
 - Type definitions
@@ -950,6 +959,7 @@ npm run test:coverage -- --reporter=lcov
 ```
 
 **Coverage Enforcement** (vitest.config.ts):
+
 ```typescript
 coverage: {
   thresholds: {
@@ -969,6 +979,7 @@ coverage: {
 ### GitHub Actions Workflow
 
 **Create** `.github/workflows/test.yml`:
+
 ```yaml
 name: Test Suite
 
@@ -981,31 +992,31 @@ on:
 jobs:
   unit-tests:
     runs-on: windows-latest # Electron native modules
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22.12.0'
-          cache: 'npm'
-      
+          node-version: "22.12.0"
+          cache: "npm"
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run unit & component tests
         run: npm run test:run
-      
+
       - name: Generate coverage report
         run: npm run test:coverage
-      
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           file: ./coverage/lcov.info
           flags: unit
-      
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -1018,22 +1029,22 @@ jobs:
   integration-tests:
     runs-on: windows-latest
     needs: unit-tests
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22.12.0'
-          cache: 'npm'
-      
+          node-version: "22.12.0"
+          cache: "npm"
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run integration tests
         run: npm run test:integration
-      
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -1044,34 +1055,34 @@ jobs:
   e2e-tests:
     runs-on: windows-latest
     needs: [unit-tests, integration-tests]
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22.12.0'
-          cache: 'npm'
-      
+          node-version: "22.12.0"
+          cache: "npm"
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Build application
         run: npm run build
-      
+
       - name: Run E2E tests
         run: npm run test:e2e
         env:
           CI: true
-      
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: e2e-test-results
           path: test-results/
-      
+
       - name: Upload screenshots/videos
         if: failure()
         uses: actions/upload-artifact@v4
@@ -1085,11 +1096,11 @@ jobs:
     runs-on: windows-latest
     needs: [unit-tests, integration-tests, e2e-tests]
     if: always()
-    
+
     steps:
       - name: Download all test results
         uses: actions/download-artifact@v4
-      
+
       - name: Publish test summary
         uses: test-summary/action@v2
         with:
@@ -1099,12 +1110,14 @@ jobs:
 ### Pre-commit Hooks (Husky)
 
 **Install**:
+
 ```bash
 npm install -D husky lint-staged
 npx husky init
 ```
 
 **Create** `.husky/pre-commit`:
+
 ```bash
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
@@ -1114,15 +1127,14 @@ npm run test:staged
 ```
 
 **Update** `package.json`:
+
 ```json
 {
   "scripts": {
     "test:staged": "vitest related --run"
   },
   "lint-staged": {
-    "*.{ts,tsx}": [
-      "vitest related --run"
-    ]
+    "*.{ts,tsx}": ["vitest related --run"]
   }
 }
 ```
@@ -1132,6 +1144,7 @@ npm run test:staged
 ## Implementation Roadmap
 
 ### Phase 1: Foundation (Week 1-2)
+
 - [ ] Setup Playwright configuration
 - [ ] Create test helpers and fixtures library
 - [ ] Setup MSW for API mocking
@@ -1139,6 +1152,7 @@ npm run test:staged
 - [ ] Write test documentation
 
 ### Phase 2: Critical Path Tests (Week 3-4)
+
 - [ ] Auth flow (login, logout, session)
 - [ ] Product management (CRUD)
 - [ ] Transaction creation & calculation
@@ -1146,6 +1160,7 @@ npm run test:staged
 - [ ] RBAC permission checks
 
 ### Phase 3: Feature Tests (Week 5-8)
+
 - [ ] Inventory management
 - [ ] Sales workflows
 - [ ] Reporting
@@ -1153,6 +1168,7 @@ npm run test:staged
 - [ ] Settings & configuration
 
 ### Phase 4: Integration & E2E (Week 9-10)
+
 - [ ] IPC communication tests
 - [ ] Database integration tests
 - [ ] Hardware service tests
@@ -1160,6 +1176,7 @@ npm run test:staged
 - [ ] Multi-window workflows
 
 ### Phase 5: Coverage & Optimization (Week 11-12)
+
 - [ ] Achieve 70% coverage
 - [ ] Performance optimization
 - [ ] Test maintenance automation
@@ -1167,6 +1184,7 @@ npm run test:staged
 - [ ] Retrospective & improvements
 
 ### Success Metrics
+
 - ✅ All tests pass in CI
 - ✅ Coverage thresholds met (70/70/65/70)
 - ✅ E2E tests complete in <5 minutes
@@ -1179,6 +1197,7 @@ npm run test:staged
 ## Best Practices Summary
 
 ### Do's ✅
+
 1. **Write tests first** for new features (TDD)
 2. **Test behavior, not implementation** (avoid testing private methods)
 3. **Use descriptive test names** (should do X when Y)
@@ -1191,6 +1210,7 @@ npm run test:staged
 10. **Monitor coverage trends** (prevent regression)
 
 ### Don'ts ❌
+
 1. **Don't test third-party libraries** (assume they work)
 2. **Don't test implementation details** (CSS classes, DOM structure)
 3. **Don't write flaky tests** (random failures, timing issues)
@@ -1207,20 +1227,23 @@ npm run test:staged
 ## Resources
 
 ### Documentation
+
 - [Vitest Docs](https://vitest.dev/)
 - [React Testing Library](https://testing-library.com/react)
 - [Playwright Docs](https://playwright.dev/)
 - [MSW Docs](https://mswjs.io/)
 
 ### Internal Docs
+
 - `tests/README.md` - Quick reference
 - `tests/utils/test-helpers.ts` - Helper functions
 - `tests/**/*.example.ts` - Example tests
 
 ### Support
+
 - **Slack**: #testing channel
-- **Email**: dev-team@auraswift.com
-- **Wiki**: https://wiki.auraswift.com/testing
+- **Email**: dev-team@Aurswift.com
+- **Wiki**: https://wiki.Aurswift.com/testing
 
 ---
 
@@ -1256,6 +1279,7 @@ npm run test:staged
 ### B. VSCode Test Integration
 
 **Create** `.vscode/settings.json`:
+
 ```json
 {
   "vitest.enable": true,
@@ -1266,6 +1290,7 @@ npm run test:staged
 ```
 
 **Install Extensions**:
+
 - Vitest (vitest.explorer)
 - Playwright Test for VSCode (ms-playwright.playwright)
 
@@ -1275,4 +1300,3 @@ npm run test:staged
 **Last Updated**: December 6, 2025  
 **Author**: Development Team  
 **Status**: Active
-

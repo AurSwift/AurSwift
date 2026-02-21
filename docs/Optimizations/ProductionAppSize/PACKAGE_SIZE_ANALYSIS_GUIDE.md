@@ -1,6 +1,6 @@
-# Package Size Analysis Guide for AuraSwift
+# Package Size Analysis Guide for Aurswift
 
-This guide explains how to analyze package sizes and understand their impact on the AuraSwift app bundle.
+This guide explains how to analyze package sizes and understand their impact on the Aurswift app bundle.
 
 ---
 
@@ -81,13 +81,13 @@ npm run compile
 
 # On macOS, analyze the .app bundle
 cd dist/mac
-du -sh AuraSwift.app/Contents/Resources/*
+du -sh Aurswift.app/Contents/Resources/*
 
 # Check app.asar size
-du -sh AuraSwift.app/Contents/Resources/app.asar
+du -sh Aurswift.app/Contents/Resources/app.asar
 
 # Check unpacked native modules
-du -sh AuraSwift.app/Contents/Resources/app.asar.unpacked/node_modules/* | sort -hr
+du -sh Aurswift.app/Contents/Resources/app.asar.unpacked/node_modules/* | sort -hr
 ```
 
 **Key locations**:
@@ -208,7 +208,7 @@ npx npm-check
 npm install -g asar
 
 # Extract and analyze
-asar extract dist/mac/AuraSwift.app/Contents/Resources/app.asar ./extracted-asar
+asar extract dist/mac/Aurswift.app/Contents/Resources/app.asar ./extracted-asar
 du -sh extracted-asar/**/* | sort -hr | head -20
 ```
 
@@ -216,7 +216,7 @@ du -sh extracted-asar/**/* | sort -hr | head -20
 
 ```bash
 # After build, check what's in unpacked
-cd dist/mac/AuraSwift.app/Contents/Resources/app.asar.unpacked/node_modules
+cd dist/mac/Aurswift.app/Contents/Resources/app.asar.unpacked/node_modules
 
 # Check better-sqlite3
 du -sh better-sqlite3/**/* | sort -hr
@@ -274,7 +274,7 @@ After applying optimizations in `electron-builder.mjs`:
 npm run compile
 
 # Check sizes again
-du -sh dist/mac/AuraSwift.app/Contents/Resources/app.asar.unpacked
+du -sh dist/mac/Aurswift.app/Contents/Resources/app.asar.unpacked
 ```
 
 ---

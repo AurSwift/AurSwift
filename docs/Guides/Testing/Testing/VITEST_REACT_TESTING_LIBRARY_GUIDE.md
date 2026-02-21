@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide provides comprehensive information about using **Vitest** and **React Testing Library** together in the AuraSwift project. This is the recommended combination for testing React components and renderer process code.
+This guide provides comprehensive information about using **Vitest** and **React Testing Library** together in the Aurswift project. This is the recommended combination for testing React components and renderer process code.
 
 ---
 
@@ -924,4 +924,4 @@ expect(element).toHaveClass("className");
 
 ---
 
-This guide should give you everything you need to effectively use Vitest and React Testing Library together in your AuraSwift project!
+This guide should give you everything you need to effectively use Vitest and React Testing Library together in your Aurswift project!

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides a comprehensive analysis of how totals are calculated in the cart table for the AuraSwift POS system.
+This document provides a comprehensive analysis of how totals are calculated in the cart table for the Aurswift POS system.
 
 ---
 
@@ -369,20 +369,17 @@ This matches the calculated total: `£9.15 (subtotal) + £0.73 (tax) = £9.88`
 ### Calculation Accuracy
 
 1. **Individual Item Calculation:** ✅ Correct
-
    - Properly calculates subtotal, tax, and total per item
    - Handles both WEIGHT and UNIT items correctly
    - Formula: `item.totalPrice = itemSubtotal + itemTaxAmount`
 
 2. **Cart Totals Calculation:** ✅ Correct
-
    - Extracts true subtotal from `item.totalPrice - item.taxAmount`
    - Properly sums taxes without double counting
    - Formula: `total = subtotal + tax = Σ(item.totalPrice)`
    - Includes null safety checks for `taxAmount`
 
 3. **Cart Summary Display:** ✅ Correct
-
    - Calculates and displays weighted average tax rate dynamically
    - Shows actual effective tax rate (e.g., "Tax (8.2%)")
    - Handles edge cases (empty cart, zero subtotal)

@@ -22,14 +22,14 @@ But "executable" doesn't mean it runs your app directly! It can execute:
 
 ---
 
-## 🎯 **AuraSwift's Three .exe Files Explained**
+## 🎯 **Aurswift's Three .exe Files Explained**
 
 ### 1. **NSIS Installers** (x64 and ia32)
 
 **Files:**
 
-- `AuraSwift-1.1.0-win-x64.exe` (64-bit)
-- `AuraSwift-1.1.0-win-ia32.exe` (32-bit)
+- `Aurswift-1.1.0-win-x64.exe` (64-bit)
+- `Aurswift-1.1.0-win-ia32.exe` (32-bit)
 
 **Type:** Full Installation Wizard
 
@@ -42,7 +42,7 @@ Step 1: Windows Security Warning
 │ unknown publisher to make changes to   │
 │ your device?                            │
 │                                         │
-│ AuraSwift-1.1.0-win-x64.exe             │
+│ Aurswift-1.1.0-win-x64.exe             │
 │ Unknown publisher                       │
 │                                         │
 │      [ Yes ]        [ No ]              │
@@ -50,11 +50,11 @@ Step 1: Windows Security Warning
 
 Step 2: Installation Wizard Opens
 ┌─────────────────────────────────────────┐
-│           AuraSwift Setup               │
+│           Aurswift Setup               │
 │                                         │
-│  Welcome to AuraSwift Setup             │
+│  Welcome to Aurswift Setup             │
 │                                         │
-│  This will install AuraSwift on your    │
+│  This will install Aurswift on your    │
 │  computer.                              │
 │                                         │
 │  It is recommended that you close all   │
@@ -65,12 +65,12 @@ Step 2: Installation Wizard Opens
 
 Step 3: Choose Installation Location
 ┌─────────────────────────────────────────┐
-│           AuraSwift Setup               │
+│           Aurswift Setup               │
 │                                         │
 │  Choose Install Location                │
 │                                         │
 │  Destination Folder:                    │
-│  C:\Program Files\AuraSwift  [ Browse ] │
+│  C:\Program Files\Aurswift  [ Browse ] │
 │                                         │
 │  Space required: 250 MB                 │
 │  Space available: 50 GB                 │
@@ -80,7 +80,7 @@ Step 3: Choose Installation Location
 
 Step 4: Choose Components (if configured)
 ┌─────────────────────────────────────────┐
-│           AuraSwift Setup               │
+│           Aurswift Setup               │
 │                                         │
 │  Choose Components                      │
 │                                         │
@@ -93,7 +93,7 @@ Step 4: Choose Components (if configured)
 
 Step 5: Installation Progress
 ┌─────────────────────────────────────────┐
-│           AuraSwift Setup               │
+│           Aurswift Setup               │
 │                                         │
 │  Installing...                          │
 │                                         │
@@ -106,14 +106,14 @@ Step 5: Installation Progress
 
 Step 6: Completion
 ┌─────────────────────────────────────────┐
-│           AuraSwift Setup               │
+│           Aurswift Setup               │
 │                                         │
-│  Completing AuraSwift Setup             │
+│  Completing Aurswift Setup             │
 │                                         │
 │  Setup has finished installing          │
-│  AuraSwift on your computer.            │
+│  Aurswift on your computer.            │
 │                                         │
-│  ☑ Run AuraSwift                        │
+│  ☑ Run Aurswift                        │
 │                                         │
 │               [ Finish ]                │
 └─────────────────────────────────────────┘
@@ -121,25 +121,25 @@ Step 6: Completion
 
 **Behind the scenes:**
 
-1. ✅ Extracts files to `C:\Program Files\AuraSwift\`
-2. ✅ Creates `C:\Program Files\AuraSwift\AuraSwift.exe` (the actual app)
-3. ✅ Creates `C:\Program Files\AuraSwift\Uninstall AuraSwift.exe`
-4. ✅ Creates Start Menu shortcut → points to `C:\Program Files\AuraSwift\AuraSwift.exe`
-5. ✅ Creates Desktop shortcut → points to `C:\Program Files\AuraSwift\AuraSwift.exe`
+1. ✅ Extracts files to `C:\Program Files\Aurswift\`
+2. ✅ Creates `C:\Program Files\Aurswift\Aurswift.exe` (the actual app)
+3. ✅ Creates `C:\Program Files\Aurswift\Uninstall Aurswift.exe`
+4. ✅ Creates Start Menu shortcut → points to `C:\Program Files\Aurswift\Aurswift.exe`
+5. ✅ Creates Desktop shortcut → points to `C:\Program Files\Aurswift\Aurswift.exe`
 6. ✅ Registers in Windows Registry
 7. ✅ Adds to "Apps & Features" (Control Panel)
 
 **After installation:**
 
 - User launches from Start Menu or Desktop
-- AuraSwift app runs from `C:\Program Files\AuraSwift\AuraSwift.exe`
-- To uninstall: Windows Settings → Apps → AuraSwift → Uninstall
+- Aurswift app runs from `C:\Program Files\Aurswift\Aurswift.exe`
+- To uninstall: Windows Settings → Apps → Aurswift → Uninstall
 
 ---
 
 ### 2. **Portable Executable**
 
-**File:** `AuraSwift-1.1.0-win-Portable-x64.exe`
+**File:** `Aurswift-1.1.0-win-Portable-x64.exe`
 
 **Type:** Self-Contained Portable App
 
@@ -152,7 +152,7 @@ Step 1: Windows Security Warning
 │ unknown publisher to make changes to   │
 │ your device?                            │
 │                                         │
-│ AuraSwift-1.1.0-win-Portable-x64.exe    │
+│ Aurswift-1.1.0-win-Portable-x64.exe    │
 │ Unknown publisher                       │
 │                                         │
 │      [ Yes ]        [ No ]              │
@@ -160,7 +160,7 @@ Step 1: Windows Security Warning
 
 Step 2: App Opens IMMEDIATELY
 ┌─────────────────────────────────────────┐
-│  [X]  AuraSwift - POS System            │
+│  [X]  Aurswift - POS System            │
 ├─────────────────────────────────────────┤
 │                                         │
 │  [Dashboard]  [Sales]  [Inventory]      │
@@ -195,34 +195,34 @@ NO INSTALLATION WIZARD!
 ### **NSIS Installer:**
 
 ```
-User downloads:  AuraSwift-1.1.0-win-x64.exe (104 MB)
+User downloads:  Aurswift-1.1.0-win-x64.exe (104 MB)
                  └─> This is an INSTALLER PROGRAM
 
 Double-click:    Installer runs → Shows wizard → Installs app
 
-Installation:    C:\Program Files\AuraSwift\
-                 ├─ AuraSwift.exe         ← The actual app
+Installation:    C:\Program Files\Aurswift\
+                 ├─ Aurswift.exe         ← The actual app
                  ├─ resources\
                  ├─ locales\
-                 └─ Uninstall AuraSwift.exe
+                 └─ Uninstall Aurswift.exe
 
 Shortcuts:       Start Menu → Points to actual app
                  Desktop    → Points to actual app
 
-User runs app:   Via shortcuts → C:\Program Files\AuraSwift\AuraSwift.exe
+User runs app:   Via shortcuts → C:\Program Files\Aurswift\Aurswift.exe
 ```
 
 ### **Portable Version:**
 
 ```
-User downloads:  AuraSwift-1.1.0-win-Portable-x64.exe (214 MB)
+User downloads:  Aurswift-1.1.0-win-Portable-x64.exe (214 MB)
                  └─> This IS the app itself
 
 Double-click:    App runs DIRECTLY (no installation)
 
 Location:        Wherever user saved the .exe
-                 └─ C:\Downloads\AuraSwift-1.1.0-win-Portable-x64.exe
-                 └─ Or D:\USB\AuraSwift-1.1.0-win-Portable-x64.exe
+                 └─ C:\Downloads\Aurswift-1.1.0-win-Portable-x64.exe
+                 └─ Or D:\USB\Aurswift-1.1.0-win-Portable-x64.exe
                  └─ Or anywhere!
 
 Shortcuts:       User creates manually if wanted
@@ -234,18 +234,18 @@ User runs app:   Double-click the .exe directly
 
 ## 📊 **Side-by-Side Comparison**
 
-| Aspect                  | NSIS Installer .exe           | Portable .exe            |
-| ----------------------- | ----------------------------- | ------------------------ |
-| **When double-clicked** | Opens installation wizard     | Opens app immediately    |
-| **Installation steps**  | ✅ Yes (multiple screens)     | ❌ No                    |
-| **Extraction**          | ✅ Extracts to Program Files  | ❌ Self-contained        |
-| **File location**       | `C:\Program Files\AuraSwift\` | Wherever user saves it   |
-| **Shortcuts**           | ✅ Created automatically      | ❌ User creates manually |
-| **Windows integration** | ✅ Registered in system       | ❌ Not registered        |
-| **Uninstaller**         | ✅ Yes (via Control Panel)    | ❌ Just delete file      |
-| **Admin rights**        | ✅ Required                   | ❌ Not required          |
-| **File size**           | 104-110 MB                    | 214 MB (larger)          |
-| **Auto-updates**        | ✅ Full support               | ⚠️ Manual download       |
+| Aspect                  | NSIS Installer .exe          | Portable .exe            |
+| ----------------------- | ---------------------------- | ------------------------ |
+| **When double-clicked** | Opens installation wizard    | Opens app immediately    |
+| **Installation steps**  | ✅ Yes (multiple screens)    | ❌ No                    |
+| **Extraction**          | ✅ Extracts to Program Files | ❌ Self-contained        |
+| **File location**       | `C:\Program Files\Aurswift\` | Wherever user saves it   |
+| **Shortcuts**           | ✅ Created automatically     | ❌ User creates manually |
+| **Windows integration** | ✅ Registered in system      | ❌ Not registered        |
+| **Uninstaller**         | ✅ Yes (via Control Panel)   | ❌ Just delete file      |
+| **Admin rights**        | ✅ Required                  | ❌ Not required          |
+| **File size**           | 104-110 MB                   | 214 MB (larger)          |
+| **Auto-updates**        | ✅ Full support              | ⚠️ Manual download       |
 
 ---
 
@@ -270,7 +270,7 @@ nsis: {
 **This means:**
 
 1. ✅ Installation wizard with multiple steps
-2. ✅ User can choose installation directory (default: C:\Program Files\AuraSwift)
+2. ✅ User can choose installation directory (default: C:\Program Files\Aurswift)
 3. ✅ Desktop shortcut created
 4. ✅ Start Menu shortcut created
 5. ✅ Requires administrator permission
@@ -344,9 +344,9 @@ They are:
 Looking at file names:
 
 ```
-✅ AuraSwift-1.1.0-win-x64.exe            → NSIS Installer
-✅ AuraSwift-1.1.0-win-ia32.exe           → NSIS Installer
-✅ AuraSwift-1.1.0-win-Portable-x64.exe   → Portable App
+✅ Aurswift-1.1.0-win-x64.exe            → NSIS Installer
+✅ Aurswift-1.1.0-win-ia32.exe           → NSIS Installer
+✅ Aurswift-1.1.0-win-Portable-x64.exe   → Portable App
                             ^^^^^^^^
                             This keyword tells you!
 ```

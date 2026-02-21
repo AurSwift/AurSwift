@@ -1,6 +1,6 @@
 # Adaptive Keyboard Documentation Index
 
-Complete documentation for the Adaptive Keyboard system in AuraSwift.
+Complete documentation for the Adaptive Keyboard system in Aurswift.
 
 ---
 
@@ -8,7 +8,7 @@ Complete documentation for the Adaptive Keyboard system in AuraSwift.
 
 ### 1. [Integration Guide](../ADAPTIVE_KEYBOARD_INTEGRATION.md)
 
-**Primary documentation** - Complete guide to integrating the adaptive keyboard into AuraSwift forms.
+**Primary documentation** - Complete guide to integrating the adaptive keyboard into Aurswift forms.
 
 **Contents:**
 
@@ -159,7 +159,7 @@ The original Next.js reference project is located at:
 
 - `/Users/admin/Downloads/adaptive-keyboard-design/`
 
-**Note**: The keyboard has been fully adapted from Next.js to React for AuraSwift. No external dependencies on the reference project remain.
+**Note**: The keyboard has been fully adapted from Next.js to React for Aurswift. No external dependencies on the reference project remain.
 
 ---
 

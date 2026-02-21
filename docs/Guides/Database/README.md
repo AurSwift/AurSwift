@@ -1,6 +1,6 @@
 # Database Documentation
 
-This directory contains comprehensive documentation for AuraSwift's database system.
+This directory contains comprehensive documentation for Aurswift's database system.
 
 ## 📚 Documentation Structure
 
@@ -56,7 +56,7 @@ Complete overview of the database system architecture, features, and implementat
 
 ## 🗄️ Database System Overview
 
-AuraSwift uses:
+Aurswift uses:
 
 - **Database Engine:** SQLite (better-sqlite3)
 - **ORM:** Drizzle ORM
@@ -85,7 +85,6 @@ AuraSwift uses:
    ```
 
 2. **Database is automatically:**
-
    - Created at the appropriate location (dev/prod)
    - Migrated to the latest schema
    - Seeded with default data

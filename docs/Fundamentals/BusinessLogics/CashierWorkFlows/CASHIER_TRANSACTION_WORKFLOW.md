@@ -367,7 +367,7 @@ const transactionResponse = await window.transactionAPI.create({
 
 ```
 ┌─────────────────────────────────────┐
-│        AURASWIFT POS SYSTEM         │
+│        Aurswift POS SYSTEM         │
 │     123 Main Street, London         │
 │        Phone: 020-1234-5678         │
 │        VAT: GB123456789             │
@@ -441,7 +441,7 @@ const pdfBuffer = await generatePDFReceipt({
   paymentMethod: "cash",
   cashAmount,
   change: cashAmount - total,
-  storeName: user.businessName || "AuraSwift POS",
+  storeName: user.businessName || "Aurswift POS",
   storeAddress: "123 Main Street, London",
   storePhone: "020-1234-5678",
   vatNumber: "GB123456789",
@@ -495,7 +495,7 @@ const printResult = await printDocument(
     paperSize: "letter", // Letter or A4
     quality: "normal",
     orientation: "portrait",
-  }
+  },
 );
 ```
 
@@ -787,7 +787,7 @@ const NewTransactionView = () => {
         paymentMethod: "cash",
         cashAmount,
         change: cashAmount - total,
-        storeName: user.businessName || "AuraSwift POS",
+        storeName: user.businessName || "Aurswift POS",
         storeAddress: "123 Main Street, London",
         storePhone: "020-1234-5678",
         vatNumber: "GB123456789"
@@ -1100,13 +1100,11 @@ const change = parseFloat((cashAmount - total).toFixed(2));
 3. **Train cashiers** on troubleshooting basics (paper reload, printer restart)
 
 4. **Regular maintenance:**
-
    - Clean printer weekly
    - Update printer drivers monthly
    - Test print daily before opening
 
 5. **Monitor print queue:**
-
    - Check for failed jobs hourly
    - Clear queue at shift end
    - Review print job logs daily

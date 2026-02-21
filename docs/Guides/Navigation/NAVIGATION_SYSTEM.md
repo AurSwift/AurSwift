@@ -2,7 +2,7 @@
 
 ## Overview
 
-AuraSwift EPOS uses a centralized, hierarchical navigation system built on top of React. The system provides type-safe navigation, RBAC (Role-Based Access Control) integration, and support for nested views. It replaces traditional React Router patterns for internal app navigation while still using React Router for the top-level route structure.
+Aurswift EPOS uses a centralized, hierarchical navigation system built on top of React. The system provides type-safe navigation, RBAC (Role-Based Access Control) integration, and support for nested views. It replaces traditional React Router patterns for internal app navigation while still using React Router for the top-level route structure.
 
 ## Table of Contents
 
@@ -1396,7 +1396,7 @@ navigateTo(USERS_ROUTES.MANAGEMENT);
 
 ## Conclusion
 
-The AuraSwift navigation system provides:
+The Aurswift navigation system provides:
 
 ✅ **Type-safe routing** with route constants  
 ✅ **RBAC integration** with automatic permission checks  

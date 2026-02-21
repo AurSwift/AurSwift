@@ -1,6 +1,6 @@
 # Import from Booker — Complete Flow Documentation
 
-> **Scope:** This document describes the end-to-end flow when the **Import from Booker** button is clicked in **Product Management** (the product list view) in the AuraSwift desktop app, including every file and function involved.
+> **Scope:** This document describes the end-to-end flow when the **Import from Booker** button is clicked in **Product Management** (the product list view) in the Aurswift desktop app, including every file and function involved.
 
 ---
 
@@ -234,82 +234,82 @@ User closes modal → `onOpenChange(false)` → modal resets state (step, file, 
 
 ### Renderer (UI)
 
-| File | Function / export | Role |
-|------|-------------------|------|
-| `packages/renderer/src/features/inventory/views/product-details-view.tsx` | Component `ProductDetailsView` | Product Management UI; hosts Import button and modal. |
-| | `useState(false)` → `importModalOpen` | Toggles modal visibility. |
-| | `onClick` → `setImportModalOpen(true)` | Opens Import modal. |
-| | `ImportBookerModal` with `importType="product"`, `onSuccess={onProductsImported}` | Modal instance for product import. |
-| `packages/renderer/src/features/inventory/components/shared/import-booker-modal.tsx` | Component `ImportBookerModal` | Modal: select → parse → preview → import → complete. |
-| | `handleSelectFile` | Calls `importAPI.selectFile(importType)`, then `handleParseFile`. |
-| | `handleParseFile` | Calls `importAPI.parseFile`, validates `fileType`, sets `parsedData` / errors, moves to preview. |
-| | `handleImport` | Builds `ImportOptions`, calls `importAPI.importProducts` or `importDepartments` by `importType`. |
-| | `useEffect` (progress) | Subscribes to `importAPI.onProgress`, updates `progress` state. |
-| | `useEffect` (result + onSuccess) | Calls `onSuccess` when result has imported items. |
-| `packages/renderer/src/features/inventory/views/product-management-view.tsx` | `viewComponents.productList` | Renders `ProductDetailsView` for product list. |
-| | `onProductsImported` | Invalidates caches, `loadProducts`, `loadProductStats`. |
-| `packages/renderer/src/features/inventory/config/navigation.ts` | `PRODUCT_LIST`, etc. | Nested route ids for product management. |
-| `packages/renderer/src/navigation/registry/view-registry.ts` | Inventory / product management views | View registry. |
-| `packages/renderer/src/types/features/import/index.ts` | `ImportProgress`, `ImportResult`, `ImportOptions` | Types used by modal. |
+| File                                                                                 | Function / export                                                                 | Role                                                                                             |
+| ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `packages/renderer/src/features/inventory/views/product-details-view.tsx`            | Component `ProductDetailsView`                                                    | Product Management UI; hosts Import button and modal.                                            |
+|                                                                                      | `useState(false)` → `importModalOpen`                                             | Toggles modal visibility.                                                                        |
+|                                                                                      | `onClick` → `setImportModalOpen(true)`                                            | Opens Import modal.                                                                              |
+|                                                                                      | `ImportBookerModal` with `importType="product"`, `onSuccess={onProductsImported}` | Modal instance for product import.                                                               |
+| `packages/renderer/src/features/inventory/components/shared/import-booker-modal.tsx` | Component `ImportBookerModal`                                                     | Modal: select → parse → preview → import → complete.                                             |
+|                                                                                      | `handleSelectFile`                                                                | Calls `importAPI.selectFile(importType)`, then `handleParseFile`.                                |
+|                                                                                      | `handleParseFile`                                                                 | Calls `importAPI.parseFile`, validates `fileType`, sets `parsedData` / errors, moves to preview. |
+|                                                                                      | `handleImport`                                                                    | Builds `ImportOptions`, calls `importAPI.importProducts` or `importDepartments` by `importType`. |
+|                                                                                      | `useEffect` (progress)                                                            | Subscribes to `importAPI.onProgress`, updates `progress` state.                                  |
+|                                                                                      | `useEffect` (result + onSuccess)                                                  | Calls `onSuccess` when result has imported items.                                                |
+| `packages/renderer/src/features/inventory/views/product-management-view.tsx`         | `viewComponents.productList`                                                      | Renders `ProductDetailsView` for product list.                                                   |
+|                                                                                      | `onProductsImported`                                                              | Invalidates caches, `loadProducts`, `loadProductStats`.                                          |
+| `packages/renderer/src/features/inventory/config/navigation.ts`                      | `PRODUCT_LIST`, etc.                                                              | Nested route ids for product management.                                                         |
+| `packages/renderer/src/navigation/registry/view-registry.ts`                         | Inventory / product management views                                              | View registry.                                                                                   |
+| `packages/renderer/src/types/features/import/index.ts`                               | `ImportProgress`, `ImportResult`, `ImportOptions`                                 | Types used by modal.                                                                             |
 
 ### Preload & API
 
-| File | Function / export | Role |
-|------|-------------------|------|
-| `packages/preload/src/api/import.ts` | `importAPI` | Exposes import methods to renderer via IPC. |
-| | `selectFile(fileType)` | `ipcRenderer.invoke('import:booker:selectFile', fileType)`. |
-| | `parseFile(filePath)` | `ipcRenderer.invoke('import:booker:parseFile', filePath)`. |
-| | `importProducts(data, businessId, options)` | `ipcRenderer.invoke('import:booker:product', ...)`. |
-| | `onProgress(callback)` | Subscribe to `import:booker:progress`. |
-| `packages/preload/src/index.ts` | `contextBridge.exposeInMainWorld("importAPI", importAPI)` | Makes `window.importAPI` available in renderer. |
+| File                                 | Function / export                                         | Role                                                        |
+| ------------------------------------ | --------------------------------------------------------- | ----------------------------------------------------------- |
+| `packages/preload/src/api/import.ts` | `importAPI`                                               | Exposes import methods to renderer via IPC.                 |
+|                                      | `selectFile(fileType)`                                    | `ipcRenderer.invoke('import:booker:selectFile', fileType)`. |
+|                                      | `parseFile(filePath)`                                     | `ipcRenderer.invoke('import:booker:parseFile', filePath)`.  |
+|                                      | `importProducts(data, businessId, options)`               | `ipcRenderer.invoke('import:booker:product', ...)`.         |
+|                                      | `onProgress(callback)`                                    | Subscribe to `import:booker:progress`.                      |
+| `packages/preload/src/index.ts`      | `contextBridge.exposeInMainWorld("importAPI", importAPI)` | Makes `window.importAPI` available in renderer.             |
 
 ### Main process
 
-| File | Function / export | Role |
-|------|-------------------|------|
-| `packages/main/src/index.ts` | `initApp` | Registers IPC handlers during app init. |
-| | `registerBookerImportHandlers()` | Registers Booker import IPC handlers. |
-| `packages/main/src/ipc/bookerImportHandlers.ts` | `registerBookerImportHandlers` | Registers all `import:booker:*` handlers. |
-| | `import:booker:selectFile` | Uses `dialog.showOpenDialog`, returns `{ success, filePath }`. |
-| | `import:booker:parseFile` | Delegates to `BookerImportService.parseFile`. |
-| | `import:booker:product` | Builds `departmentData` from products, creates `ImportManager`, calls `importBookerData`, sends progress. |
-| `packages/main/src/services/bookerImportService.ts` | `BookerImportService` | Parses Booker CSV. |
-| | `parseFile(filePath)` | Reads file, `detectFileType`, then `parseDepartmentReport` or `parseProductReport`. |
-| | `detectFileType(content)` | Detects "Stock Holding (Product/Department) Report". |
-| | `parseProductReport(content)` | Parses product CSV into `BookerProduct[]`. |
-| | `parseCSVLine(line)` | CSV parsing with quoted fields. |
-| | `parseNumber`, `parseVatPercentage` | Numeric parsing. |
-| | `validateData` | Validates products (used by validate handler; product import uses parse + options). |
-| `packages/main/src/database/managers/importManager.ts` | `ImportManager` | Orchestrates categories, suppliers, products, batches. |
-| | `importBookerData(departmentData, productData, businessId, options)` | Runs categories → suppliers → products; returns `ImportResult`. |
-| | `importCategories(...)` | Creates/updates categories, returns `categoryMap`. |
-| | `importSuppliers(...)` | Creates/updates suppliers, returns `supplierMap`. |
-| | `importProducts(...)` | Creates/updates products, VAT categories, batches; updates stock. |
-| `packages/main/src/database/managers/categoryManager.ts` | `CategoryManager.createCategory` | Used by `importCategories`. |
-| `packages/main/src/database/managers/productManager.ts` | `getProductBySKU`, `getProductById`, `updateProduct` | Used by `importProducts`. |
-| `packages/main/src/database/managers/batchManager.ts` | `BatchManager.createBatch` | Creates batches when `updateStockLevels` and stock &gt; 0. |
-| `packages/main/src/database/managers/vatCategoryManager.ts` | `parseBookerVatRate`, `getVatCategoryByCode`, `getOrCreateVatCategory` | VAT handling during product import. |
+| File                                                        | Function / export                                                      | Role                                                                                                      |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `packages/main/src/index.ts`                                | `initApp`                                                              | Registers IPC handlers during app init.                                                                   |
+|                                                             | `registerBookerImportHandlers()`                                       | Registers Booker import IPC handlers.                                                                     |
+| `packages/main/src/ipc/bookerImportHandlers.ts`             | `registerBookerImportHandlers`                                         | Registers all `import:booker:*` handlers.                                                                 |
+|                                                             | `import:booker:selectFile`                                             | Uses `dialog.showOpenDialog`, returns `{ success, filePath }`.                                            |
+|                                                             | `import:booker:parseFile`                                              | Delegates to `BookerImportService.parseFile`.                                                             |
+|                                                             | `import:booker:product`                                                | Builds `departmentData` from products, creates `ImportManager`, calls `importBookerData`, sends progress. |
+| `packages/main/src/services/bookerImportService.ts`         | `BookerImportService`                                                  | Parses Booker CSV.                                                                                        |
+|                                                             | `parseFile(filePath)`                                                  | Reads file, `detectFileType`, then `parseDepartmentReport` or `parseProductReport`.                       |
+|                                                             | `detectFileType(content)`                                              | Detects "Stock Holding (Product/Department) Report".                                                      |
+|                                                             | `parseProductReport(content)`                                          | Parses product CSV into `BookerProduct[]`.                                                                |
+|                                                             | `parseCSVLine(line)`                                                   | CSV parsing with quoted fields.                                                                           |
+|                                                             | `parseNumber`, `parseVatPercentage`                                    | Numeric parsing.                                                                                          |
+|                                                             | `validateData`                                                         | Validates products (used by validate handler; product import uses parse + options).                       |
+| `packages/main/src/database/managers/importManager.ts`      | `ImportManager`                                                        | Orchestrates categories, suppliers, products, batches.                                                    |
+|                                                             | `importBookerData(departmentData, productData, businessId, options)`   | Runs categories → suppliers → products; returns `ImportResult`.                                           |
+|                                                             | `importCategories(...)`                                                | Creates/updates categories, returns `categoryMap`.                                                        |
+|                                                             | `importSuppliers(...)`                                                 | Creates/updates suppliers, returns `supplierMap`.                                                         |
+|                                                             | `importProducts(...)`                                                  | Creates/updates products, VAT categories, batches; updates stock.                                         |
+| `packages/main/src/database/managers/categoryManager.ts`    | `CategoryManager.createCategory`                                       | Used by `importCategories`.                                                                               |
+| `packages/main/src/database/managers/productManager.ts`     | `getProductBySKU`, `getProductById`, `updateProduct`                   | Used by `importProducts`.                                                                                 |
+| `packages/main/src/database/managers/batchManager.ts`       | `BatchManager.createBatch`                                             | Creates batches when `updateStockLevels` and stock &gt; 0.                                                |
+| `packages/main/src/database/managers/vatCategoryManager.ts` | `parseBookerVatRate`, `getVatCategoryByCode`, `getOrCreateVatCategory` | VAT handling during product import.                                                                       |
 
 ### Shared / utils
 
-| File | Function | Role |
-|------|----------|------|
-| `packages/renderer/src/shared/utils/simple-cache.ts` | `invalidateAllCaches(businessId)` | Called from `onProductsImported`. |
-| `packages/renderer/src/shared/hooks/use-auth.ts` | `useAuth` → `user`, `user.businessId` | Used by modal and product view. |
+| File                                                 | Function                              | Role                              |
+| ---------------------------------------------------- | ------------------------------------- | --------------------------------- |
+| `packages/renderer/src/shared/utils/simple-cache.ts` | `invalidateAllCaches(businessId)`     | Called from `onProductsImported`. |
+| `packages/renderer/src/shared/hooks/use-auth.ts`     | `useAuth` → `user`, `user.businessId` | Used by modal and product view.   |
 
 ---
 
 ## 6. IPC Channels
 
-| Channel | Direction | Payload | Purpose |
-|--------|-----------|---------|---------|
-| `import:booker:selectFile` | Renderer → Main | `fileType: 'department' \| 'product'` | Open file dialog, return path. |
-| `import:booker:parseFile` | Renderer → Main | `filePath: string` | Parse CSV, return `ParseResult`. |
-| `import:booker:validate` | Renderer → Main | `(data, businessId)` | Validate parsed data (optional). |
-| `import:booker:product` | Renderer → Main | `(productData, businessId, options)` | Run product import. |
-| `import:booker:department` | Renderer → Main | `(departmentData, businessId, options)` | Run department-only import (Category Management). |
-| `import:booker:execute` | Renderer → Main | `(departmentData, productData, businessId, options)` | Full import (both); not used by Product Management flow. |
-| `import:booker:progress` | Main → Renderer | `ImportProgress` | Stream progress during import. |
+| Channel                    | Direction       | Payload                                              | Purpose                                                  |
+| -------------------------- | --------------- | ---------------------------------------------------- | -------------------------------------------------------- |
+| `import:booker:selectFile` | Renderer → Main | `fileType: 'department' \| 'product'`                | Open file dialog, return path.                           |
+| `import:booker:parseFile`  | Renderer → Main | `filePath: string`                                   | Parse CSV, return `ParseResult`.                         |
+| `import:booker:validate`   | Renderer → Main | `(data, businessId)`                                 | Validate parsed data (optional).                         |
+| `import:booker:product`    | Renderer → Main | `(productData, businessId, options)`                 | Run product import.                                      |
+| `import:booker:department` | Renderer → Main | `(departmentData, businessId, options)`              | Run department-only import (Category Management).        |
+| `import:booker:execute`    | Renderer → Main | `(departmentData, productData, businessId, options)` | Full import (both); not used by Product Management flow. |
+| `import:booker:progress`   | Main → Renderer | `ImportProgress`                                     | Stream progress during import.                           |
 
 ---
 
@@ -322,8 +322,8 @@ interface BookerProduct {
   department: string;
   category: string;
   productDescription: string;
-  itemCode: string;           // SKU
-  eans: string[];             // barcodes
+  itemCode: string; // SKU
+  eans: string[]; // barcodes
   vatRate: string;
   vatPercentage: number;
   supplierName: string;

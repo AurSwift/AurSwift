@@ -1,4 +1,4 @@
-# AuraSwift Desktop POS
+# Aurswift Desktop POS
 
 Modern Electron-based Point of Sale system for supermarkets with integrated hardware support, real-time synchronization, and automated updates.
 

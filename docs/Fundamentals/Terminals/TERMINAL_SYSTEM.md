@@ -2,19 +2,18 @@
 
 ## Overview
 
-The Terminal system in AuraSwift represents physical or logical devices/workstations that are authorized to access the POS system. Terminals are used to track which device performed transactions, manage hardware configurations, and support multi-station operations.
+The Terminal system in Aurswift represents physical or logical devices/workstations that are authorized to access the POS system. Terminals are used to track which device performed transactions, manage hardware configurations, and support multi-station operations.
 
 ### Quick Answer: Windows EPOS + iPhone Payment Terminal
 
 **If you have:**
 
-- **Windows PC** running AuraSwift EPOS software
+- **Windows PC** running Aurswift EPOS software
 - **iPhone** with Viva Wallet terminal app for card payments
 
 **Then:**
 
 - ✅ **Windows PC = POS Terminal** (stored in `terminals` table)
-
   - This is the workstation running your EPOS software
   - Used to track which device performed sales, shifts, etc.
   - Type: `"pos"` or `"server"`
@@ -81,7 +80,7 @@ export const terminals = createTable(
     last_active_at: integer("last_active_at", { mode: "timestamp_ms" }),
     ...timestampColumns,
   },
-  (table) => [index("terminals_business_idx").on(table.business_id), index("terminals_status_idx").on(table.status), index("terminals_token_idx").on(table.device_token)]
+  (table) => [index("terminals_business_idx").on(table.business_id), index("terminals_status_idx").on(table.status), index("terminals_token_idx").on(table.device_token)],
 );
 ```
 
@@ -409,12 +408,12 @@ interface TerminalSettings {
 
 There are **two different types of terminals** in the system:
 
-#### 1. **POS Terminals** (AuraSwift Terminals)
+#### 1. **POS Terminals** (Aurswift Terminals)
 
 - **Definition**: Workstations/devices that run the EPOS software
 - **Stored in**: `terminals` database table
 - **Purpose**: Track which workstation performed POS operations
-- **Example**: Windows PC running AuraSwift, tablet running POS app
+- **Example**: Windows PC running Aurswift, tablet running POS app
 
 #### 2. **Payment Terminals** (VivaWallet Terminals)
 
@@ -427,7 +426,7 @@ There are **two different types of terminals** in the system:
 
 **Example Setup:**
 
-- **Windows PC** running AuraSwift EPOS software
+- **Windows PC** running Aurswift EPOS software
 - **iPhone** with Viva Wallet terminal app for card payments
 
 **In this scenario:**
@@ -475,13 +474,11 @@ There are **two different types of terminals** in the system:
 ### How They Work Together
 
 1. **Customer checkout happens on Windows PC (POS Terminal)**
-
-   - Cashier enters items in AuraSwift
+   - Cashier enters items in Aurswift
    - Transaction is created with `terminal_id` = Windows PC terminal ID
 
 2. **Payment processing happens on iPhone (Payment Terminal)**
-
-   - AuraSwift sends payment request to iPhone via network
+   - Aurswift sends payment request to iPhone via network
    - iPhone processes card payment using Viva Wallet app
    - Payment result is sent back to Windows PC
 
@@ -685,7 +682,7 @@ CREATE TABLE `terminals` (
 
 ## Summary
 
-Terminals are a core component of the AuraSwift POS system, providing:
+Terminals are a core component of the Aurswift POS system, providing:
 
 1. **Device Tracking**: Identify which device performed each operation
 2. **Multi-Station Support**: Enable multiple workstations per business

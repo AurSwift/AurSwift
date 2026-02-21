@@ -394,7 +394,7 @@ desktop/data/
    - Development: Files stored in `desktop/data/`
    - Production: Files stored in OS user data directory:
      - **macOS**: `~/Library/Application Support/aurswift/`
-     - **Windows**: `%USERPROFILE%\AppData\Roaming\AuraSwift\` (resolves to `C:\Users\<Username>\AppData\Roaming\AuraSwift\`)
+     - **Windows**: `%USERPROFILE%\AppData\Roaming\Aurswift\` (resolves to `C:\Users\<Username>\AppData\Roaming\Aurswift\`)
      - **Linux**: `~/.config/aurswift/`
 
 2. **Automatic Backup Cleanup**:

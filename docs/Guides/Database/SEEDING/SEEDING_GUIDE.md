@@ -1,6 +1,6 @@
 # Database Seeding Guide
 
-AuraSwift automatically seeds the database with default data on app startup, ensuring a fresh database is always initialized with the required minimum data.
+Aurswift automatically seeds the database with default data on app startup, ensuring a fresh database is always initialized with the required minimum data.
 
 ---
 
@@ -22,7 +22,7 @@ AuraSwift automatically seeds the database with default data on app startup, ens
 
 When a new database is created, the seeding process automatically creates:
 
-- ✅ 1 default business (AuraSwift Demo Store)
+- ✅ 1 default business (Aurswift Demo Store)
 - ✅ 3 default VAT categories (Standard, Reduced, Zero rates)
 - ✅ 1 default terminal (Main Counter)
 - ✅ 3 default roles (Admin, Manager, Cashier) with permissions
@@ -48,11 +48,11 @@ When a new database is created, the seeding process automatically creates:
 
 ### 🏪 Default Business
 
-- **Name:** AuraSwift Demo Store
+- **Name:** Aurswift Demo Store
 - **Owner:** Admin User (MrAdmin) - same UUID as admin user
-- **Email:** admin@auraswift.com
+- **Email:** admin@Aurswift.com
 - **Phone:** +1234567890
-- **Website:** https://auraswift.com
+- **Website:** https://Aurswift.com
 - **Address:** 123 Main Street
 - **City:** New York
 - **Postal Code:** 10001
@@ -67,7 +67,7 @@ When a new database is created, the seeding process automatically creates:
 #### 1. Admin User
 
 - **Username:** `MrAdmin`
-- **Email:** `mradmin@auraswift.com`
+- **Email:** `mradmin@Aurswift.com`
 - **Password:** `admin123`
 - **PIN:** `1234`
 - **Full Name:** Admin User
@@ -78,7 +78,7 @@ When a new database is created, the seeding process automatically creates:
 #### 2. Manager User
 
 - **Username:** `MrManager`
-- **Email:** `mrmanager@auraswift.com`
+- **Email:** `mrmanager@Aurswift.com`
 - **Password:** `manager123`
 - **PIN:** `1234`
 - **Full Name:** Store Manager
@@ -96,7 +96,7 @@ When a new database is created, the seeding process automatically creates:
 #### 3. Cashier User
 
 - **Username:** `MrCashier`
-- **Email:** `mrcashier@auraswift.com`
+- **Email:** `mrcashier@Aurswift.com`
 - **Password:** `cashier123`
 - **PIN:** `1234`
 - **Full Name:** John Cashier
@@ -109,14 +109,12 @@ When a new database is created, the seeding process automatically creates:
 ### 💰 Default VAT Categories
 
 1. **Standard Rate**
-
    - **Code:** `STD`
    - **Rate:** 20.0%
    - **Default:** Yes
    - **Description:** Standard VAT rate
 
 2. **Reduced Rate**
-
    - **Code:** `RED`
    - **Rate:** 5.0%
    - **Default:** No
@@ -165,31 +163,25 @@ packages/main/src/database/
    ```
 
 2. **Create default business:**
-
    - Generate UUIDs for business and owner
    - Insert business record with default values
 
 3. **Create VAT categories:**
-
    - Insert 3 default VAT categories linked to the business
 
 4. **Create default terminal:**
-
    - Insert terminal record for "Main Counter"
 
 5. **Create default roles:**
-
    - Admin role with `PERMISSIONS.ALL`
    - Manager role with manager permissions
    - Cashier role with cashier permissions
 
 6. **Create default users:**
-
    - Generate bcrypt hashes for passwords and PINs
    - Insert 3 user records with hashed credentials
 
 7. **Assign roles to users:**
-
    - Link users to their roles via `user_roles` table
 
 8. **Log completion:**
@@ -225,7 +217,6 @@ try {
    ```
 
 2. **Database is automatically:**
-
    - Created (if it doesn't exist)
    - Migrated to latest schema
    - Seeded with default data
@@ -274,7 +265,7 @@ sqlite3 data/pos_system.db "SELECT name, type, status FROM terminals;"
 After successful seeding, you should see:
 
 ```
-businesses: 1 row (AuraSwift Demo Store)
+businesses: 1 row (Aurswift Demo Store)
 vat_categories: 3 rows (Standard, Reduced, Zero)
 terminals: 1 row (Main Counter)
 roles: 3 rows (admin, manager, cashier)

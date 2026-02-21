@@ -1,4 +1,4 @@
-# AuraSwift Testing Guide - Master Documentation
+# Aurswift Testing Guide - Master Documentation
 
 > **Single source of truth for all testing practices, patterns, and setup**
 
@@ -371,7 +371,6 @@ tests/
    ```
 
 2. **Use accessible queries first**
-
    - `getByRole` → `getByLabelText` → `getByText` → `getByTestId` (last resort)
 
 3. **Wait for async operations**
@@ -513,4 +512,4 @@ export function renderWithProviders(ui: React.ReactElement, { preloadedState = {
 
 ---
 
-**This is the single source of truth for testing in AuraSwift. All other testing docs reference this guide.**
+**This is the single source of truth for testing in Aurswift. All other testing docs reference this guide.**

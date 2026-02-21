@@ -1,6 +1,6 @@
 # Database System - Complete Overview
 
-This document provides a comprehensive overview of AuraSwift's database system, including architecture, features, and implementation details.
+This document provides a comprehensive overview of Aurswift's database system, including architecture, features, and implementation details.
 
 ---
 
@@ -281,8 +281,8 @@ interface RepairResult {
 **Problem Solved:**
 
 - Old versions created double-nested paths:
-  - ❌ Old: `AppData/Roaming/AuraSwift/AuraSwift/pos_system.db`
-  - ✅ New: `AppData/Roaming/AuraSwift/pos_system.db`
+  - ❌ Old: `AppData/Roaming/Aurswift/Aurswift/pos_system.db`
+  - ✅ New: `AppData/Roaming/Aurswift/pos_system.db`
 
 **Migration Process:**
 
@@ -735,7 +735,7 @@ const users = new UserManager(drizzle, uuid);
 
 **Backup Naming:**
 
-- Timestamped: `auraswift-{type}-backup-{timestamp}.db`
+- Timestamped: `Aurswift-{type}-backup-{timestamp}.db`
 - Types: `migration`, `repair`, `fresh-start`
 
 ### Logging

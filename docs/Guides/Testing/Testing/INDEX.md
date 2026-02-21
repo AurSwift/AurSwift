@@ -1,6 +1,6 @@
 # Testing Documentation Index
 
-**Welcome to AuraSwift POS Testing Documentation**
+**Welcome to Aurswift POS Testing Documentation**
 
 ---
 
@@ -408,8 +408,8 @@ Before submitting a PR with tests:
 ### Still Stuck?
 
 - **Slack**: #testing channel
-- **Email**: dev-team@auraswift.com
-- **Wiki**: https://wiki.auraswift.com/testing
+- **Email**: dev-team@Aurswift.com
+- **Wiki**: https://wiki.Aurswift.com/testing
 
 ---
 

@@ -2,19 +2,17 @@
 
 ## Overview
 
-The discount system provides comprehensive promotional and discount capabilities for the AuraSwift POS system. It supports multiple discount types, flexible applicability rules, time-based restrictions, and usage tracking.
+The discount system provides comprehensive promotional and discount capabilities for the Aurswift POS system. It supports multiple discount types, flexible applicability rules, time-based restrictions, and usage tracking.
 
 ## Features
 
 ### Discount Types
 
 1. **Percentage Discount**
-
    - Reduces item/transaction price by a percentage (0-100%)
    - Example: 20% off
 
 2. **Fixed Amount Discount**
-
    - Reduces price by a fixed dollar amount
    - Example: $5 off
 
@@ -35,24 +33,20 @@ Discounts can be applied to:
 ### Conditions and Restrictions
 
 1. **Minimum Requirements**
-
    - Minimum purchase amount
    - Minimum quantity required
 
 2. **Maximum Limits**
-
    - Maximum discount amount (cap)
    - Total usage limit
    - Per-customer usage limit
 
 3. **Time-Based Restrictions**
-
    - Start and end dates
    - Specific days of week (e.g., weekend only)
    - Time ranges (e.g., 9 AM - 5 PM)
 
 4. **Coupon Codes**
-
    - Require coupon code for activation
    - Unique codes per discount
 
@@ -287,7 +281,7 @@ console.log("Item discount:", itemDiscount); // e.g., 40 for 20% off $200
 // Calculate discount for entire transaction
 const transactionDiscount = discountManager.calculateTransactionDiscount(
   500, // subtotal
-  discount
+  discount,
 );
 console.log("Transaction discount:", transactionDiscount);
 ```
@@ -398,28 +392,23 @@ const transactionItem = {
 ## Best Practices
 
 1. **Priority System**
-
    - Assign higher priorities to more important discounts
    - Non-combinable discounts should have high priority
 
 2. **Usage Limits**
-
    - Set appropriate usage limits to control costs
    - Track per-customer usage for loyalty programs
 
 3. **Time Restrictions**
-
    - Use time restrictions for peak/off-peak pricing
    - Implement happy hour or lunch specials
 
 4. **Testing**
-
    - Test discount combinations thoroughly
    - Verify max discount caps work correctly
    - Test edge cases (expired, usage limit reached, etc.)
 
 5. **Performance**
-
    - Use indexes on frequently queried fields
    - Cache active discounts in memory if needed
    - Limit number of simultaneously active discounts
@@ -466,25 +455,21 @@ Track:
 ## Future Enhancements
 
 1. **Customer-Specific Discounts**
-
    - Loyalty program tiers
    - Birthday discounts
    - Customer segments
 
 2. **Advanced Rules Engine**
-
    - Complex conditions (AND/OR logic)
    - Exclude specific products/categories
    - Quantity tiers (10% off 5+, 20% off 10+)
 
 3. **Automatic Discounts**
-
    - Cart total thresholds
    - Bundle deals
    - Cross-sell discounts
 
 4. **Discount Analytics**
-
    - A/B testing
    - Conversion rate tracking
    - Revenue attribution

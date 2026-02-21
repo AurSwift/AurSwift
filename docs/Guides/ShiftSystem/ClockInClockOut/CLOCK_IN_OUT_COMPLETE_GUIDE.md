@@ -21,7 +21,7 @@
 
 ## Overview
 
-This document describes the comprehensive clock-in/clock-out system integrated with the user authentication system for the AuraSwift POS. The system automatically tracks employee time, manages shifts, handles breaks, and provides detailed reporting capabilities while maintaining a clear separation between authentication (login/logout) and time tracking (clock-in/clock-out).
+This document describes the comprehensive clock-in/clock-out system integrated with the user authentication system for the Aurswift POS. The system automatically tracks employee time, manages shifts, handles breaks, and provides detailed reporting capabilities while maintaining a clear separation between authentication (login/logout) and time tracking (clock-in/clock-out).
 
 ### Key Capabilities
 
@@ -201,13 +201,11 @@ This document describes the comprehensive clock-in/clock-out system integrated w
 **Role-Based Automatic Behavior:**
 
 - **✅ Cashiers & Managers:**
-
   - Automatically clocked in when they click the **Login** button
   - Automatically clocked out when they click the **Logout** button
   - This ensures accurate time tracking for hourly employees
 
 - **❌ Admins:**
-
   - **NOT** automatically clocked in when they click the **Login** button
   - **NOT** automatically clocked out when they click the **Logout** button
   - Admins are typically salaried employees who don't require hourly time tracking
@@ -876,7 +874,7 @@ const payroll = db.timeTrackingReports.getPayrollSummary(
   "business-id",
   "2025-11-01T00:00:00Z",
   "2025-11-30T23:59:59Z",
-  15 // Hourly rate (optional)
+  15, // Hourly rate (optional)
 );
 
 // Returns:
@@ -1299,7 +1297,7 @@ const payroll = db.timeTrackingReports.getPayrollSummary(
   businessId,
   monthStart,
   monthEnd,
-  15 // hourly rate
+  15, // hourly rate
 );
 
 // For each employee:

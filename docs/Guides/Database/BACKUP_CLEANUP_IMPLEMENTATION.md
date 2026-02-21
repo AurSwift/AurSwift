@@ -2,7 +2,7 @@
 
 ## Overview
 
-Implemented a comprehensive, robust backup cleanup system for all database-related files in the AuraSwift desktop application. This system prevents unlimited accumulation of backup files that was previously consuming ~440 MB in the development data folder.
+Implemented a comprehensive, robust backup cleanup system for all database-related files in the Aurswift desktop application. This system prevents unlimited accumulation of backup files that was previously consuming ~440 MB in the development data folder.
 
 ---
 
@@ -326,7 +326,7 @@ When a database file is deleted, its associated journal files are also removed:
 **Production**:
 
 - **macOS**: `~/Library/Application Support/aurswift/`
-- **Windows**: `C:\Users\<Username>\AppData\Roaming\AuraSwift\`
+- **Windows**: `C:\Users\<Username>\AppData\Roaming\Aurswift\`
 - **Linux**: `~/.config/aurswift/`
 
 ### Retention Differences

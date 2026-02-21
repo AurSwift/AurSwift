@@ -1,6 +1,6 @@
 # Performance Optimizations
 
-This document tracks performance issues identified and resolved in the AuraSwift desktop application, focusing on startup time and initialization optimizations.
+This document tracks performance issues identified and resolved in the Aurswift desktop application, focusing on startup time and initialization optimizations.
 
 ## Overview
 

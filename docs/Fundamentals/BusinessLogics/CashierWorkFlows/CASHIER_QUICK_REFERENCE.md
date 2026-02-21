@@ -334,7 +334,7 @@ A: Dashboard → End Shift → Count cash → Enter final amount
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      AURASWIFT POS SYSTEM
+      Aurswift POS SYSTEM
    123 Main Street, London
      Phone: 020-1234-5678
       VAT: GB123456789

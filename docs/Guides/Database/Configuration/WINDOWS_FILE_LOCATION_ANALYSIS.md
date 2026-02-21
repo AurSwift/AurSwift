@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document provides a senior developer's analysis of the current file storage strategy for AuraSwift on Windows production environments, identifies potential issues, and provides recommendations for best practices.
+This document provides a senior developer's analysis of the current file storage strategy for Aurswift on Windows production environments, identifies potential issues, and provides recommendations for best practices.
 
 ## Understanding Windows File Locations
 
@@ -11,16 +11,15 @@ This document provides a senior developer's analysis of the current file storage
 **Important Distinction**: There are **two separate locations** for different types of files:
 
 1. **Application Installation** (Executable, DLLs, Resources)
-
    - Where the `.exe` and application files are installed
    - Like StarUML, Visual Studio, etc. that you see in "Local Disk (C:)"
-   - Typically: `C:\Program Files\AuraSwift\` (system-wide) OR `%LOCALAPPDATA%\Programs\AuraSwift\` (user-specific)
+   - Typically: `C:\Program Files\Aurswift\` (system-wide) OR `%LOCALAPPDATA%\Programs\Aurswift\` (user-specific)
 
 2. **User Data** (Database, Logs, Settings, Cache)
    - Where user-specific data is stored
    - Always in the user's AppData folder structure
-   - Database: `%USERPROFILE%\AppData\Roaming\AuraSwift\`
-   - Logs: `%USERPROFILE%\AppData\Roaming\AuraSwift\logs\` (should be Local)
+   - Database: `%USERPROFILE%\AppData\Roaming\Aurswift\`
+   - Logs: `%USERPROFILE%\AppData\Roaming\Aurswift\logs\` (should be Local)
 
 **Why the difference?**
 
@@ -36,13 +35,13 @@ This document provides a senior developer's analysis of the current file storage
 **Current Configuration:**
 
 - **Installation Type**: System-wide (`perMachine: true` in electron-builder)
-- **Default Location**: `C:\Program Files\AuraSwift\`
-- **Full Path**: `%ProgramFiles%\AuraSwift\`
+- **Default Location**: `C:\Program Files\Aurswift\`
+- **Full Path**: `%ProgramFiles%\Aurswift\`
 - **Contains**: Application executable, DLLs, resources, migrations
 - **Status**: ✅ **CORRECT** - System-wide installation (requires admin during installation)
 - **Admin Required**: Yes (during installation and updates)
 
-**Note**: AuraSwift now installs system-wide to `C:\Program Files\AuraSwift\` (like StarUML), making it visible in "Local Disk (C:)" under Program Files. This requires admin rights during installation but allows all users on the machine to share the same installation.
+**Note**: Aurswift now installs system-wide to `C:\Program Files\Aurswift\` (like StarUML), making it visible in "Local Disk (C:)" under Program Files. This requires admin rights during installation but allows all users on the machine to share the same installation.
 
 **To install system-wide** (like StarUML), change `perMachine: true` in `electron-builder.mjs`, but this requires admin rights during installation.
 
@@ -50,16 +49,16 @@ This document provides a senior developer's analysis of the current file storage
 
 #### ✅ Database (`pos_system.db`)
 
-- **Location**: `%APPDATA%\AuraSwift\pos_system.db`
-- **Resolves to**: `%USERPROFILE%\AppData\Roaming\AuraSwift\pos_system.db`
+- **Location**: `%APPDATA%\Aurswift\pos_system.db`
+- **Resolves to**: `%USERPROFILE%\AppData\Roaming\Aurswift\pos_system.db`
 - **Implementation**: Uses `app.getPath("userData")` from Electron
 - **Status**: ✅ **CORRECT** - Appropriate for user data that should roam
 - **Why here?**: User-specific data that should sync across machines in domain environments
 
 #### ✅ Logs
 
-- **Location**: `%LOCALAPPDATA%\AuraSwift\logs\`
-- **Resolves to**: `%USERPROFILE%\AppData\Local\AuraSwift\logs\`
+- **Location**: `%LOCALAPPDATA%\Aurswift\logs\`
+- **Resolves to**: `%USERPROFILE%\AppData\Local\Aurswift\logs\`
 - **Implementation**: Uses `app.getPath("logs")` from Electron
 - **Status**: ✅ **CORRECT** - Now in LOCALAPPDATA (machine-specific)
 - **Migration**: Automatically migrates existing logs from Roaming to Local on first run
@@ -75,12 +74,12 @@ The drive letter (typically C:) is just where Windows stores files - the importa
 
 #### Application Installation Paths
 
-| Installation Type | Default Location                     | Environment Variable | When Used                      |
-| ----------------- | ------------------------------------ | -------------------- | ------------------------------ |
-| **System-wide**   | `C:\Program Files\AuraSwift\`        | `%ProgramFiles%`     | `perMachine: true` (current)   |
-| **User-specific** | `%LOCALAPPDATA%\Programs\AuraSwift\` | `%LOCALAPPDATA%`     | `perMachine: false` (previous) |
+| Installation Type | Default Location                    | Environment Variable | When Used                      |
+| ----------------- | ----------------------------------- | -------------------- | ------------------------------ |
+| **System-wide**   | `C:\Program Files\Aurswift\`        | `%ProgramFiles%`     | `perMachine: true` (current)   |
+| **User-specific** | `%LOCALAPPDATA%\Programs\Aurswift\` | `%LOCALAPPDATA%`     | `perMachine: false` (previous) |
 
-**Current**: AuraSwift uses system-wide installation (`perMachine: true`), so it installs to `C:\Program Files\AuraSwift\` (like StarUML), making it visible in "Local Disk (C:)" under Program Files. This requires admin rights during installation.
+**Current**: Aurswift uses system-wide installation (`perMachine: true`), so it installs to `C:\Program Files\Aurswift\` (like StarUML), making it visible in "Local Disk (C:)" under Program Files. This requires admin rights during installation.
 
 #### User Data Paths
 
@@ -114,12 +113,11 @@ The drive letter (typically C:) is just where Windows stores files - the importa
 **The Difference:**
 
 - **StarUML** (and similar apps): Installed system-wide to `C:\Program Files\StarUML\`
-
   - Requires admin rights during installation
   - Shared by all users on the machine
   - Visible in "Local Disk (C:)" under Program Files
 
-- **AuraSwift** (current): Installed per-user to `%LOCALAPPDATA%\Programs\AuraSwift\`
+- **Aurswift** (current): Installed per-user to `%LOCALAPPDATA%\Programs\Aurswift\`
   - No admin rights required
   - Each user has their own installation
   - Not visible in "Local Disk (C:)" under Program Files (it's in user's AppData\Local\Programs)
@@ -136,9 +134,9 @@ The drive letter (typically C:) is just where Windows stores files - the importa
 
 **Current File Locations:**
 
-- **Application**: `C:\Program Files\AuraSwift\` (system-wide installation) ✅
-- **Database**: `%USERPROFILE%\AppData\Roaming\AuraSwift\pos_system.db` ✅ (correct)
-- **Logs**: `%USERPROFILE%\AppData\Local\AuraSwift\logs\` ✅ (correct - migrated to Local)
+- **Application**: `C:\Program Files\Aurswift\` (system-wide installation) ✅
+- **Database**: `%USERPROFILE%\AppData\Roaming\Aurswift\pos_system.db` ✅ (correct)
+- **Logs**: `%USERPROFILE%\AppData\Local\Aurswift\logs\` ✅ (correct - migrated to Local)
 
 **Key Point**: Application installation and user data are in different locations. The application can be in Program Files (system-wide) OR in user's AppData\Local\Programs (user-specific). User data (database, logs) always goes in AppData.
 
@@ -222,7 +220,7 @@ import * as path from "path";
 // Get logs directory (uses LOCALAPPDATA on Windows)
 const logsDir = app.getPath("logs");
 // OR explicitly use LOCALAPPDATA
-const logsDir = process.platform === "win32" ? path.join(app.getPath("appData"), "..", "Local", "AuraSwift", "logs") : path.join(app.getPath("userData"), "logs");
+const logsDir = process.platform === "win32" ? path.join(app.getPath("appData"), "..", "Local", "Aurswift", "logs") : path.join(app.getPath("userData"), "logs");
 ```
 
 ### Phase 2: Verification & Testing
@@ -310,7 +308,7 @@ const logsDir = process.platform === "win32" ? path.join(app.getPath("appData"),
 
 ### "Database not syncing across machines"
 
-- Verify database is in `%APPDATA%\AuraSwift\` (Roaming)
+- Verify database is in `%APPDATA%\Aurswift\` (Roaming)
 - Check if user has roaming profile enabled in domain
 - Verify file permissions allow sync
 

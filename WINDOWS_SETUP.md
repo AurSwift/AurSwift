@@ -1,6 +1,6 @@
 # Windows Development Setup Guide
 
-Complete guide for setting up AuraSwift Desktop POS on Windows. This guide addresses the two major challenges Windows developers face: Node.js version management and native module compilation.
+Complete guide for setting up Aurswift Desktop POS on Windows. This guide addresses the two major challenges Windows developers face: Node.js version management and native module compilation.
 
 ---
 
@@ -85,7 +85,7 @@ This will automatically switch to the correct Node version.
 
 ### Why are Build Tools needed?
 
-AuraSwift uses native Node.js modules that need to be compiled from C/C++ source code:
+Aurswift uses native Node.js modules that need to be compiled from C/C++ source code:
 
 - `better-sqlite3` - Database access
 - `serialport` - Receipt printer communication
@@ -199,8 +199,8 @@ If you prefer a full IDE:
 2. **Clone the repository:**
    ```powershell
    cd C:\Users\YourUsername\Documents
-   git clone https://github.com/YourOrganization/AuraSwift.git
-   cd AuraSwift\desktop
+   git clone https://github.com/YourOrganization/Aurswift.git
+   cd Aurswift\desktop
    ```
 
 ---
@@ -403,7 +403,7 @@ npm cache clean --force
 
 # Run Command Prompt as Administrator
 # Navigate to project folder
-cd C:\path\to\AuraSwift\desktop
+cd C:\path\to\Aurswift\desktop
 
 # Install with admin privileges
 npm install
@@ -434,8 +434,8 @@ Then restart your computer.
 **Option 2: Move project to shorter path**
 
 ```powershell
-# Instead of: C:\Users\YourName\Documents\Projects\CompanyName\AuraSwift\desktop
-# Use: C:\Dev\AuraSwift\desktop
+# Instead of: C:\Users\YourName\Documents\Projects\CompanyName\Aurswift\desktop
+# Use: C:\Dev\Aurswift\desktop
 ```
 
 ---
@@ -454,7 +454,7 @@ Then restart your computer.
 2. Run installation
 3. Re-enable security software
 4. Add project folder to antivirus exceptions:
-   - Add `C:\path\to\AuraSwift\desktop\node_modules` to exclusions
+   - Add `C:\path\to\Aurswift\desktop\node_modules` to exclusions
 
 ---
 
@@ -502,7 +502,7 @@ Before asking for help, verify:
 - [ ] Running Command Prompt/PowerShell as Administrator
 - [ ] No antivirus blocking npm operations
 - [ ] Internet connection is stable
-- [ ] Project is in a short path (e.g., `C:\Dev\AuraSwift\desktop`)
+- [ ] Project is in a short path (e.g., `C:\Dev\Aurswift\desktop`)
 
 ---
 
@@ -552,7 +552,7 @@ npm config set python python3
 
 # Clone and install
 git clone <repository-url>
-cd AuraSwift\desktop
+cd Aurswift\desktop
 npm install
 npm start
 ```
@@ -601,5 +601,5 @@ The project uses `.nvmrc` for Node version. Make sure to:
 ---
 
 **Last Updated:** February 16, 2026  
-**Maintained By:** AuraSwift Development Team  
-**Project:** AuraSwift Desktop POS v1.41.2
+**Maintained By:** Aurswift Development Team  
+**Project:** Aurswift Desktop POS v1.41.2

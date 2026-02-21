@@ -19,6 +19,7 @@ Successfully replaced 699+ console statements across 87 files with a proper stru
 **Location:** `packages/main/src/utils/logger.ts`
 
 **Features:**
+
 - Winston-based logging
 - Separate log files for each service
 - Error logs: `logs/{service}-error.log`
@@ -28,14 +29,15 @@ Successfully replaced 699+ console statements across 87 files with a proper stru
 - Environment-based log levels
 
 **Usage:**
-```typescript
-import { getLogger } from '../utils/logger.js';
-const logger = getLogger('service-name');
 
-logger.debug('Debug message', { data });
-logger.info('Info message');
-logger.warn('Warning message');
-logger.error('Error message', error);
+```typescript
+import { getLogger } from "../utils/logger.js";
+const logger = getLogger("service-name");
+
+logger.debug("Debug message", { data });
+logger.info("Info message");
+logger.warn("Warning message");
+logger.error("Error message", error);
 ```
 
 ### 2. Renderer Process Logger
@@ -43,6 +45,7 @@ logger.error('Error message', error);
 **Location:** `packages/renderer/src/shared/utils/logger.ts`
 
 **Features:**
+
 - Custom logger implementation
 - IPC forwarding to main process (production)
 - Console output in development
@@ -50,14 +53,15 @@ logger.error('Error message', error);
 - Structured log entries with timestamps
 
 **Usage:**
-```typescript
-import { getLogger } from '@/shared/utils/logger';
-const logger = getLogger('ComponentName');
 
-logger.debug('Debug message', { data });
-logger.info('Info message');
-logger.warn('Warning message');
-logger.error('Error message', error);
+```typescript
+import { getLogger } from "@/shared/utils/logger";
+const logger = getLogger("ComponentName");
+
+logger.debug("Debug message", { data });
+logger.info("Info message");
+logger.warn("Warning message");
+logger.error("Error message", error);
 ```
 
 ### 3. Preload Process Logger
@@ -65,18 +69,20 @@ logger.error('Error message', error);
 **Location:** `packages/preload/src/logger.ts`
 
 **Features:**
+
 - Simple console-based logger
 - Formatted timestamps
 - Environment-based debug logging
 
 **Usage:**
-```typescript
-import { logger } from './logger';
 
-logger.debug('Debug message', { data });
-logger.info('Info message');
-logger.warn('Warning message');
-logger.error('Error message', error);
+```typescript
+import { logger } from "./logger";
+
+logger.debug("Debug message", { data });
+logger.info("Info message");
+logger.warn("Warning message");
+logger.error("Error message", error);
 ```
 
 ### 4. IPC Handler for Renderer Logs
@@ -84,6 +90,7 @@ logger.error('Error message', error);
 **Location:** `packages/main/src/ipc/loggerHandlers.ts`
 
 **Features:**
+
 - Receives log entries from renderer process
 - Writes to winston logger
 - Registered in app initialization
@@ -94,25 +101,26 @@ logger.error('Error message', error);
 
 ### Statistics
 
-| Metric | Count |
-|--------|-------|
-| **Files Analyzed** | 368 TypeScript files |
-| **Console Statements (Before)** | 699 |
-| **Console Statements (After)** | 28* |
-| **Files Updated** | 79 |
-| **Reduction** | 96% |
+| Metric                          | Count                |
+| ------------------------------- | -------------------- |
+| **Files Analyzed**              | 368 TypeScript files |
+| **Console Statements (Before)** | 699                  |
+| **Console Statements (After)**  | 28\*                 |
+| **Files Updated**               | 79                   |
+| **Reduction**                   | 96%                  |
 
-*Remaining console statements are in config files, build scripts, and documentation (intentional)
+\*Remaining console statements are in config files, build scripts, and documentation (intentional)
 
 ### Files Updated by Process
 
 **Main Process (24 files):**
+
 - appStore.ts
 - database/db-manager.ts
 - database/drizzle-migrator.ts
 - database/index.ts
-- database/managers/* (8 files)
-- database/utils/* (4 files)
+- database/managers/\* (8 files)
+- database/utils/\* (4 files)
 - ipc/bookerImportHandlers.ts
 - ipc/loggerHandlers.ts
 - modules/AutoUpdater.ts
@@ -125,6 +133,7 @@ logger.error('Error message', error);
 - utils/rbacHelpers.ts
 
 **Renderer Process (53 files):**
+
 - Authentication components and hooks
 - Dashboard pages (admin, manager, cashier)
 - Transaction management components
@@ -134,6 +143,7 @@ logger.error('Error message', error);
 - Shared utilities and hooks
 
 **Preload Process (2 files):**
+
 - exposed.ts
 - logger.ts
 
@@ -142,17 +152,21 @@ logger.error('Error message', error);
 ## Logging Best Practices Implemented
 
 ### 1. **Structured Logging**
+
 All logs now include:
+
 - Timestamp
 - Log level
 - Service/component context
 - Structured data (when applicable)
 
 ### 2. **Environment-Based Levels**
+
 - **Development:** `debug` level (all logs)
 - **Production:** `info` level (info, warn, error only)
 
 ### 3. **Proper Error Logging**
+
 ```typescript
 // Before
 catch (error) {
@@ -166,15 +180,17 @@ catch (error) {
 ```
 
 ### 4. **Catch Handler Updates**
+
 ```typescript
 // Before
 somePromise().catch(console.error);
 
 // After
-somePromise().catch((error) => logger.error('Failed to execute', error));
+somePromise().catch((error) => logger.error("Failed to execute", error));
 ```
 
 ### 5. **Log File Organization**
+
 ```
 userData/logs/
   ├── app-init-error.log
@@ -198,6 +214,7 @@ userData/logs/
 ## Testing Recommendations
 
 ### Manual Testing
+
 1. ✅ Verify logs appear in console during development
 2. ✅ Verify log files are created in production
 3. ✅ Test renderer IPC log forwarding
@@ -205,6 +222,7 @@ userData/logs/
 5. ✅ Check error logging includes stack traces
 
 ### What to Monitor
+
 - Log file sizes (should rotate at 5MB)
 - Number of log files (should keep 5 per service)
 - Performance impact (should be negligible)
@@ -217,43 +235,50 @@ userData/logs/
 ### Adding Logging to New Files
 
 **Main Process:**
+
 ```typescript
-import { getLogger } from '../utils/logger.js';
-const logger = getLogger('my-service');
+import { getLogger } from "../utils/logger.js";
+const logger = getLogger("my-service");
 ```
 
 **Renderer Process:**
+
 ```typescript
-import { getLogger } from '@/shared/utils/logger';
-const logger = getLogger('MyComponent');
+import { getLogger } from "@/shared/utils/logger";
+const logger = getLogger("MyComponent");
 ```
 
 **Preload Process:**
+
 ```typescript
-import { logger } from './logger';
+import { logger } from "./logger";
 ```
 
 ### Viewing Logs
 
 **Development:**
+
 - Logs appear in console
 - Formatted with colors and timestamps
 
 **Production:**
+
 - Logs written to `userData/logs/` directory
-- View with: `tail -f ~/Library/Application\ Support/auraswift/logs/*.log` (macOS)
+- View with: `tail -f ~/Library/Application\ Support/Aurswift/logs/*.log` (macOS)
 
 ---
 
 ## Future Enhancements
 
 ### Optional Improvements
+
 1. **Log Aggregation:** Consider adding log aggregation service (e.g., Sentry, LogRocket)
 2. **Performance Monitoring:** Add performance logging for slow operations
 3. **User Actions Logging:** Add structured logging for user actions (audit trail)
 4. **Remote Logging:** Add ability to send critical errors to remote service
 
 ### Not Recommended
+
 - Logging sensitive user data (PII, passwords, card numbers)
 - Excessive logging in hot paths (performance impact)
 - Logging entire large objects (use selective properties)
@@ -281,10 +306,10 @@ The logging system implementation is complete and production-ready. All applicat
 **Time Spent:** 3 hours  
 **Lines Changed:** ~250 files modified  
 **Risk:** Low (no breaking changes)  
-**Benefits:** 
+**Benefits:**
+
 - ✅ Better debugging in production
 - ✅ Log file rotation
 - ✅ Structured log entries
 - ✅ Environment-based logging
 - ✅ Centralized log management
-

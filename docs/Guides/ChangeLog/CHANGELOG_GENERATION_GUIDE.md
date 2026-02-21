@@ -1,6 +1,6 @@
 # CHANGELOG Generation Guide
 
-This document explains how semantic-release automatically generates the `CHANGELOG.md` file in AuraSwift.
+This document explains how semantic-release automatically generates the `CHANGELOG.md` file in Aurswift.
 
 ## 🎯 How CHANGELOG.md is Generated
 
@@ -64,7 +64,7 @@ fix(workflows): ensure .npmrc configuration for native modules
 ```markdown
 ### 🐛 Bug Fixes
 
-- **workflows:** ensure .npmrc configuration for native modules ([a25fd02](https://github.com/Sam231221/AuraSwift/commit/a25fd02...))
+- **workflows:** ensure .npmrc configuration for native modules ([a25fd02](https://github.com/Sam231221/Aurswift/commit/a25fd02...))
 ```
 
 **Note**: The emoji prefix (🐛) is automatically added by the custom template configuration.
@@ -200,7 +200,7 @@ All notable changes to this project will be documented in this file. See [Conven
   ↑ Extracted from commit footer with "BREAKING CHANGE:" or type with !
 ```
 
-## 🔍 Real Example from AuraSwift
+## 🔍 Real Example from Aurswift
 
 Looking at the generated CHANGELOG.md, semantic-release found these commits and organized them:
 
@@ -285,7 +285,6 @@ fix: 🐛 resolve login timeout issue
    ```
 
 3. **GitHub Actions runs semantic-release**
-
    - Analyzes all commits since last release
    - Determines version bump (major/minor/patch)
    - Generates CHANGELOG.md content
@@ -320,5 +319,5 @@ fix: 🐛 resolve login timeout issue
 ---
 
 **Last Updated:** October 23, 2025  
-**Project:** AuraSwift POS System  
+**Project:** Aurswift POS System  
 **Maintained by:** Development Team

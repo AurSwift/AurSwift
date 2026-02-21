@@ -136,17 +136,14 @@ The **bundle analyzer** (`packages/renderer/dist/stats.html`) visualizes **ONLY*
 ## 💡 Key Takeaways
 
 1. **Bundle analyzer shows ~3-4% of total app size**
-
    - It's useful for optimizing JavaScript bundle performance
    - But won't dramatically reduce the 464MB total
 
 2. **Native modules are the biggest optimization target**
-
    - 33MB → 9MB = **24MB savings** (5% reduction)
    - This is where you'll see the most impact
 
 3. **Electron framework is unavoidable**
-
    - 258MB is standard for Electron apps
    - Cannot be reduced significantly
 
@@ -162,21 +159,21 @@ The **bundle analyzer** (`packages/renderer/dist/stats.html`) visualizes **ONLY*
 
 ```bash
 # After installation, check Program Files
-dir "C:\Program Files\AuraSwift" /s
-# Or check Control Panel → Programs → AuraSwift
+dir "C:\Program Files\Aurswift" /s
+# Or check Control Panel → Programs → Aurswift
 ```
 
 ### Check Individual Components:
 
 ```bash
 # Check app.asar size
-du -sh "C:\Program Files\AuraSwift\resources\app.asar"
+du -sh "C:\Program Files\Aurswift\resources\app.asar"
 
 # Check unpacked native modules
-du -sh "C:\Program Files\AuraSwift\resources\app.asar.unpacked"
+du -sh "C:\Program Files\Aurswift\resources\app.asar.unpacked"
 
 # Check Electron framework
-du -sh "C:\Program Files\AuraSwift\*.dll"
+du -sh "C:\Program Files\Aurswift\*.dll"
 ```
 
 ### Use the Analysis Script:

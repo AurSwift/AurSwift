@@ -118,7 +118,7 @@ desktop/data/
 ### Production
 
 - **macOS**: `~/Library/Application Support/aurswift/`
-- **Windows**: `C:\Users\<Username>\AppData\Roaming\AuraSwift\`
+- **Windows**: `C:\Users\<Username>\AppData\Roaming\Aurswift\`
 - **Linux**: `~/.config/aurswift/`
 
 ---

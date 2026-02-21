@@ -1,14 +1,14 @@
-# AuraSwift Installer Types Guide
+# Aurswift Installer Types Guide
 
 ## 📦 Understanding Different Installers
 
-When you download AuraSwift from GitHub Releases, you'll see **3 different .exe files**. Here's what each one is for:
+When you download Aurswift from GitHub Releases, you'll see **3 different .exe files**. Here's what each one is for:
 
 ---
 
 ## 🎯 Quick Recommendation
 
-**For most users:** Download `AuraSwift-X.X.X-win-x64.exe` (64-bit NSIS Installer)
+**For most users:** Download `Aurswift-X.X.X-win-x64.exe` (64-bit NSIS Installer)
 
 ---
 
@@ -16,7 +16,7 @@ When you download AuraSwift from GitHub Releases, you'll see **3 different .exe 
 
 ### 1. **64-bit NSIS Installer** (Recommended) ⭐
 
-**File:** `AuraSwift-X.X.X-win-x64.exe`
+**File:** `Aurswift-X.X.X-win-x64.exe`
 
 **Size:** ~104 MB
 
@@ -29,7 +29,7 @@ When you download AuraSwift from GitHub Releases, you'll see **3 different .exe 
 
 **Features:**
 
-- ✅ Installs to `C:\Program Files\AuraSwift`
+- ✅ Installs to `C:\Program Files\Aurswift`
 - ✅ Creates Start Menu shortcut
 - ✅ Creates Desktop shortcut
 - ✅ Adds to Windows Apps & Features
@@ -48,7 +48,7 @@ When you download AuraSwift from GitHub Releases, you'll see **3 different .exe 
 
 ### 2. **32-bit NSIS Installer** (For Older Systems)
 
-**File:** `AuraSwift-X.X.X-win-ia32.exe`
+**File:** `Aurswift-X.X.X-win-ia32.exe`
 
 **Size:** ~110 MB
 
@@ -76,7 +76,7 @@ When you download AuraSwift from GitHub Releases, you'll see **3 different .exe 
 
 ### 3. **Portable Version** (No Installation)
 
-**File:** `AuraSwift-X.X.X-win-Portable-x64.exe`
+**File:** `Aurswift-X.X.X-win-Portable-x64.exe`
 
 **Size:** ~214 MB (larger because includes all dependencies)
 
@@ -101,7 +101,7 @@ When you download AuraSwift from GitHub Releases, you'll see **3 different .exe 
 **How to Use:**
 
 1. Download the portable `.exe` file
-2. Create a folder (e.g., `C:\PortableApps\AuraSwift`)
+2. Create a folder (e.g., `C:\PortableApps\Aurswift`)
 3. Move the `.exe` file into that folder
 4. Double-click to run (no installation)
 5. Create your own desktop shortcut if needed
@@ -227,7 +227,7 @@ A: No, only one NSIS installation at a time. Use portable version for multiple i
 
 ### **Q: Can I convert from NSIS to Portable?**
 
-A: Yes, just install portable version and copy your data from `%APPDATA%\AuraSwift`.
+A: Yes, just install portable version and copy your data from `%APPDATA%\Aurswift`.
 
 ### **Q: Which is faster?**
 
@@ -258,19 +258,19 @@ A: Update manifests for auto-updater. You don't need to download these.
 **Silent Installation:**
 
 ```batch
-AuraSwift-1.1.0-win-x64.exe /S /D=C:\Program Files\AuraSwift
+Aurswift-1.1.0-win-x64.exe /S /D=C:\Program Files\Aurswift
 ```
 
 **Unattended Installation:**
 
 ```batch
-AuraSwift-1.1.0-win-x64.exe /S /NCRC /D=%ProgramFiles%\AuraSwift
+Aurswift-1.1.0-win-x64.exe /S /NCRC /D=%ProgramFiles%\Aurswift
 ```
 
 **Deploy Portable:**
 
 ```batch
-xcopy AuraSwift-1.1.0-win-Portable-x64.exe "C:\Apps\AuraSwift\" /Y
+xcopy Aurswift-1.1.0-win-Portable-x64.exe "C:\Apps\Aurswift\" /Y
 ```
 
 ---
@@ -286,7 +286,7 @@ xcopy AuraSwift-1.1.0-win-Portable-x64.exe "C:\Apps\AuraSwift\" /Y
 
 **To verify authenticity:**
 
-1. Download from official GitHub Releases only: `https://github.com/Sam231221/AuraSwift/releases`
+1. Download from official GitHub Releases only: `https://github.com/Sam231221/Aurswift/releases`
 2. Check file size matches what's shown on GitHub
 3. Compare SHA256 hash if needed
 

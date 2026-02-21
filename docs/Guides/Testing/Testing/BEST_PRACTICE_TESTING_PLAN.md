@@ -1,4 +1,4 @@
-# Best Practice Testing Plan for AuraSwift POS
+# Best Practice Testing Plan for Aurswift POS
 
 > **📘 This is a detailed reference. For the consolidated guide, see [README.md](./README.md)**
 
@@ -608,7 +608,7 @@ if (typeof window !== "undefined") {
       {},
       {
         get: () => vi.fn(),
-      }
+      },
     );
   });
 }
@@ -620,7 +620,7 @@ vi.mock("electron", () => ({
       if (name === "userData") return "/tmp/test-user-data";
       return "/tmp/test-path";
     }),
-    getName: vi.fn(() => "AuraSwift"),
+    getName: vi.fn(() => "Aurswift"),
     getVersion: vi.fn(() => "1.10.1"),
   },
   ipcMain: {

@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # Grace Period Test Script
-# Tests the grace period logic for AuraSwift desktop app
+# Tests the grace period logic for Aurswift desktop app
 
 DB_PATH="$HOME/Library/Application Support/aurswift/pos_system.db"
 GRACE_PERIOD_DAYS=7
 
-echo "🔍 AuraSwift Grace Period Test"
+echo "🔍 Aurswift Grace Period Test"
 echo ""
 echo "============================================================"
 echo ""

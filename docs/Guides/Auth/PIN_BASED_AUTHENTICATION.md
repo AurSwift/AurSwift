@@ -2,7 +2,7 @@
 
 ## Overview
 
-The AuraSwift EPOS system uses a PIN-based authentication mechanism for secure, fast user login and verification. This document explains how PIN authentication works throughout the application, the packages involved, and the complete authentication flow.
+The Aurswift EPOS system uses a PIN-based authentication mechanism for secure, fast user login and verification. This document explains how PIN authentication works throughout the application, the packages involved, and the complete authentication flow.
 
 ## Table of Contents
 
@@ -1294,7 +1294,7 @@ test("verifies PIN correctly", async () => {
 
 ## Conclusion
 
-The PIN-based authentication system in AuraSwift EPOS provides:
+The PIN-based authentication system in Aurswift EPOS provides:
 
 ✅ **Secure authentication** with bcrypt hashing  
 ✅ **Fast login** with numeric keypad (4 digits)  

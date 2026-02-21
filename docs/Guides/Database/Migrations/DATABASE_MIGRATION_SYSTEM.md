@@ -8,7 +8,7 @@
 
 ## 🎯 Overview
 
-AuraSwift uses **Drizzle ORM** with **Drizzle Kit** for database migrations. This provides a type-safe, automated migration system that tracks applied migrations and ensures schema consistency across app updates.
+Aurswift uses **Drizzle ORM** with **Drizzle Kit** for database migrations. This provides a type-safe, automated migration system that tracks applied migrations and ensures schema consistency across app updates.
 
 ---
 
@@ -275,13 +275,11 @@ try {
 ### Recovery Options
 
 1. **Automatic Rollback**
-
    - Transaction automatically rolled back
    - Database reverts to previous consistent state
    - No data corruption
 
 2. **Restore from Backup** (Production)
-
    - Backups created automatically before migrations
    - Located in user data directory
    - Can be restored manually if needed

@@ -18,22 +18,22 @@ The app uses Electron's `app.getPath("userData")` which automatically includes t
 ### Windows
 
 ```
-%APPDATA%\AuraSwift\pos_system.db
+%APPDATA%\Aurswift\pos_system.db
 ```
 
 ### macOS
 
 ```
-~/Library/Application Support/AuraSwift/pos_system.db
+~/Library/Application Support/Aurswift/pos_system.db
 ```
 
 ### Linux
 
 ```
-~/.config/AuraSwift/pos_system.db
+~/.config/Aurswift/pos_system.db
 ```
 
-**Note**: The path is constructed using `app.getPath("userData")` which already includes "AuraSwift" in the path. The database file is stored directly in this directory as `pos_system.db`.
+**Note**: The path is constructed using `app.getPath("userData")` which already includes "Aurswift" in the path. The database file is stored directly in this directory as `pos_system.db`.
 
 ## Log Files Location
 
@@ -42,7 +42,7 @@ Log files are stored separately from the database, following Windows best practi
 ### Windows
 
 ```
-%LOCALAPPDATA%\AuraSwift\logs\
+%LOCALAPPDATA%\Aurswift\logs\
 ```
 
 **Why Local instead of Roaming?**
@@ -55,13 +55,13 @@ Log files are stored separately from the database, following Windows best practi
 ### macOS
 
 ```
-~/Library/Logs/AuraSwift/
+~/Library/Logs/Aurswift/
 ```
 
 ### Linux
 
 ```
-~/.local/share/AuraSwift/logs/
+~/.local/share/Aurswift/logs/
 ```
 
 **Note**: The app automatically migrates existing logs from the old location (Roaming) to the new location (Local) on first run after update.
@@ -124,11 +124,11 @@ If you need to copy data from development to test a production build:
 
 ### File Locations Summary
 
-| File Type       | Location (Windows)                  | Environment Variable     | Purpose                                       |
-| --------------- | ----------------------------------- | ------------------------ | --------------------------------------------- |
-| **Database**    | `%APPDATA%\AuraSwift\pos_system.db` | `%APPDATA%` (Roaming)    | User data that should sync across machines    |
-| **Logs**        | `%LOCALAPPDATA%\AuraSwift\logs\`    | `%LOCALAPPDATA%` (Local) | Machine-specific logs that don't need to sync |
-| **Application** | `C:\Program Files\AuraSwift\`       | `%ProgramFiles%`         | System-wide application installation          |
+| File Type       | Location (Windows)                 | Environment Variable     | Purpose                                       |
+| --------------- | ---------------------------------- | ------------------------ | --------------------------------------------- |
+| **Database**    | `%APPDATA%\Aurswift\pos_system.db` | `%APPDATA%` (Roaming)    | User data that should sync across machines    |
+| **Logs**        | `%LOCALAPPDATA%\Aurswift\logs\`    | `%LOCALAPPDATA%` (Local) | Machine-specific logs that don't need to sync |
+| **Application** | `C:\Program Files\Aurswift\`       | `%ProgramFiles%`         | System-wide application installation          |
 
 ### Why Database is in Roaming but Logs are in Local?
 
@@ -148,7 +148,7 @@ The app automatically migrates:
 - **Database locked**: Close any SQLite browser tools before running the app
 - **Missing tables**: The app automatically creates tables on first run
 - **Path issues**: Check the console logs for the actual database and log paths being used
-- **Log migration**: If logs don't appear in new location, check old location at `%APPDATA%\AuraSwift\logs\`
+- **Log migration**: If logs don't appear in new location, check old location at `%APPDATA%\Aurswift\logs\`
 
 # Using Your Existing Database
 
@@ -171,7 +171,7 @@ npm start
 ```bash
 # Set the environment variable before launching
 export POS_DB_PATH="/path/to/your/existing/database.db"
-./dist/AuraSwift.app/Contents/MacOS/AuraSwift
+./dist/Aurswift.app/Contents/MacOS/Aurswift
 ```
 
 ### Permanent Configuration:
@@ -205,30 +205,30 @@ Move your database to the production location:
 
 ```bash
 # Create the application data directory
-mkdir -p "$HOME/Library/Application Support/AuraSwift"
+mkdir -p "$HOME/Library/Application Support/Aurswift"
 
 # Copy your existing database
-cp "/path/to/your/existing/database.db" "$HOME/Library/Application Support/AuraSwift/pos_system.db"
+cp "/path/to/your/existing/database.db" "$HOME/Library/Application Support/Aurswift/pos_system.db"
 ```
 
 ### Windows:
 
 ```cmd
 # Create the application data directory
-mkdir "%APPDATA%\AuraSwift"
+mkdir "%APPDATA%\Aurswift"
 
 # Copy your existing database
-copy "C:\path\to\your\existing\database.db" "%APPDATA%\AuraSwift\pos_system.db"
+copy "C:\path\to\your\existing\database.db" "%APPDATA%\Aurswift\pos_system.db"
 ```
 
 ### Linux:
 
 ```bash
 # Create the application data directory
-mkdir -p "$HOME/.config/AuraSwift"
+mkdir -p "$HOME/.config/Aurswift"
 
 # Copy your existing database
-cp "/path/to/your/existing/database.db" "$HOME/.config/AuraSwift/pos_system.db"
+cp "/path/to/your/existing/database.db" "$HOME/.config/Aurswift/pos_system.db"
 ```
 
 ## Verify Database Integration
@@ -236,7 +236,6 @@ cp "/path/to/your/existing/database.db" "$HOME/.config/AuraSwift/pos_system.db"
 After setting up your database, verify it's working:
 
 1. **Check database location in the app:**
-
    - The application has a database info feature accessible through the dashboard
    - It will show the current database path and basic statistics
 

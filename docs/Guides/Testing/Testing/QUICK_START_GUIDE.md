@@ -1,6 +1,6 @@
 # Testing Quick Start Guide
 
-A practical guide to get started with testing in AuraSwift POS System.
+A practical guide to get started with testing in Aurswift POS System.
 
 ## 🚀 Quick Start
 
@@ -28,6 +28,7 @@ npm run test:e2e
 #### 1. Unit Test Example
 
 Create `packages/main/src/utils/myFunction.ts`:
+
 ```typescript
 export function calculateTotal(price: number, quantity: number): number {
   return price * quantity;
@@ -35,12 +36,13 @@ export function calculateTotal(price: number, quantity: number): number {
 ```
 
 Create `tests/unit/main/utils/myFunction.test.ts`:
-```typescript
-import { describe, it, expect } from 'vitest';
-import { calculateTotal } from '@app/main/utils/myFunction';
 
-describe('calculateTotal', () => {
-  it('should calculate total correctly', () => {
+```typescript
+import { describe, it, expect } from "vitest";
+import { calculateTotal } from "@app/main/utils/myFunction";
+
+describe("calculateTotal", () => {
+  it("should calculate total correctly", () => {
     const result = calculateTotal(10, 5);
     expect(result).toBe(50);
   });
@@ -48,6 +50,7 @@ describe('calculateTotal', () => {
 ```
 
 Run the test:
+
 ```bash
 npm run test:unit
 ```
@@ -55,6 +58,7 @@ npm run test:unit
 #### 2. Component Test Example
 
 Create `tests/components/MyButton.test.tsx`:
+
 ```typescript
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, userEvent } from '../utils/render-helpers';
@@ -67,11 +71,11 @@ describe('MyButton', () => {
   it('should call onClick when clicked', async () => {
     const user = userEvent.setup();
     const handleClick = vi.fn();
-    
+
     render(<MyButton onClick={handleClick} />);
-    
+
     await user.click(screen.getByText('Click Me'));
-    
+
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
 });
@@ -80,14 +84,15 @@ describe('MyButton', () => {
 #### 3. E2E Test Example
 
 Create `tests/e2e/my-feature.spec.ts`:
-```typescript
-import { test, expect } from '@playwright/test';
-import { test as electronTest } from '../e2e.spec';
 
-electronTest('should perform basic operation', async ({ electronApp }) => {
+```typescript
+import { test, expect } from "@playwright/test";
+import { test as electronTest } from "../e2e.spec";
+
+electronTest("should perform basic operation", async ({ electronApp }) => {
   const page = await electronApp.firstWindow();
-  await page.waitForLoadState('domcontentloaded');
-  
+  await page.waitForLoadState("domcontentloaded");
+
   // Your test logic here
   expect(await page.title()).toBeTruthy();
 });
@@ -128,7 +133,7 @@ tests/
 ### Mock Electron APIs
 
 ```typescript
-import { vi } from 'vitest';
+import { vi } from "vitest";
 
 // Mock is auto-configured in tests/setup.ts
 const mockResult = await window.productAPI.getAll();
@@ -137,29 +142,29 @@ const mockResult = await window.productAPI.getAll();
 ### Mock API Calls (MSW)
 
 ```typescript
-import { server } from '../mocks/server';
-import { http, HttpResponse } from 'msw';
+import { server } from "../mocks/server";
+import { http, HttpResponse } from "msw";
 
 // Override handler for specific test
 server.use(
-  http.get('/api/products', () => {
-    return HttpResponse.json([{ id: '1', name: 'Test' }]);
-  })
+  http.get("/api/products", () => {
+    return HttpResponse.json([{ id: "1", name: "Test" }]);
+  }),
 );
 ```
 
 ### Use Test Fixtures
 
 ```typescript
-import { createMockProduct } from '../utils/fixtures/products.fixture';
+import { createMockProduct } from "../utils/fixtures/products.fixture";
 
-const product = createMockProduct({ name: 'Custom Name', price: 29.99 });
+const product = createMockProduct({ name: "Custom Name", price: 29.99 });
 ```
 
 ### Test Async Code
 
 ```typescript
-it('should load data asynchronously', async () => {
+it("should load data asynchronously", async () => {
   const data = await fetchData();
   expect(data).toBeDefined();
 });
@@ -173,10 +178,10 @@ import { render, screen, userEvent } from '../utils/render-helpers';
 it('should submit form', async () => {
   const user = userEvent.setup();
   render(<MyForm />);
-  
+
   await user.type(screen.getByLabelText('Email'), 'test@example.com');
   await user.click(screen.getByRole('button', { name: /submit/i }));
-  
+
   expect(screen.getByText('Success')).toBeInTheDocument();
 });
 ```
@@ -192,7 +197,7 @@ npm run test -- tests/unit/main/utils/myFunction.test.ts
 ### Run Single Test Case
 
 ```typescript
-it.only('should test this specific case', () => {
+it.only("should test this specific case", () => {
   // This test will run exclusively
 });
 ```
@@ -204,6 +209,7 @@ npm run test:ui
 ```
 
 Then open the UI in your browser to:
+
 - See test results visually
 - Filter and search tests
 - View code coverage
@@ -246,7 +252,7 @@ open coverage/index.html
 ```typescript
 /* istanbul ignore next */
 function debugOnly() {
-  console.log('Debug code');
+  console.log("Debug code");
 }
 ```
 
@@ -255,22 +261,25 @@ function debugOnly() {
 ### Tests Timeout
 
 Increase timeout in test:
+
 ```typescript
-it('slow test', async () => {
+it("slow test", async () => {
   // Test code
 }, 15000); // 15 second timeout
 ```
 
 Or in config (`vitest.config.ts`):
+
 ```typescript
 test: {
-  testTimeout: 15000
+  testTimeout: 15000;
 }
 ```
 
 ### Module Not Found
 
 Check aliases in `vitest.config.ts`:
+
 ```typescript
 resolve: {
   alias: {
@@ -303,9 +312,8 @@ Check `tests/setup.ts` - all Electron APIs should be mocked there.
 - **Documentation**: `docs/Testing/`
 - **Examples**: `tests/**/*.test.{ts,tsx}`
 - **Slack**: #testing channel
-- **Email**: dev-team@auraswift.com
+- **Email**: dev-team@Aurswift.com
 
 ---
 
 Happy Testing! 🎉
-

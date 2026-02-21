@@ -20,23 +20,23 @@ npm run analyze:bundle
 du -sh node_modules/* | sort -hr | head -20
 
 # Check built app (macOS)
-du -sh dist/mac/AuraSwift.app/Contents/Resources/*
+du -sh dist/mac/Aurswift.app/Contents/Resources/*
 
 # Check native modules in unpacked
-du -sh dist/mac/AuraSwift.app/Contents/Resources/app.asar.unpacked/node_modules/* | sort -hr
+du -sh dist/mac/Aurswift.app/Contents/Resources/app.asar.unpacked/node_modules/* | sort -hr
 ```
 
 ---
 
 ## 📊 Key Metrics
 
-| Component             | Current | Target | Command to Check                                                     |
-| --------------------- | ------- | ------ | -------------------------------------------------------------------- |
-| **Total DMG**         | 464MB   | ~330MB | `du -sh dist/*.dmg`                                                  |
-| **App Bundle**        | 358MB   | ~320MB | `du -sh dist/mac/AuraSwift.app`                                      |
-| **app.asar**          | 63MB    | ~60MB  | `du -sh dist/mac/AuraSwift.app/Contents/Resources/app.asar`          |
-| **app.asar.unpacked** | 33MB    | ~10MB  | `du -sh dist/mac/AuraSwift.app/Contents/Resources/app.asar.unpacked` |
-| **Native Modules**    | 33MB    | ~9MB   | See unpacked breakdown                                               |
+| Component             | Current | Target | Command to Check                                                    |
+| --------------------- | ------- | ------ | ------------------------------------------------------------------- |
+| **Total DMG**         | 464MB   | ~330MB | `du -sh dist/*.dmg`                                                 |
+| **App Bundle**        | 358MB   | ~320MB | `du -sh dist/mac/Aurswift.app`                                      |
+| **app.asar**          | 63MB    | ~60MB  | `du -sh dist/mac/Aurswift.app/Contents/Resources/app.asar`          |
+| **app.asar.unpacked** | 33MB    | ~10MB  | `du -sh dist/mac/Aurswift.app/Contents/Resources/app.asar.unpacked` |
+| **Native Modules**    | 33MB    | ~9MB   | See unpacked breakdown                                              |
 
 ---
 
@@ -76,7 +76,7 @@ du -sh dist/mac/AuraSwift.app/Contents/Resources/app.asar.unpacked/node_modules/
 
 ```bash
 # Verify source files are excluded
-find dist/mac/AuraSwift.app/Contents/Resources/app.asar.unpacked -name "*.c" -o -name "*.h"
+find dist/mac/Aurswift.app/Contents/Resources/app.asar.unpacked -name "*.c" -o -name "*.h"
 # Should return nothing
 ```
 
