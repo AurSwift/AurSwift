@@ -42,8 +42,10 @@ interface GeneralSettingsFormData {
 
 export default function GeneralSettingsView({
   onBack,
+  embeddedInWorkspace = false,
 }: {
   onBack: () => void;
+  embeddedInWorkspace?: boolean;
 }) {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
@@ -140,6 +142,7 @@ export default function GeneralSettingsView({
       <SettingsLayout
         activeTab={SETTINGS_ROUTES.GENERAL}
         onBack={onBack}
+        embeddedInWorkspace={embeddedInWorkspace}
       >
         <div className="flex items-center justify-center py-12">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -152,6 +155,7 @@ export default function GeneralSettingsView({
     <SettingsLayout
       activeTab={SETTINGS_ROUTES.GENERAL}
       onBack={onBack}
+      embeddedInWorkspace={embeddedInWorkspace}
     >
       <div className="max-w-4xl space-y-6">
       <div className="bg-white rounded-lg border shadow-sm p-6">

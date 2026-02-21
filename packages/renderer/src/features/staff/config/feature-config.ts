@@ -10,7 +10,7 @@ import { Users, Coffee } from "lucide-react";
 import { STAFF_PERMISSIONS } from "./permissions";
 import { STAFF_ROUTES } from "./navigation";
 import type { FeatureConfig } from "@/features/dashboard/types/feature-config";
-import type { ViewConfig } from "@/navigation/types";
+import type { ViewConfig } from "@/features/navigation/types";
 
 /**
  * Staff Feature Configuration for Dashboard

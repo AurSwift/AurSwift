@@ -10,7 +10,7 @@ import { Shield } from "lucide-react";
 import { RBAC_PERMISSIONS } from "./permissions";
 import { RBAC_ROUTES } from "./navigation";
 import type { FeatureConfig } from "@/features/dashboard/types/feature-config";
-import type { ViewConfig } from "@/navigation/types";
+import type { ViewConfig } from "@/features/navigation/types";
 
 /**
  * RBAC Feature Configuration for Dashboard

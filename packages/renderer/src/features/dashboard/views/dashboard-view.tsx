@@ -5,8 +5,8 @@
  * Wraps the application with NavigationProvider and renders NavigationContainer.
  */
 
-import { NavigationProvider } from "@/navigation";
-import { AuthenticatedAppShell } from "@/navigation/components/authenticated-app-shell";
+import { NavigationProvider } from "@/features/navigation";
+import { AuthenticatedAppShell } from "@/features/navigation/components/authenticated-app-shell";
 import { useAuth } from "@/shared/hooks";
 import { LoadingScreen } from "@/components/loading-screen";
 

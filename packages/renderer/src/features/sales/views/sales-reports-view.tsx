@@ -27,7 +27,7 @@ import {
   TrendingUp,
   RefreshCw,
 } from "lucide-react";
-import { useNavigation } from "@/navigation/hooks/use-navigation";
+import { useNavigation } from "@/features/navigation/hooks/use-navigation";
 import type {
   TransactionTypeFilter,
   PaymentMethodFilter,

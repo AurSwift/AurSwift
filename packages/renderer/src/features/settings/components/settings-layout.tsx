@@ -9,7 +9,7 @@ import type { ReactNode } from "react";
 import { Settings, Building2, CreditCard } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 import { MiniBar } from "@/components/mini-bar";
-import { useNavigation } from "@/navigation/hooks/use-navigation";
+import { useNavigation } from "@/features/navigation/hooks/use-navigation";
 import { SETTINGS_ROUTES } from "../config/navigation";
 import type { SettingsRoute } from "../config/navigation";
 
@@ -36,16 +36,26 @@ const ACTIVE_TAB_TITLES: Record<SettingsRoute, string> = {
 export interface SettingsLayoutProps {
   activeTab: SettingsRoute;
   onBack: () => void;
+  embeddedInWorkspace?: boolean;
   children: ReactNode;
 }
 
 export function SettingsLayout({
   activeTab,
   onBack,
+  embeddedInWorkspace = false,
   children,
 }: SettingsLayoutProps) {
   const { navigateTo } = useNavigation();
   const title = ACTIVE_TAB_TITLES[activeTab];
+
+  if (embeddedInWorkspace) {
+    return (
+      <div className="flex h-full min-h-0 flex-col p-4 sm:p-6 lg:p-8">
+        <div className="min-h-0 flex-1 overflow-auto">{children}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-4 p-4 sm:p-6 lg:p-8">

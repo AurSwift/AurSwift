@@ -12,6 +12,7 @@ import { useUserPermissions } from "../hooks/use-user-permissions";
 import type { FeatureConfig } from "../types/feature-config";
 import { cn } from "@/shared/utils/cn";
 import { getFeatureMenuLabel } from "../config/feature-menu-labels";
+import { SYSTEM_SETTINGS_EXTRA_ACTIONS } from "../config/system-settings-actions";
 
 interface FeatureMenuBarProps {
   features: FeatureConfig[];
@@ -44,15 +45,7 @@ function FeatureMenuGroup({
     return true;
   });
 
-  const settingsExtras =
-    isSettingsMenu
-      ? [
-          { id: "show-license-info", label: "Show license info" },
-          { id: "change-pin", label: "Change PIN" },
-          { id: "logout", label: "Log out" },
-          { id: "quit-app", label: "Quit App" },
-        ]
-      : [];
+  const settingsExtras = isSettingsMenu ? SYSTEM_SETTINGS_EXTRA_ACTIONS : [];
 
   if (visibleActions.length === 0 && settingsExtras.length === 0) return null;
 

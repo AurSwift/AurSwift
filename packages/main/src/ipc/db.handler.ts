@@ -651,7 +651,7 @@ export function registerDbHandlers() {
             return {
               success: false,
               message:
-                "Cannot import an empty database (no users found). An AuraSwift database must contain at least one user account to be imported. If you want to start fresh, use the 'Empty Database' feature instead which will reset your current database while preserving the default admin account.",
+                "Cannot import an empty database (no users found). An Aurswift database must contain at least one user account to be imported. If you want to start fresh, use the 'Empty Database' feature instead which will reset your current database while preserving the default admin account.",
             };
           }
         } catch (userCheckError) {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
   HashRouter as Router,
   Routes,
@@ -18,11 +18,11 @@ import {
   useStartupSequence,
   type StartupWarningCode,
 } from "@/app/startup";
+import type { StartupState } from "@/app/startup/startup.types";
 import { AuthPage } from "@/features/auth";
 import { LicenseActivationModal, useLicenseContext } from "@/features/license";
-import { ProtectedAppShell } from "@/navigation/components/protected-app-shell";
+import { ProtectedAppShell } from "@/features/navigation/components/protected-app-shell";
 import { useAuth } from "@/shared/hooks";
-import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { getLogger } from "@/shared/utils/logger";
 import { sanitizeUserFacingMessage } from "@/shared/utils/user-facing-errors";
@@ -87,20 +87,6 @@ function useSystemNotifications() {
 
     return cleanup;
   }, []);
-}
-
-/**
- * Loading screen shown while checking license status
- */
-function LicenseLoadingScreen() {
-  return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
-      <div className="text-center space-y-4">
-        <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto" />
-        <p className="text-body text-muted-foreground">Loading aurswift...</p>
-      </div>
-    </div>
-  );
 }
 
 /**
@@ -198,6 +184,18 @@ function AppWithLicenseCheck() {
     runUpdateCheck: runStartupUpdateCheck,
   });
 
+  const licenseLoadingState = useMemo<StartupState>(
+    () => ({
+      phase: "starting-services",
+      progress: 75,
+      isBlocking: true,
+      warning: null,
+      startedAt: Date.now(),
+      completedAt: null,
+    }),
+    [],
+  );
+
   useEffect(() => {
     if (prefetchedAuthRef.current) {
       return;
@@ -241,15 +239,12 @@ function AppWithLicenseCheck() {
     }
   }, [isLoading, isActivated]);
 
-  // Show EPOS-style startup sequence before auth/license decision
-  if (startupState.isBlocking) {
-    return <StartupScreen state={startupState} />;
-  }
-
-  // Fallback loading state in case hard-timeout bypasses startup while license
-  // is still resolving.
-  if (isLoading) {
-    return <LicenseLoadingScreen />;
+  // Show EPOS-style splash for entire cold start (startup + license loading)
+  if (startupState.isBlocking || isLoading) {
+    const splashState = startupState.isBlocking
+      ? startupState
+      : licenseLoadingState;
+    return <StartupScreen state={splashState} />;
   }
 
   // Bypass license check in test mode

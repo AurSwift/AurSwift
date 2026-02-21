@@ -29,10 +29,12 @@ import type {
 
 interface VivaWalletSettingsViewProps {
   onBack: () => void;
+  embeddedInWorkspace?: boolean;
 }
 
 export default function VivaWalletSettingsView({
   onBack,
+  embeddedInWorkspace = false,
 }: VivaWalletSettingsViewProps) {
   const {
     enabled,
@@ -111,6 +113,7 @@ export default function VivaWalletSettingsView({
       <SettingsLayout
         activeTab={SETTINGS_ROUTES.VIVA_WALLET}
         onBack={onBack}
+        embeddedInWorkspace={embeddedInWorkspace}
       >
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
@@ -123,6 +126,7 @@ export default function VivaWalletSettingsView({
     <SettingsLayout
       activeTab={SETTINGS_ROUTES.VIVA_WALLET}
       onBack={onBack}
+      embeddedInWorkspace={embeddedInWorkspace}
     >
       <div className="max-w-6xl space-y-6">
         {/* Enable/Disable Toggle */}

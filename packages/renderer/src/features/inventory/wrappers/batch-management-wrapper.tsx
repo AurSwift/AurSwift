@@ -7,7 +7,7 @@
  * This wrapper lives in the inventory feature to keep features self-contained.
  */
 
-import { useNestedNavigation } from "@/navigation/hooks/use-nested-navigation";
+import { useNestedNavigation } from "@/features/navigation/hooks/use-nested-navigation";
 import BatchManagementView from "@/features/inventory/views/batch-management-view";
 import { INVENTORY_ROUTES } from "../config/navigation";
 

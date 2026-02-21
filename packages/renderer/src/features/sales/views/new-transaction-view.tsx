@@ -15,7 +15,7 @@ import { toast } from "sonner";
 // Hooks
 import { useAuth } from "@/shared/hooks/use-auth";
 import { useActiveShift } from "@/features/dashboard/hooks/use-active-shift";
-import { useNavigation } from "@/navigation/hooks/use-navigation";
+import { useNavigation } from "@/features/navigation/hooks/use-navigation";
 import {
   useReceiptPrintingFlow,
   useThermalPrinter,

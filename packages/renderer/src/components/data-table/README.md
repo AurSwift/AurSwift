@@ -24,6 +24,7 @@ A powerful, flexible, and fully-featured table component system built on **TanSt
 ### Installation
 
 The required dependencies are already installed:
+
 - `@tanstack/react-table` - Core table logic
 - `@tanstack/react-virtual` - Virtual scrolling for large datasets
 
@@ -75,9 +76,9 @@ function UsersTable({ users }: { users: User[] }) {
         <TableSearchInput placeholder="Search..." />
         <TableExportButton filename="users" />
       </DataTable.Toolbar>
-      
+
       <DataTable.Content />
-      
+
       <DataTable.Footer>
         <DataTable.Pagination />
       </DataTable.Footer>
@@ -96,7 +97,7 @@ Main hook for initializing the table.
 const { table, selectedRows, selectedCount } = useDataTable({
   data: TData[],
   columns: ColumnDef<TData>[],
-  
+
   // Optional configurations
   pagination?: {
     mode: "client" | "server",
@@ -105,13 +106,13 @@ const { table, selectedRows, selectedCount } = useDataTable({
     pageCount?: number,
     onPaginationChange?: (state) => void,
   },
-  
+
   sorting?: {
     mode: "client" | "server",
     initialState?: SortingState,
     onSortingChange?: (state) => void,
   },
-  
+
   filtering?: {
     mode: "client" | "server",
     globalFilter?: string,
@@ -119,24 +120,24 @@ const { table, selectedRows, selectedCount } = useDataTable({
     onGlobalFilterChange?: (value) => void,
     onColumnFiltersChange?: (state) => void,
   },
-  
+
   selection?: {
     enabled: boolean,
     mode: "single" | "multiple",
     onSelectionChange?: (rows) => void,
   },
-  
+
   columnVisibility?: {
     initialState?: VisibilityState,
     storageKey?: string, // For localStorage persistence
   },
-  
+
   expandable?: {
     enabled: boolean,
     getRowCanExpand?: (row) => boolean,
     renderSubComponent?: (row) => ReactNode,
   },
-  
+
   enableColumnResizing?: boolean,
   enableRowVirtualization?: boolean,
   getRowId?: (row, index) => string,
@@ -173,10 +174,7 @@ Toolbar for filters, search, and actions.
 Renders the complete table (header + body).
 
 ```tsx
-<DataTable.Content 
-  minWidth="760px"
-  renderEmpty={() => <CustomEmptyState />}
-/>
+<DataTable.Content minWidth="760px" renderEmpty={() => <CustomEmptyState />} />
 ```
 
 #### `DataTable.Footer`
@@ -196,7 +194,7 @@ Utilities for creating common column types.
 #### Selection Column
 
 ```tsx
-columnHelpers.selection<TData>()
+columnHelpers.selection<TData>();
 ```
 
 #### Text Column
@@ -206,7 +204,7 @@ columnHelpers.text("email", {
   header: "Email",
   sortable: true,
   className: "font-mono",
-})
+});
 ```
 
 #### Badge Column
@@ -215,8 +213,8 @@ columnHelpers.text("email", {
 columnHelpers.badge("status", {
   header: "Status",
   getValue: (row) => row.status,
-  getVariant: (row) => row.isActive ? "default" : "destructive",
-})
+  getVariant: (row) => (row.isActive ? "default" : "destructive"),
+});
 ```
 
 #### Date Column
@@ -226,7 +224,7 @@ columnHelpers.date("createdAt", {
   header: "Created",
   format: "MMM dd, yyyy",
   sortable: true,
-})
+});
 ```
 
 #### Number Column
@@ -238,7 +236,7 @@ columnHelpers.number("price", {
   currency: "USD",
   decimals: 2,
   sortable: true,
-})
+});
 ```
 
 #### Actions Column
@@ -254,7 +252,7 @@ columnHelpers.actions({
       ]}
     />
   ),
-})
+});
 ```
 
 ### Filter Components
@@ -264,8 +262,8 @@ columnHelpers.actions({
 Global search input.
 
 ```tsx
-<TableSearchInput 
-  placeholder="Search..." 
+<TableSearchInput
+  placeholder="Search..."
   column="name" // Optional: filter specific column
 />
 ```
@@ -290,10 +288,7 @@ Multi-select filter for categorical data.
 Date range picker.
 
 ```tsx
-<TableDateRangeFilter
-  column="createdAt"
-  title="Date range"
-/>
+<TableDateRangeFilter column="createdAt" title="Date range" />
 ```
 
 ### Action Components
@@ -306,16 +301,16 @@ Row-specific actions dropdown.
 <TableRowActions
   row={user}
   actions={[
-    { 
-      label: "Edit", 
+    {
+      label: "Edit",
       icon: Edit,
-      onSelect: (user) => handleEdit(user) 
+      onSelect: (user) => handleEdit(user),
     },
     { type: "separator" },
-    { 
-      label: "Delete", 
+    {
+      label: "Delete",
       variant: "destructive",
-      onSelect: (user) => handleDelete(user) 
+      onSelect: (user) => handleDelete(user),
     },
   ]}
 />
@@ -343,11 +338,7 @@ Bulk actions toolbar (shows when rows are selected).
 Export table data.
 
 ```tsx
-<TableExportButton
-  filename="export"
-  formats={["csv", "excel"]}
-  selectedOnly={false}
-/>
+<TableExportButton filename="export" formats={["csv", "excel"]} selectedOnly={false} />
 ```
 
 ### Column Components
@@ -376,18 +367,19 @@ Column visibility toggle dropdown.
 function ServerTable() {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 20 });
   const [sorting, setSorting] = useState<SortingState>([]);
-  
+
   // Fetch data from server
   const { data, isLoading } = useQuery({
     queryKey: ["users", pagination, sorting],
-    queryFn: () => fetchUsers({ 
-      page: pagination.pageIndex, 
-      pageSize: pagination.pageSize,
-      sortBy: sorting[0]?.id,
-      sortOrder: sorting[0]?.desc ? "desc" : "asc",
-    }),
+    queryFn: () =>
+      fetchUsers({
+        page: pagination.pageIndex,
+        pageSize: pagination.pageSize,
+        sortBy: sorting[0]?.id,
+        sortOrder: sorting[0]?.desc ? "desc" : "asc",
+      }),
   });
-  
+
   const { table } = useDataTable({
     data: data.items,
     columns,
@@ -403,8 +395,12 @@ function ServerTable() {
       onSortingChange: setSorting,
     },
   });
-  
-  return <DataTable table={table} isLoading={isLoading}>...</DataTable>;
+
+  return (
+    <DataTable table={table} isLoading={isLoading}>
+      ...
+    </DataTable>
+  );
 }
 ```
 
@@ -466,7 +462,7 @@ const [pageSize, setPageSize] = useState(10);
 >
   {/* Don't show pagination in footer */}
   <DataTable.Footer showSelectionInfo={true} />
-</DataTable>
+</DataTable>;
 ```
 
 ## Migration Guide
@@ -510,7 +506,7 @@ const { table } = useDataTable({
   <DataTable.Footer>
     <DataTable.Pagination />
   </DataTable.Footer>
-</DataTable>
+</DataTable>;
 ```
 
 ### Benefits of Migration
@@ -550,13 +546,17 @@ const { table } = useDataTable({
 ### Table not sorting
 
 Make sure sorting is enabled:
+
 ```tsx
-sorting: { mode: "client" }
+sorting: {
+  mode: "client";
+}
 ```
 
 ### Column filters not working
 
 Ensure the column ID matches the filter column name:
+
 ```tsx
 <TableFacetedFilter column="role" /> // Must match column.id
 ```
@@ -588,4 +588,4 @@ When adding new features to the table system:
 
 ## License
 
-Part of the AuraSwift project.
+Part of the Aurswift project.

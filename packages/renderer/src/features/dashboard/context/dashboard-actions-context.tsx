@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useState } from "react";
 import type { ReactNode } from "react";
-import { mapActionToView } from "@/navigation/utils/navigation-mapper";
-import { useNavigation } from "@/navigation/hooks/use-navigation";
+import { mapActionToView } from "@/features/navigation/utils/navigation-mapper";
+import { useNavigation } from "@/features/navigation/hooks/use-navigation";
 import { getLogger } from "@/shared/utils/logger";
 import { useAuth } from "@/shared/hooks/use-auth";
 import { useActiveShift } from "../hooks/use-active-shift";
@@ -9,6 +9,10 @@ import { useDatabaseActions } from "../hooks/use-database-actions";
 import { LicenseInfoModal } from "@/features/license";
 import { ChangePinDialog } from "@/features/auth/components/change-pin-dialog";
 import { LogoutConfirmationDialog } from "../components/logout-confirmation-dialog";
+import {
+  SYSTEM_SETTINGS_EXTRA_ACTION_IDS,
+  type SystemSettingsExtraActionId,
+} from "../config/system-settings-actions";
 
 const logger = getLogger("dashboard-actions");
 
@@ -67,22 +71,23 @@ export function DashboardActionsProvider({
         return;
       }
 
-      if (featureId === "system-settings") {
-        if (actionId === "show-license-info") {
-          setShowLicenseModal(true);
-          return;
-        }
-        if (actionId === "change-pin") {
-          setShowChangePinDialog(true);
-          return;
-        }
-        if (actionId === "logout") {
-          handleLogoutRequest();
-          return;
-        }
-        if (actionId === "quit-app") {
-          void window.appAPI.quit();
-          return;
+      if (
+        featureId === "system-settings" &&
+        SYSTEM_SETTINGS_EXTRA_ACTION_IDS.has(actionId as SystemSettingsExtraActionId)
+      ) {
+        switch (actionId as SystemSettingsExtraActionId) {
+          case "show-license-info":
+            setShowLicenseModal(true);
+            return;
+          case "change-pin":
+            setShowChangePinDialog(true);
+            return;
+          case "logout":
+            handleLogoutRequest();
+            return;
+          case "quit-app":
+            void window.appAPI.quit();
+            return;
         }
       }
 

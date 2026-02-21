@@ -167,7 +167,7 @@ export function LicenseActivationModal({
             </DialogTitle>
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-gray-500">
-                AuraSwift
+                Aurswift
               </span>
               <Button
                 type="button"

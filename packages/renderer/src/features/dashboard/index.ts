@@ -6,23 +6,19 @@
 
 // Components
 export {
-  FeatureCard,
-  DashboardGrid,
-  StatsCards,
-  ManagerStatsCards,
-  DashboardLayout,
+  DashboardHeader,
+  FeatureMenuBar,
+  LicenseHeaderBadge,
+  OperationsOverview,
+  LogoutConfirmationDialog,
 } from "./components";
 
-// Widget Components
+// Shell Components
 export {
-  UserManagementCard,
-  ManagementActionsCard,
-  ReportsAnalyticsCard,
-  AdvancedReportsCard,
-  SystemSettingsCard,
-  DatabaseManagementCard,
-  QuickActionsCard,
-} from "./widgets";
+  AurSwiftBackOfficeShell,
+  AurSwiftSidebar,
+  AurSwiftTopbar,
+} from "./shell";
 
 // Hooks
 export { useUserPermissions, useFeatureVisibility } from "./hooks";

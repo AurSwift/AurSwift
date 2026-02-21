@@ -4,7 +4,7 @@ import type { FeatureConfig } from "../types/feature-config";
 const ADMIN_EXCLUDED = new Set(["quick-actions"]);
 const MANAGER_EXCLUDED = new Set([
   "database-management",
-  "advanced-reports",
+  "advanced-reporting-analytics",
   "quick-actions",
 ]);
 

@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { toast } from "sonner";
 import { useAuth } from "@/shared/hooks/use-auth";
 import type { Product } from "@/types/domain";
-import { useNestedNavigation } from "@/navigation/hooks/use-nested-navigation";
-import { useNavigation } from "@/navigation/hooks/use-navigation";
-import { getNestedViews } from "@/navigation/registry/view-registry";
+import { useNestedNavigation } from "@/features/navigation/hooks/use-nested-navigation";
+import { useNavigation } from "@/features/navigation/hooks/use-navigation";
+import { getNestedViews } from "@/features/navigation/registry/view-registry";
 import { INVENTORY_ROUTES } from "../config/navigation";
 
 import ManageCategoriesView from "./category-management-view";

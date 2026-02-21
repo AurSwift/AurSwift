@@ -11,8 +11,10 @@ const logger = getLogger("store-configuration-view");
 
 export default function StoreConfigurationView({
   onBack,
+  embeddedInWorkspace = false,
 }: {
   onBack: () => void;
+  embeddedInWorkspace?: boolean;
 }) {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
@@ -73,6 +75,7 @@ export default function StoreConfigurationView({
       <SettingsLayout
         activeTab={SETTINGS_ROUTES.STORE_CONFIGURATION}
         onBack={onBack}
+        embeddedInWorkspace={embeddedInWorkspace}
       >
         <div className="flex items-center justify-center py-12">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -86,6 +89,7 @@ export default function StoreConfigurationView({
       <SettingsLayout
         activeTab={SETTINGS_ROUTES.STORE_CONFIGURATION}
         onBack={onBack}
+        embeddedInWorkspace={embeddedInWorkspace}
       >
         <div className="max-w-4xl">
           <div className="bg-white rounded-lg border shadow-sm p-6">
@@ -102,6 +106,7 @@ export default function StoreConfigurationView({
     <SettingsLayout
       activeTab={SETTINGS_ROUTES.STORE_CONFIGURATION}
       onBack={onBack}
+      embeddedInWorkspace={embeddedInWorkspace}
     >
       <div className="max-w-4xl">
         <div className="bg-white rounded-lg border shadow-sm p-6">

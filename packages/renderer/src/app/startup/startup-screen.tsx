@@ -1,4 +1,8 @@
-import { STARTUP_PHASE_LABELS } from "./startup.constants";
+import { useEffect, useState } from "react";
+import {
+  SPLASH_LABEL,
+  STARTUP_PROGRESS_DURATION_MS,
+} from "./startup.constants";
 import type { StartupState } from "./startup.types";
 
 interface StartupScreenProps {
@@ -9,33 +13,41 @@ function clampProgress(progress: number): number {
   return Math.min(100, Math.max(0, progress));
 }
 
+/** Progress fills over STARTUP_PROGRESS_DURATION_MS so it reaches 100% before app loads */
+function useTimeBasedProgress(startedAt: number): number {
+  const [progress, setProgress] = useState(() => {
+    const elapsed = Date.now() - startedAt;
+    return clampProgress((elapsed / STARTUP_PROGRESS_DURATION_MS) * 100);
+  });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startedAt;
+      setProgress(clampProgress((elapsed / STARTUP_PROGRESS_DURATION_MS) * 100));
+    }, 50);
+    return () => clearInterval(interval);
+  }, [startedAt]);
+
+  return progress;
+}
+
 export function StartupScreen({ state }: StartupScreenProps) {
-  const phaseLabel = STARTUP_PHASE_LABELS[state.phase];
-  const progress = clampProgress(state.progress);
+  const progress = useTimeBasedProgress(state.startedAt);
   const progressScale = progress / 100;
-  const logoSrc = `${import.meta.env.BASE_URL}licenselogo.png`;
+  const logoSrc = `${import.meta.env.BASE_URL}AurswiftLogoSky.png`;
 
   return (
     <div
       className="relative h-screen w-screen overflow-hidden select-none"
       role="status"
       aria-live="polite"
-      aria-label="AuraSwift startup in progress"
+      aria-label="Epos Now startup in progress"
       data-testid="startup-screen"
       style={{
         background:
-          "radial-gradient(circle at 20% 15%, rgba(113, 201, 255, 0.22) 0%, transparent 46%), radial-gradient(circle at 82% 88%, rgba(120, 178, 255, 0.2) 0%, transparent 48%), linear-gradient(150deg, #1a73e8 0%, #3f95ff 48%, #62abff 100%)",
+          "linear-gradient(150deg, #1a73e8 0%, #3f95ff 48%, #62abff 100%)",
       }}
     >
-      <div
-        className="pointer-events-none absolute inset-0 opacity-20"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",
-          backgroundSize: "64px 64px",
-        }}
-      />
-
       <div
         className="pointer-events-none absolute -top-28 -left-28 h-72 w-72 rounded-full blur-3xl startup-orb-float"
         style={{ background: "rgba(255,255,255,0.25)" }}
@@ -50,13 +62,15 @@ export function StartupScreen({ state }: StartupScreenProps) {
 
       <div className="relative z-10 flex h-full w-full items-center justify-center p-8">
         <div className="flex w-full max-w-md flex-col items-center">
-          <img
-            src={logoSrc}
-            alt="AuraSwift logo"
-            width={92}
-            height={92}
-            className="mb-8 rounded-full bg-white/85 p-2.5 shadow-[0_12px_40px_rgba(0,0,0,0.2)]"
-          />
+          <div className="mb-8 flex h-[92px] w-[92px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-white p-2.5 shadow-[0_12px_40px_rgba(0,0,0,0.2)]">
+            <img
+              src={logoSrc}
+              alt="Epos Now logo"
+              width={76}
+              height={76}
+              className="h-full w-full object-contain"
+            />
+          </div>
 
           <div className="w-full">
             <div className="mb-2.5 flex items-center justify-between">
@@ -64,9 +78,9 @@ export function StartupScreen({ state }: StartupScreenProps) {
                 className="text-base font-medium tracking-wide text-white/95"
                 data-testid="startup-phase-label"
               >
-                {phaseLabel}
+                {SPLASH_LABEL}
               </p>
-              <span className="text-sm font-semibold text-white/90">{progress}%</span>
+              <span className="text-sm font-semibold text-white/90">{Math.round(progress)}%</span>
             </div>
 
             <div

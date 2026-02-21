@@ -5,7 +5,7 @@
  * Use this hook in components to navigate within the feature.
  */
 
-import { useNavigation } from "@/navigation/hooks/use-navigation";
+import { useNavigation } from "@/features/navigation/hooks/use-navigation";
 import { INVENTORY_ROUTES } from "../config/navigation";
 import type { InventoryRoute } from "../config/navigation";
 

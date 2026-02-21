@@ -11,7 +11,7 @@ import { SALES_PERMISSIONS } from "./permissions";
 import { SALES_ROUTES } from "./navigation";
 import { PERMISSIONS } from "@app/shared/constants/permissions";
 import type { FeatureConfig } from "@/features/dashboard/types/feature-config";
-import type { ViewConfig } from "@/navigation/types";
+import type { ViewConfig } from "@/features/navigation/types";
 
 /**
  * Sales Feature Configuration for Dashboard
@@ -50,7 +50,10 @@ export const salesViews: Record<string, ViewConfig> = {
       title: "New Transaction",
       description: "Create a new sale",
     },
-    chrome: { showDashboardHeader: false },
+    chrome: {
+      appShellMode: "immersive",
+      showDashboardHeader: false,
+    },
     permissions: [SALES_PERMISSIONS.WRITE],
     requiresAuth: true,
   },

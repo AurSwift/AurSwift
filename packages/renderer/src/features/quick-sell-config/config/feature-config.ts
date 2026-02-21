@@ -7,7 +7,7 @@
 import { lazy } from "react";
 import { QUICK_SELL_PERMISSIONS } from "./permissions";
 import { QUICK_SELL_ROUTES } from "./navigation";
-import type { ViewConfig } from "@/navigation/types";
+import type { ViewConfig } from "@/features/navigation/types";
 
 /**
  * Quick Sell Config Views Registry

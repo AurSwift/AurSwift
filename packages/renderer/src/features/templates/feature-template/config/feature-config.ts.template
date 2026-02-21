@@ -10,7 +10,7 @@ import { Icon } from "lucide-react";
 import { {FEATURE}_PERMISSIONS } from "./permissions";
 import { {FEATURE}_ROUTES } from "./navigation";
 import type { FeatureConfig } from "@/features/dashboard/types/feature-config";
-import type { ViewConfig } from "@/navigation/types";
+import type { ViewConfig } from "@/features/navigation/types";
 
 const Lazy{Feature}View = lazy(() => import("../views/{feature}-view"));
 

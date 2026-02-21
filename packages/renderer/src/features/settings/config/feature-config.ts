@@ -10,7 +10,7 @@ import { Settings, CreditCard, Building2 } from "lucide-react";
 import { SETTINGS_PERMISSIONS } from "./permissions";
 import { SETTINGS_ROUTES } from "./navigation";
 import type { FeatureConfig } from "@/features/dashboard/types/feature-config";
-import type { ViewConfig } from "@/navigation/types";
+import type { ViewConfig } from "@/features/navigation/types";
 
 /**
  * Settings Feature Configuration for Dashboard
@@ -65,6 +65,7 @@ export const settingsViews: Record<string, ViewConfig> = {
     },
     permissions: [SETTINGS_PERMISSIONS.MANAGE],
     requiresAuth: true,
+    defaultParams: { embeddedInWorkspace: true },
   },
   [SETTINGS_ROUTES.STORE_CONFIGURATION]: {
     id: SETTINGS_ROUTES.STORE_CONFIGURATION,
@@ -76,6 +77,7 @@ export const settingsViews: Record<string, ViewConfig> = {
     },
     permissions: [SETTINGS_PERMISSIONS.MANAGE],
     requiresAuth: true,
+    defaultParams: { embeddedInWorkspace: true },
   },
   [SETTINGS_ROUTES.VIVA_WALLET]: {
     id: SETTINGS_ROUTES.VIVA_WALLET,
@@ -87,5 +89,6 @@ export const settingsViews: Record<string, ViewConfig> = {
     },
     permissions: [SETTINGS_PERMISSIONS.MANAGE],
     requiresAuth: true,
+    defaultParams: { embeddedInWorkspace: true },
   },
 };

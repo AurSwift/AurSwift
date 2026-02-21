@@ -12,7 +12,7 @@ import { Package } from "lucide-react";
 import { INVENTORY_PERMISSIONS } from "./permissions";
 import { INVENTORY_ROUTES } from "./navigation";
 import type { FeatureConfig } from "@/features/dashboard/types/feature-config";
-import type { ViewConfig } from "@/navigation/types";
+import type { ViewConfig } from "@/features/navigation/types";
 
 // Reuse single lazy refs when same component backs multiple view ids
 const LazyProductManagementView = lazy(() =>

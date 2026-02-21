@@ -33,7 +33,7 @@ vi.mock("@/components", () => ({
   RouteErrorBoundary: ({ children }: { children: any }) => children,
 }));
 
-vi.mock("@/navigation/components/protected-app-shell", () => ({
+vi.mock("@/features/navigation/components/protected-app-shell", () => ({
   ProtectedAppShell: ({ children }: { children: any }) => children,
 }));
 

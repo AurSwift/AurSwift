@@ -1,7 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen } from "../../../utils/render-helpers";
 import { StartupScreen } from "@/app/startup/startup-screen";
 import type { StartupState } from "@/app/startup/startup.types";
+import { STARTUP_PROGRESS_DURATION_MS } from "@/app/startup/startup.constants";
 
 function createState(overrides: Partial<StartupState> = {}): StartupState {
   return {
@@ -16,12 +17,25 @@ function createState(overrides: Partial<StartupState> = {}): StartupState {
 }
 
 describe("StartupScreen", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("renders phase label and progress bar values", () => {
-    render(<StartupScreen state={createState()} />);
+    vi.setSystemTime(0);
+    const startedAt = 0;
+    const elapsedFor45Percent = (STARTUP_PROGRESS_DURATION_MS * 45) / 100;
+    vi.advanceTimersByTime(elapsedFor45Percent);
+
+    render(<StartupScreen state={createState({ startedAt })} />);
 
     expect(screen.getByTestId("startup-screen")).toBeInTheDocument();
     expect(screen.getByTestId("startup-phase-label")).toHaveTextContent(
-      "Starting AuraSwift...",
+      "Starting AurSwiftEpos",
     );
     expect(screen.getByText("45%")).toBeInTheDocument();
     expect(screen.getByTestId("startup-progress-fill")).toHaveStyle(
@@ -38,11 +52,16 @@ describe("StartupScreen", () => {
   });
 
   it("provides accessible startup status semantics", () => {
-    render(<StartupScreen state={createState({ phase: "restoring-session" })} />);
+    render(
+      <StartupScreen state={createState({ phase: "restoring-session" })} />,
+    );
 
     const status = screen.getByRole("status");
     expect(status).toHaveAttribute("aria-live", "polite");
-    expect(status).toHaveAttribute("aria-label", "AuraSwift startup in progress");
-    expect(screen.getByAltText("AuraSwift logo")).toBeInTheDocument();
+    expect(status).toHaveAttribute(
+      "aria-label",
+      "Epos Now startup in progress",
+    );
+    expect(screen.getByAltText("Epos Now logo")).toBeInTheDocument();
   });
 });

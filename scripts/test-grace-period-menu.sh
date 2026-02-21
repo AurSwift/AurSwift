@@ -8,7 +8,7 @@ DB_PATH="$HOME/Library/Application Support/aurswift/pos_system.db"
 
 clear
 echo "╔═══════════════════════════════════════════════════════════╗"
-echo "║       AuraSwift Grace Period Testing Menu                 ║"
+echo "║       Aurswift Grace Period Testing Menu                 ║"
 echo "╚═══════════════════════════════════════════════════════════╝"
 echo ""
 
@@ -113,6 +113,6 @@ while true; do
   
   clear
   echo "╔═══════════════════════════════════════════════════════════╗"
-  echo "║       AuraSwift Grace Period Testing Menu                 ║"
+  echo "║       Aurswift Grace Period Testing Menu                 ║"
   echo "╚═══════════════════════════════════════════════════════════╝"
 done

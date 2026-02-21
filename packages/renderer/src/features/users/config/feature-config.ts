@@ -10,7 +10,7 @@ import { Users } from "lucide-react";
 import { USERS_PERMISSIONS } from "./permissions";
 import { USERS_ROUTES } from "./navigation";
 import type { FeatureConfig } from "@/features/dashboard/types/feature-config";
-import type { ViewConfig } from "@/navigation/types";
+import type { ViewConfig } from "@/features/navigation/types";
 
 /**
  * Users Feature Configuration for Dashboard

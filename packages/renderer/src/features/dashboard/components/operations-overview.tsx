@@ -19,7 +19,7 @@ import { useUserPermissions } from "../hooks/use-user-permissions";
 import { useAuth } from "@/shared/hooks";
 import { useTransactionHistory } from "@/features/sales/hooks/use-transaction-history";
 import { useActiveShift } from "../hooks/use-active-shift";
-import { useNavigation } from "@/navigation/hooks/use-navigation";
+import { useNavigation } from "@/features/navigation/hooks/use-navigation";
 import { SALES_ROUTES } from "@/features/sales/config/navigation";
 import { INVENTORY_ROUTES } from "@/features/inventory/config/navigation";
 import { PERMISSIONS } from "@app/shared/constants/permissions";
