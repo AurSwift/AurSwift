@@ -13,7 +13,16 @@ vi.mock("@/features/license/hooks/use-license", () => ({
 }));
 
 vi.mock("@/features/adaptive-keyboard/adaptive-keyboard", () => ({
-  AdaptiveKeyboard: () => <div data-testid="adaptive-keyboard" />,
+  AdaptiveKeyboard: ({ onInput }: { onInput: (value: string) => void }) => (
+    <div data-testid="adaptive-keyboard">
+      <button
+        type="button"
+        onClick={() => onInput("AUR-BAS-V2-ABCDEFGH-IJKLMNOP")}
+      >
+        Inject License Key
+      </button>
+    </div>
+  ),
 }));
 
 const mockUseLicense = vi.mocked(useLicense);
@@ -60,11 +69,11 @@ describe("LicenseActivationModal", () => {
     render(<LicenseActivationModal open onActivationSuccess={vi.fn()} />);
 
     expect(screen.getByTestId("license-activation-modal")).toBeInTheDocument();
-    expect(screen.getByText("License Activation")).toBeInTheDocument();
+    expect(screen.getByText("License Activator")).toBeInTheDocument();
 
     const overlay = document.querySelector('[data-slot="dialog-overlay"]');
     expect(overlay).toBeTruthy();
-    expect(overlay?.className).toContain("bg-black/70");
+    expect(overlay?.className).toContain("bg-black/40");
     expect(overlay?.className).toContain("backdrop-blur-[2px]");
   });
 
@@ -105,16 +114,15 @@ describe("LicenseActivationModal", () => {
       />,
     );
 
-    await user.type(
-      screen.getByLabelText(/license key/i),
-      "AUR-BAS-V2-ABCDEFGH-IJKLMNOP",
+    await user.click(screen.getByLabelText(/license key/i));
+    await user.click(
+      screen.getByRole("button", { name: /inject license key/i }),
     );
-    await user.click(screen.getByRole("button", { name: /activate license/i }));
+    await user.click(screen.getByRole("button", { name: /^activate$/i }));
 
     await waitFor(() => {
       expect(mockActivate).toHaveBeenCalledWith(
         "AUR-BAS-V2-ABCDEFGH-IJKLMNOP",
-        undefined,
       );
     });
     await waitFor(() => {

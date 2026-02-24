@@ -176,11 +176,16 @@ test("Startup screen appears before auth flow and exits within launch budget", a
 
   const launchDuration = Date.now() - launchStart;
 
-  const reachedMainRoute = await page.evaluate(() => {
-    const hash = window.location.hash || "";
-    return hash.includes("/auth") || hash.includes("/dashboard");
-  });
+  // Wait for app to reach auth or dashboard (router may update after startup)
+  const authOrDashboard = page
+    .getByTestId("auth-page")
+    .or(page.getByTestId("command-center-dashboard"));
+  await authOrDashboard.waitFor({ state: "visible", timeout: 15000 });
 
+  // Reached main route is proven by visible auth/dashboard above; hash may lag behind
+  const reachedMainRoute =
+    (await page.getByTestId("auth-page").isVisible()) ||
+    (await page.getByTestId("command-center-dashboard").isVisible());
   expect(reachedMainRoute).toBe(true);
   expect(launchDuration).toBeLessThan(30000);
 });
