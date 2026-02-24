@@ -251,40 +251,31 @@ jobs:
             npm install --ignore-scripts
           }
           if (!(Test-Path "node_modules/electron/dist/electron.exe")) {
-            Write-Host "Electron not found, installing..."
+            Write-Host "Electron binary missing (common after cache restore with --ignore-scripts). Reinstalling..."
+            if (Test-Path "node_modules/electron") {
+              Remove-Item -Path "node_modules/electron" -Recurse -Force -ErrorAction SilentlyContinue
+            }
             npm install electron --no-save
           }
           Write-Host "Verifying Node.js version matches:"
           node -v
         shell: powershell
 
-      - name: Rebuild native modules (explicit rebuild after install)
-        if: steps.cache-deps.outputs.cache-hit != 'true'
-        run: |
-          Write-Host "Rebuilding native modules for Electron..."
-          Write-Host "Node version:"
-          node -v
-          Write-Host "Electron version:"
-          npx electron --version
-          Write-Host "Starting electron-rebuild..."
-          npx electron-rebuild --force --only=better-sqlite3,node-hid,serialport,usb --verbose
-          Write-Host "Native modules rebuilt successfully"
-        shell: powershell
-        env:
-          npm_config_build_from_source: true
-
-      - run: npm version "${{inputs.app-version}}" --no-git-tag-version
-
+      # Ensure Electron binary before rebuild/build (needed for cache-miss and when cache had no binary)
       - name: Ensure Electron binary and verify workspaces before build
         run: |
           Write-Host "Ensuring Electron binary exists..."
           if (!(Test-Path "node_modules/electron/dist/electron.exe")) {
-            Write-Host "Electron not found, installing..."
+            Write-Host "Electron not found; removing existing electron package so install runs postinstall..."
+            if (Test-Path "node_modules/electron") {
+              Remove-Item -Path "node_modules/electron" -Recurse -Force -ErrorAction SilentlyContinue
+            }
             npm install electron --no-save
             if (!(Test-Path "node_modules/electron/dist/electron.exe")) {
               Write-Host "ERROR: Electron binary missing after install"
               exit 1
             }
+            Write-Host "[OK] Electron binary installed"
           } else {
             Write-Host "[OK] Electron binary found"
           }
@@ -313,6 +304,23 @@ jobs:
             exit 1
           }
         shell: powershell
+
+      - name: Rebuild native modules (explicit rebuild after install)
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: |
+          Write-Host "Rebuilding native modules for Electron..."
+          Write-Host "Node version:"
+          node -v
+          Write-Host "Electron version:"
+          npx electron --version
+          Write-Host "Starting electron-rebuild..."
+          npx electron-rebuild --force --only=better-sqlite3,node-hid,serialport,usb --verbose
+          Write-Host "Native modules rebuilt successfully"
+        shell: powershell
+        env:
+          npm_config_build_from_source: true
+
+      - run: npm version "${{inputs.app-version}}" --no-git-tag-version
 
       # Cache Vite build outputs to speed up subsequent builds
       - name: Cache Vite build outputs
