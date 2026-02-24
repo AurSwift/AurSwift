@@ -8,5 +8,6 @@ export { DashboardHeader } from "./dashboard-header";
 export { FeatureMenuBar } from "./feature-menu-bar";
 export { LicenseHeaderBadge } from "./license-header-badge";
 export { OperationsOverview } from "./operations-overview";
+export { CommandCenterDashboard } from "../command-center";
 
 export { LogoutConfirmationDialog } from "./logout-confirmation-dialog";

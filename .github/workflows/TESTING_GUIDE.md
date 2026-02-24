@@ -124,35 +124,29 @@ This workflow runs on:
 ### Job Structure
 
 1. **typecheck** (5 min timeout)
-
    - Fast type checking
    - Runs on Ubuntu
    - No dependencies needed
 
 2. **unit-tests** (10 min timeout)
-
    - Matrix strategy: `tests/unit/main`, `tests/unit/renderer`
    - Runs in parallel
    - Fast execution
 
 3. **component-tests** (15 min timeout)
-
    - React component tests
    - Runs on Ubuntu
 
 4. **integration-tests** (20 min timeout)
-
    - Matrix strategy: `tests/integration/main`, `tests/integration/renderer`
    - Runs in parallel
 
 5. **coverage** (15 min timeout)
-
    - Aggregates all Vitest tests
    - Generates coverage reports
    - Uploads artifacts
 
 6. **e2e-tests** (30 min timeout)
-
    - Requires application build
    - Runs on Windows (for Electron compatibility)
    - Installs Playwright browsers
@@ -294,6 +288,10 @@ Coverage is enforced in CI and reported in artifacts.
 - Check for infinite loops or hanging tests
 - Increase timeout in workflow if needed
 - Review test execution logs
+
+gh run list --limit 100 --workflow=ci.yml --json databaseId,createdAt | \
+ jq -r '.[] | select(.createdAt < "'$(date -d '30 days ago' -Iseconds)'") | .databaseId' | \
+ xargs -I {} gh run delete {}
 
 ## 📚 Additional Resources
 

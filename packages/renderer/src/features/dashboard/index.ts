@@ -7,6 +7,7 @@
 // Components
 export {
   DashboardHeader,
+  CommandCenterDashboard,
   FeatureMenuBar,
   LicenseHeaderBadge,
   OperationsOverview,
@@ -38,6 +39,8 @@ export type {
   FeatureStats,
   FeatureCategory,
 } from "./types";
+
+export type { CommandCenterPeriod } from "./command-center";
 
 // Views (DashboardView only; role-specific views are lazy-loaded via DashboardPageWrapper)
 export { DashboardView } from "./views";

@@ -121,7 +121,7 @@ export function BackOfficeTopbar({
       <div className="border-t border-white/15 px-3 py-2 sm:px-4 lg:px-5">
         <div className="flex min-h-7 items-center justify-between gap-3">
           <nav
-            className="flex min-w-0 items-center gap-1 overflow-hidden text-xs text-primary-foreground/85"
+            className="flex min-w-0 items-center gap-1 overflow-hidden text-caption text-primary-foreground/85"
             aria-label="Breadcrumb"
           >
             {breadcrumbItems.map((item, index) => (
@@ -141,7 +141,7 @@ export function BackOfficeTopbar({
             ))}
           </nav>
 
-          <p className="truncate text-sm font-medium text-primary-foreground">
+          <p className="truncate text-body font-medium text-primary-foreground">
             {currentViewTitle || "Back Office"}
           </p>
         </div>

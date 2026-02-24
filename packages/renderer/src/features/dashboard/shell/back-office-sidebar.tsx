@@ -85,13 +85,13 @@ function SidebarActionButton({
       disabled={isDisabled}
       title={isDisabled ? item.disabledReason : undefined}
       className={cn(
-        "flex w-full items-center gap-2 rounded-sm border-l-2 border-l-transparent px-3 py-2 text-left text-sm transition-colors",
-        compact && "px-2.5 py-1.5 text-xs",
+        "flex w-full items-center gap-2 rounded-sm border-l-2 border-l-transparent px-3 py-2 text-left text-body transition-colors",
+        compact && "px-2.5 py-1.5 text-caption",
         item.isActive
-          ? "border-l-primary bg-accent text-foreground"
-          : "text-foreground/85 hover:bg-accent/70 hover:text-foreground",
+          ? "border-l-transparent bg-sidebar-accent text-sidebar-foreground"
+          : "text-sidebar-foreground/85 hover:bg-sidebar-accent/70 hover:text-sidebar-foreground",
         isDisabled &&
-          "cursor-not-allowed border-l-transparent bg-transparent text-muted-foreground/70 hover:bg-transparent hover:text-muted-foreground/70",
+          "cursor-not-allowed border-l-transparent bg-transparent text-sidebar-foreground/50 hover:bg-transparent hover:text-sidebar-foreground/50",
       )}
     >
       <Icon className="h-4 w-4 shrink-0" />
@@ -113,7 +113,7 @@ function SidebarActionButton({
 
 function SidebarEmptyState() {
   return (
-    <div className="rounded-md border border-dashed border-sidebar-border bg-muted/20 p-3 text-sm text-muted-foreground">
+    <div className="rounded-md border border-dashed border-sidebar-border bg-sidebar-accent/30 p-3 text-sm text-sidebar-foreground/80">
       No menu items available for your account.
     </div>
   );
@@ -142,7 +142,7 @@ function SidebarSectionList({
             className="space-y-1 border-t border-sidebar-border pt-3 first:border-t-0 first:pt-0"
             aria-label={section.label}
           >
-            <p className="px-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+            <p className="px-3 text-xs font-semibold tracking-wide text-sidebar-foreground/70 uppercase">
               {section.label}
             </p>
 
@@ -176,13 +176,13 @@ export function BackOfficeSidebar({
       <Sheet open={isMobileDrawerOpen} onOpenChange={onMobileDrawerOpenChange}>
         <SheetContent
           side="left"
-          className="flex w-[20rem] flex-col p-0 sm:max-w-[20rem]"
+          className="flex w-64 flex-col p-0 sm:max-w-[18rem]"
         >
           <SheetHeader className="sr-only">
             <SheetTitle>Back Office Navigation</SheetTitle>
           </SheetHeader>
 
-          <div className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
+          <div className="min-h-0 flex-1 overflow-y-auto bg-background px-2 py-3">
             <SidebarSectionList
               groups={groups}
               onActionClick={onActionClick}
@@ -205,7 +205,7 @@ export function BackOfficeSidebar({
                 key={group.featureId}
                 type="button"
                 onClick={onToggleSidebarCollapsed}
-                className="flex h-11 w-11 items-center justify-center rounded-md border border-transparent text-muted-foreground transition-colors hover:border-sidebar-border hover:bg-accent hover:text-foreground"
+                className="flex h-11 w-11 items-center justify-center rounded-md border border-transparent text-sidebar-foreground/85 transition-colors hover:border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-foreground"
                 aria-label={group.label}
                 title={group.label}
               >
@@ -228,7 +228,7 @@ export function BackOfficeSidebar({
               <button
                 type="button"
                 onClick={onToggleSidebarCollapsed}
-                className="flex h-10 w-full items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                className="flex h-10 w-full items-center justify-center rounded-md text-sidebar-foreground/85 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
                 aria-label="Expand sidebar"
                 title="Expand sidebar"
               >
@@ -243,7 +243,7 @@ export function BackOfficeSidebar({
   }
 
   return (
-    <aside className="hidden h-full w-72 shrink-0 flex-col border-r border-sidebar-border bg-background md:flex">
+    <aside className="hidden h-full w-56 shrink-0 flex-col border-r border-sidebar-border bg-background md:flex">
       <div
         className="min-h-0 flex-1 overflow-y-auto px-2 py-3"
         data-testid="sidebar-scroll-region"
@@ -258,7 +258,7 @@ export function BackOfficeSidebar({
         <button
           type="button"
           onClick={onToggleSidebarCollapsed}
-          className="flex w-full items-center justify-center gap-2 rounded-md px-2 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          className="flex w-full items-center justify-center gap-2 rounded-md border border-sidebar-border bg-white px-2 py-2 text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground dark:bg-background dark:border-sidebar-border"
         >
           <PanelLeftClose className="h-4 w-4" />
           <span>Collapse</span>

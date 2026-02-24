@@ -254,7 +254,9 @@ export function BackOfficeShell({
           }
         />
 
-        <main className="min-h-0 flex-1 overflow-hidden bg-background">{children}</main>
+        <main className="min-h-0 min-w-0 flex-1 flex flex-col overflow-x-hidden overflow-y-auto bg-background">
+          {children}
+        </main>
       </div>
     </div>
   );
