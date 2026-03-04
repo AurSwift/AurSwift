@@ -1,10 +1,11 @@
-import type { ReactNode } from "react";
+import React, { type ReactNode } from "react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import "@testing-library/jest-dom";
 import { Plus } from "lucide-react";
 import { render, screen } from "../../../utils/render-helpers";
 import userEvent from "@testing-library/user-event";
-import { CommandCenterDashboard } from "@/features/dashboard/command-center";
-import type { CommandCenterViewModel } from "@/features/dashboard/command-center";
+import { CommandCenterDashboard } from "../../../../packages/renderer/src/features/dashboard/command-center";
+import type { CommandCenterViewModel } from "../../../../packages/renderer/src/features/dashboard/command-center";
 
 const mockUseCommandCenterData = vi.fn();
 const mockUseDashboardActionShortcuts = vi.fn();

@@ -1,8 +1,10 @@
+import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import "@testing-library/jest-dom";
 import { render, screen, userEvent, waitFor } from "../../../utils/render-helpers";
-import { ViewRoleUsersDialog } from "@/features/rbac/components/view-role-users-dialog";
+import { ViewRoleUsersDialog } from "../../../../packages/renderer/src/features/rbac/components/view-role-users-dialog";
 import { createMockRole } from "../../../utils/fixtures/rbac.fixture";
-import * as useRolesModule from "@/features/rbac/hooks/useRoles";
+import * as useRolesModule from "../../../../packages/renderer/src/features/rbac/hooks/useRoles";
 
 vi.mock("@/features/rbac/hooks/useRoles", () => ({
   useUsersByRole: vi.fn(),

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { RBAC_ROUTES } from "@/features/rbac/config/navigation";
-import { RBAC_PERMISSIONS } from "@/features/rbac/config/permissions";
-import { rbacFeature, rbacViews } from "@/features/rbac/config/feature-config";
+import { RBAC_ROUTES } from "../../../../../../packages/renderer/src/features/rbac/config/navigation";
+import { RBAC_PERMISSIONS } from "../../../../../../packages/renderer/src/features/rbac/config/permissions";
+import { rbacFeature, rbacViews } from "../../../../../../packages/renderer/src/features/rbac/config/feature-config";
 
 describe("rbac config", () => {
   describe("RBAC_ROUTES", () => {

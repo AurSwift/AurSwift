@@ -1,8 +1,10 @@
+import React from "react";
 import { describe, expect, it, vi } from "vitest";
+import "@testing-library/jest-dom";
 import { Settings, Users } from "lucide-react";
 import { render, screen, userEvent } from "../../../utils/render-helpers";
-import { BackOfficeSidebar } from "@/features/dashboard/shell/back-office-sidebar";
-import type { SidebarGroupConfig } from "@/features/dashboard/shell/sidebar-menu.types";
+import { BackOfficeSidebar } from "../../../../packages/renderer/src/features/dashboard/shell/back-office-sidebar";
+import type { SidebarGroupConfig } from "../../../../packages/renderer/src/features/dashboard/shell/sidebar-menu.types";
 
 function createGroups(): SidebarGroupConfig[] {
   return [

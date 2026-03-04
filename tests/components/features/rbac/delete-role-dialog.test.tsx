@@ -1,6 +1,8 @@
+import React from "react";
 import { describe, it, expect, vi } from "vitest";
+import "@testing-library/jest-dom";
 import { render, screen, userEvent } from "../../../utils/render-helpers";
-import { DeleteRoleDialog } from "@/features/rbac/components/delete-role-dialog";
+import { DeleteRoleDialog } from "../../../../packages/renderer/src/features/rbac/components/delete-role-dialog";
 import { createMockRole } from "../../../utils/fixtures/rbac.fixture";
 
 describe("DeleteRoleDialog", () => {

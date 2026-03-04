@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { Settings, Shield, TrendingUp } from "lucide-react";
-import type { FeatureConfig } from "@/features/dashboard/types/feature-config";
-import { buildSidebarMenu } from "@/features/dashboard/shell/sidebar-menu-builder";
-import type { SidebarFeatureVisibility } from "@/features/dashboard/shell/sidebar-menu.types";
+import type { FeatureConfig } from "../../../../packages/renderer/src/features/dashboard/types/feature-config";
+import { buildSidebarMenu } from "../../../../packages/renderer/src/features/dashboard/shell/sidebar-menu-builder";
+import type { SidebarFeatureVisibility } from "../../../../packages/renderer/src/features/dashboard/shell/sidebar-menu.types";
 import { PERMISSIONS } from "@app/shared/constants/permissions";
-import { SALES_ROUTES } from "@/features/sales/config/navigation";
+import { SALES_ROUTES } from "../../../../packages/renderer/src/features/sales/config/navigation";
 
 function getVisibility(
   featureId: string,

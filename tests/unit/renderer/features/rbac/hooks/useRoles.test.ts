@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { createElement, type ReactNode } from "react";
-import { AuthContext } from "@/features/auth/context/auth-context";
-import type { AuthContextType } from "@/types/domain/user";
+import { AuthContext } from "../../../../../../packages/renderer/src/features/auth/context/auth-context";
+import type { AuthContextType } from "../../../../../../packages/renderer/src/types/domain/user";
 import {
   useRoles,
   useCreateRole,
   useUpdateRole,
   useDeleteRole,
   useUsersByRole,
-} from "@/features/rbac/hooks/useRoles";
+} from "../../../../../../packages/renderer/src/features/rbac/hooks/useRoles";
 import { createMockRole } from "../../../../../utils/fixtures/rbac.fixture";
 
 const mockUser = {

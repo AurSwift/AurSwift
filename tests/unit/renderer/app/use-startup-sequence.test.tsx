@@ -5,12 +5,12 @@ import {
   STARTUP_HARD_TIMEOUT_MS,
   STARTUP_MIN_VISIBLE_MS,
   UPDATE_SOFT_TIMEOUT_MS,
-} from "@/app/startup/startup.constants";
+} from "../../../../packages/renderer/src/app/startup/startup.constants";
 import {
   __resetStartupSequenceForTests,
   useStartupSequence,
-} from "@/app/startup/use-startup-sequence";
-import type { StartupWarningCode } from "@/app/startup/startup.types";
+} from "../../../../packages/renderer/src/app/startup/use-startup-sequence";
+import type { StartupWarningCode } from "../../../../packages/renderer/src/app/startup/startup.types";
 
 async function flushMicrotasks() {
   await act(async () => {

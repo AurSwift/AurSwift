@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { mapActionToView } from "@/features/navigation/utils/navigation-mapper";
-import { SALES_ROUTES } from "@/features/sales/config/navigation";
-import { STAFF_ROUTES } from "@/features/staff/config/navigation";
-import { INVENTORY_ROUTES } from "@/features/inventory/config/navigation";
+import { mapActionToView } from "../../../../../packages/renderer/src/features/navigation/utils/navigation-mapper";
+import { SALES_ROUTES } from "../../../../../packages/renderer/src/features/sales/config/navigation";
+import { STAFF_ROUTES } from "../../../../../packages/renderer/src/features/staff/config/navigation";
+import { INVENTORY_ROUTES } from "../../../../../packages/renderer/src/features/inventory/config/navigation";
 
 describe("mapActionToView", () => {
   it("maps advanced-reporting-analytics actions to supported routes", () => {

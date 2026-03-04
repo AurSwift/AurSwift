@@ -1,6 +1,8 @@
+import React from "react";
 import { describe, it, expect, vi } from "vitest";
+import "@testing-library/jest-dom";
 import { render, screen, userEvent } from "../../../utils/render-helpers";
-import { RoleCard } from "@/features/rbac/components/role-card";
+import { RoleCard } from "../../../../packages/renderer/src/features/rbac/components/role-card";
 import { createMockRole, createSystemRole } from "../../../utils/fixtures/rbac.fixture";
 
 describe("RoleCard", () => {

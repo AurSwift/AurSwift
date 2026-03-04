@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calculateCartTotals, calculateCategoryPrice } from "@/features/sales/utils/price-calculations";
+import { calculateCartTotals, calculateCategoryPrice } from "../../../../../../packages/renderer/src/features/sales/utils/price-calculations";
 
 describe("price-calculations", () => {
   describe("calculateCartTotals", () => {

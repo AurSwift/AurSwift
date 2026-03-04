@@ -1,6 +1,8 @@
+import React from "react";
 import { describe, it, expect, vi } from "vitest";
+import "@testing-library/jest-dom";
 import { render, screen, userEvent } from "../../../utils/render-helpers";
-import { RoleFilters } from "@/features/rbac/components/role-filters";
+import { RoleFilters } from "../../../../packages/renderer/src/features/rbac/components/role-filters";
 
 // Mock AdaptiveKeyboard to avoid complex dependency in tests
 vi.mock("@/features/adaptive-keyboard/adaptive-keyboard", () => ({

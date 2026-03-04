@@ -1,5 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import "@testing-library/jest-dom";
 import { render, screen, userEvent, waitFor } from "../../../../utils/render-helpers";
 import RoleManagementView from "../../../../../packages/renderer/src/features/rbac/views/role-management-view";
 import { createMockRoles } from "../../../../utils/fixtures/rbac.fixture";

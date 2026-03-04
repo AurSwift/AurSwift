@@ -5,12 +5,13 @@
  * This ensures consistent test setup across all component tests.
  */
 
+import React from "react";
 import { render as rtlRender, RenderOptions } from "@testing-library/react";
 import { ReactElement } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthContext } from "@/features/auth/context/auth-context";
-import type { AuthContextType } from "@/types/domain/user";
+import { AuthContext } from "../../packages/renderer/src/features/auth/context/auth-context";
+import type { AuthContextType } from "../../packages/renderer/src/types/domain/user";
 
 /**
  * Minimal user shape for tests (RBAC hooks need id, businessId, primaryRole)

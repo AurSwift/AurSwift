@@ -8,7 +8,7 @@ import {
   getRoleBadgeVariant,
   userRequiresShift,
   hasRBACData,
-} from "@/shared/utils/rbac-helpers";
+} from "../../../../../packages/renderer/src/shared/utils/rbac-helpers";
 
 describe("rbac-helpers", () => {
   describe("getUserRoleName", () => {

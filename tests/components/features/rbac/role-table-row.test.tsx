@@ -1,11 +1,12 @@
+import React, { type ReactNode } from "react";
 import { describe, it, expect, vi } from "vitest";
-import type { ReactNode } from "react";
+import "@testing-library/jest-dom";
 import { render, screen, userEvent } from "../../../utils/render-helpers";
-import { RoleTableRow } from "@/features/rbac/components/role-table-row";
+import { RoleTableRow } from "../../../../packages/renderer/src/features/rbac/components/role-table-row";
 import {
   Table,
   TableBody,
-} from "@/components/ui/table";
+} from "../../../../packages/renderer/src/components/ui/table";
 import { createMockRole, createSystemRole } from "../../../utils/fixtures/rbac.fixture";
 
 function TableWrapper({ children }: { children: ReactNode }) {

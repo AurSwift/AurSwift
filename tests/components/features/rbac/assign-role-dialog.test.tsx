@@ -1,6 +1,8 @@
+import React from "react";
 import { describe, it, expect, vi } from "vitest";
+import "@testing-library/jest-dom";
 import { render, screen, userEvent } from "../../../utils/render-helpers";
-import { AssignRoleDialog } from "@/features/rbac/components/assign-role-dialog";
+import { AssignRoleDialog } from "../../../../packages/renderer/src/features/rbac/components/assign-role-dialog";
 import { createMockRole } from "../../../utils/fixtures/rbac.fixture";
 
 const mockUsers = [

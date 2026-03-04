@@ -6,8 +6,8 @@ import {
   buildLiveActivityItems,
   buildTopSellers,
   getCommandCenterDateRange,
-} from "@/features/dashboard/command-center";
-import type { Transaction } from "@/features/sales/components/sales-reports";
+} from "../../../../../packages/renderer/src/features/dashboard/command-center";
+import type { Transaction } from "../../../../../packages/renderer/src/features/sales/components/sales-reports";
 
 function createTransaction(partial: Partial<Transaction>): Transaction {
   return {

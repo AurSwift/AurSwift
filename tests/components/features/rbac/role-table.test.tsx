@@ -1,6 +1,8 @@
+import React from "react";
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, userEvent } from "../../../utils/render-helpers";
-import { RoleTable } from "@/features/rbac/components/role-table";
+import "@testing-library/jest-dom";
+import { render, screen, userEvent, waitFor } from "../../../utils/render-helpers";
+import { RoleTable } from "../../../../packages/renderer/src/features/rbac/components/role-table";
 import { createMockRoles } from "../../../utils/fixtures/rbac.fixture";
 
 const defaultProps = {
@@ -59,7 +61,7 @@ describe("RoleTable", () => {
     expect(screen.getByText("No roles found")).toBeInTheDocument();
   });
 
-  it("displays correct page of roles with internal pagination", () => {
+  it("displays correct page of roles with internal pagination", async () => {
     const roles = createMockRoles(15);
     const roleUserCounts = Object.fromEntries(roles.map((r) => [r.id, 0]));
     render(
@@ -69,8 +71,10 @@ describe("RoleTable", () => {
         roleUserCounts={roleUserCounts}
       />
     );
-    // Default page size 10
-    expect(screen.getByText("Role 0")).toBeInTheDocument();
+    // Default page size 10: first page should show some of the 15 roles; Role 10 should not be on first page
+    await waitFor(() => {
+      expect(screen.getByText("Role 0")).toBeInTheDocument();
+    });
     expect(screen.getByText("Role 9")).toBeInTheDocument();
     expect(screen.queryByText("Role 10")).not.toBeInTheDocument();
   });

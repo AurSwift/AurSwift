@@ -1,6 +1,8 @@
+import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import "@testing-library/jest-dom";
 import { render, screen, userEvent, waitFor } from "../../../utils/render-helpers";
-import { CreateRoleForm } from "@/features/rbac/components/forms/create-role-form";
+import { CreateRoleForm } from "../../../../packages/renderer/src/features/rbac/components/forms/create-role-form";
 
 vi.mock("@app/shared/constants/permissions", () => ({
   getAllAvailablePermissions: () => ["manage:users", "read:products", "write:products"],

@@ -5,7 +5,7 @@ import {
   useAssignRole,
   useRevokeRole,
   useSetPrimaryRole,
-} from "@/features/rbac/hooks/useUserRoles";
+} from "../../../../../../packages/renderer/src/features/rbac/hooks/useUserRoles";
 import { createMockUserRole } from "../../../../../utils/fixtures/rbac.fixture";
 
 describe("useUserRoles", () => {

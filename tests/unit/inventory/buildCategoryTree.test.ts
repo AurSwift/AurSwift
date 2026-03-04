@@ -6,8 +6,8 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { buildCategoryTree } from "@/features/inventory/utils";
-import type { Category } from "@/features/inventory/hooks/use-product-data";
+import { buildCategoryTree } from "../../../packages/renderer/src/features/inventory/utils";
+import type { Category } from "../../../packages/renderer/src/features/inventory/hooks/use-product-data";
 
 describe("buildCategoryTree Performance", () => {
   /**

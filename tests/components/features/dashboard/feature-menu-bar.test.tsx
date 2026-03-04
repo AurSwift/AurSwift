@@ -1,9 +1,11 @@
+import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import "@testing-library/jest-dom";
 import { Settings } from "lucide-react";
 import { describe, expect, it, vi } from "vitest";
-import { FeatureMenuBar } from "@/features/dashboard/components/feature-menu-bar";
-import type { FeatureConfig } from "@/features/dashboard/types/feature-config";
+import { FeatureMenuBar } from "../../../../packages/renderer/src/features/dashboard/components/feature-menu-bar";
+import type { FeatureConfig } from "../../../../packages/renderer/src/features/dashboard/types/feature-config";
 
 const mockUseFeatureVisibility = vi.fn();
 const mockUseUserPermissions = vi.fn();

@@ -1,6 +1,8 @@
+import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import App from "@/app/App";
+import "@testing-library/jest-dom";
+import App from "../../../../packages/renderer/src/app/App";
 
 const mockUseAuth = vi.fn();
 const mockUseLicenseContext = vi.fn();

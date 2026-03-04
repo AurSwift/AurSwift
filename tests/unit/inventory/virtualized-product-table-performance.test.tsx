@@ -1,15 +1,16 @@
 /**
- * VirtualizedProductTable — performance tests
+ * VirtualizedProductTable performance tests
  *
- * Covers render time with large lists, memory stability, and category path
- * calculation when using virtualization.
+ * Tests for virtualized table rendering and caching performance
  */
 
+import React from "react";
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { render } from "@testing-library/react";
-import { VirtualizedProductTable } from "@/features/inventory/components/product/virtualized-product-table";
-import type { Product } from "@/types/domain";
-import type { Category } from "@/features/inventory/hooks/use-product-data";
+import "@testing-library/jest-dom";
+import { render, screen } from "@testing-library/react";
+import { VirtualizedProductTable } from "../../../packages/renderer/src/features/inventory/components/product/virtualized-product-table";
+import type { Product } from "../../../packages/renderer/src/types/domain";
+import type { Category } from "../../../packages/renderer/src/features/inventory/hooks/use-product-data";
 
 vi.mock("@tanstack/react-virtual", () => ({
   useVirtualizer: vi.fn(() => ({

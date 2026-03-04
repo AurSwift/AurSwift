@@ -4,10 +4,10 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { TransactionManager } from "@app/main/database/managers/transactionManager";
-import type { DrizzleDB } from "@app/main/database/drizzle";
-import type { User } from "@app/main/database/schema";
-import { shiftRequirementResolver } from "@app/main/utils/shiftRequirementResolver";
+import { TransactionManager } from "../../../../../packages/main/src/database/managers/transactionManager";
+import type { DrizzleDB } from "../../../../../packages/main/src/database/drizzle";
+import type { User } from "../../../../../packages/main/src/database/schema";
+import { shiftRequirementResolver } from "../../../../../packages/main/src/utils/shiftRequirementResolver";
 
 // Mock the shiftRequirementResolver
 vi.mock("@app/main/utils/shiftRequirementResolver", () => ({

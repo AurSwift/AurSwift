@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { getView } from "@/features/navigation/registry/view-registry";
-import { RBAC_ROUTES } from "@/features/rbac/config/navigation";
-import { USERS_ROUTES } from "@/features/users/config/navigation";
-import { SALES_ROUTES } from "@/features/sales/config/navigation";
-import { STAFF_ROUTES } from "@/features/staff/config/navigation";
-import { SETTINGS_ROUTES } from "@/features/settings/config/navigation";
+import { getView } from "../../../../../packages/renderer/src/features/navigation/registry/view-registry";
+import { RBAC_ROUTES } from "../../../../../packages/renderer/src/features/rbac/config/navigation";
+import { USERS_ROUTES } from "../../../../../packages/renderer/src/features/users/config/navigation";
+import { SALES_ROUTES } from "../../../../../packages/renderer/src/features/sales/config/navigation";
+import { STAFF_ROUTES } from "../../../../../packages/renderer/src/features/staff/config/navigation";
+import { SETTINGS_ROUTES } from "../../../../../packages/renderer/src/features/settings/config/navigation";
 
 describe("view-registry legacy removal", () => {
   it("does not resolve removed legacy route aliases", () => {

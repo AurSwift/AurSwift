@@ -1,6 +1,8 @@
+import React from "react";
 import { describe, it, expect, vi } from "vitest";
+import "@testing-library/jest-dom";
 import { render, screen, userEvent } from "../../../utils/render-helpers";
-import { RoleEmptyState } from "@/features/rbac/components/role-empty-state";
+import { RoleEmptyState } from "../../../../packages/renderer/src/features/rbac/components/role-empty-state";
 
 describe("RoleEmptyState", () => {
   it("renders no roles message when search term is empty", () => {

@@ -4,7 +4,7 @@ import {
   roleUpdateSchema,
   userRoleAssignSchema,
   permissionGrantSchema,
-} from "@/features/rbac/schemas";
+} from "../../../../../../packages/renderer/src/features/rbac/schemas";
 
 describe("rbac schemas", () => {
   describe("roleCreateSchema", () => {

@@ -1,14 +1,16 @@
 /**
  * Example Component Test for ProductCard
- * 
+ *
  * This is an example file showing how to structure component tests.
  * Copy this file and remove .example extension to create actual tests.
  */
 
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { ProductCard } from '@/views/dashboard/pages/cashier/new-transaction/components/product-selection/product-card';
+import React from "react";
+import { describe, it, expect, vi } from "vitest";
+import "@testing-library/jest-dom";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { ProductCard } from "../../../../packages/renderer/src/views/dashboard/pages/cashier/new-transaction/components/product-selection/product-card";
 
 describe('ProductCard', () => {
   const mockProduct = {

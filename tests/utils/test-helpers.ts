@@ -3,7 +3,7 @@
  */
 
 import { vi } from "vitest";
-import type { DrizzleDB } from "@app/main/database/drizzle";
+import type { DrizzleDB } from "../../packages/main/src/database/drizzle";
 
 /**
  * Create a mock database instance for testing

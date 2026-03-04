@@ -1,12 +1,14 @@
+import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import "@testing-library/jest-dom";
 import {
   render,
   screen,
   userEvent,
   waitFor,
 } from "../../../utils/render-helpers";
-import { LicenseActivationModal } from "@/features/license";
-import { useLicense } from "@/features/license/hooks/use-license";
+import { LicenseActivationModal } from "../../../../packages/renderer/src/features/license";
+import { useLicense } from "../../../../packages/renderer/src/features/license/hooks/use-license";
 
 vi.mock("@/features/license/hooks/use-license", () => ({
   useLicense: vi.fn(),

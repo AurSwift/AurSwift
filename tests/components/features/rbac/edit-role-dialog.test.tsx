@@ -1,6 +1,8 @@
+import React from "react";
 import { describe, it, expect, vi } from "vitest";
+import "@testing-library/jest-dom";
 import { render, screen, userEvent } from "../../../utils/render-helpers";
-import { EditRoleDialog } from "@/features/rbac/components/edit-role-dialog";
+import { EditRoleDialog } from "../../../../packages/renderer/src/features/rbac/components/edit-role-dialog";
 import { createMockRole } from "../../../utils/fixtures/rbac.fixture";
 
 vi.mock("@app/shared/constants/permissions", () => ({

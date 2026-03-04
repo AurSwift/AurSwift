@@ -1,8 +1,10 @@
+import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import "@testing-library/jest-dom";
 import { render, screen } from "../../../utils/render-helpers";
-import { StartupScreen } from "@/app/startup/startup-screen";
-import type { StartupState } from "@/app/startup/startup.types";
-import { STARTUP_PROGRESS_DURATION_MS } from "@/app/startup/startup.constants";
+import { StartupScreen } from "../../../../packages/renderer/src/app/startup/startup-screen";
+import type { StartupState } from "../../../../packages/renderer/src/app/startup/startup.types";
+import { STARTUP_PROGRESS_DURATION_MS } from "../../../../packages/renderer/src/app/startup/startup.constants";
 
 function createState(overrides: Partial<StartupState> = {}): StartupState {
   return {

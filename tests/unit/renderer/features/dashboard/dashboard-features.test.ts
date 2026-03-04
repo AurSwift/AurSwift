@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getDashboardFeaturesForRole } from "@/features/dashboard/utils/dashboard-features";
+import { getDashboardFeaturesForRole } from "../../../../../packages/renderer/src/features/dashboard/utils/dashboard-features";
 
 describe("getDashboardFeaturesForRole", () => {
   it("excludes advanced-reporting-analytics for managers", () => {

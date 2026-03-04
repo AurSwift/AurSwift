@@ -1,6 +1,8 @@
+import React from "react";
 import { describe, it, expect, vi } from "vitest";
+import "@testing-library/jest-dom";
 import { render, screen, userEvent } from "../../../utils/render-helpers";
-import { UserRolesList } from "@/features/rbac/components/user-roles-list";
+import { UserRolesList } from "../../../../packages/renderer/src/features/rbac/components/user-roles-list";
 import { createMockUserRole } from "../../../utils/fixtures/rbac.fixture";
 
 describe("UserRolesList", () => {
