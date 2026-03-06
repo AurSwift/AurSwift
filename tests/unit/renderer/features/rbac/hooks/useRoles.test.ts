@@ -1,28 +1,29 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
-import { createElement, type ReactNode } from "react";
-import { AuthContext } from "../../../../../../packages/renderer/src/features/auth/context/auth-context";
-import type { AuthContextType } from "../../../../../../packages/renderer/src/types/domain/user";
+import { act, renderHook, waitFor } from '@testing-library/react'
+import { type ReactNode, createElement } from 'react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { AuthContext } from '../../../../../../packages/renderer/src/features/auth/context/auth-context'
 import {
-  useRoles,
   useCreateRole,
-  useUpdateRole,
   useDeleteRole,
+  useRoles,
+  useUpdateRole,
   useUsersByRole,
-} from "../../../../../../packages/renderer/src/features/rbac/hooks/useRoles";
-import { createMockRole } from "../../../../../utils/fixtures/rbac.fixture";
+} from '../../../../../../packages/renderer/src/features/rbac/hooks/useRoles'
+import type { AuthContextType } from '../../../../../../packages/renderer/src/types/domain/user'
+import { createMockRole } from '../../../../../shared/factories/rbac.fixture'
 
 const mockUser = {
-  id: "user-1",
-  businessId: "business-1",
-  primaryRole: { name: "admin" },
-};
+  id: 'user-1',
+  businessId: 'business-1',
+  primaryRole: { name: 'admin' },
+}
 
 function createMockAuthValue(user: typeof mockUser | null): AuthContextType {
-  const noop = async () => ({ success: false, message: "Not implemented" });
+  const noop = async () => ({ success: false, message: 'Not implemented' })
   return {
-    user: user as AuthContextType["user"],
-    sessionToken: user ? "test-token" : null,
+    user: user as AuthContextType['user'],
+    sessionToken: user ? 'test-token' : null,
     requiresPinChange: false,
     completeForceChangePIN: noop,
     login: noop,
@@ -36,296 +37,316 @@ function createMockAuthValue(user: typeof mockUser | null): AuthContextType {
     isLoading: false,
     error: null,
     isInitializing: false,
-  };
+  }
 }
 
 function createWrapper(authUser: typeof mockUser | null) {
-  const value = createMockAuthValue(authUser);
+  const value = createMockAuthValue(authUser)
   return function Wrapper({ children }: { children: ReactNode }) {
-    return createElement(AuthContext.Provider, { value }, children);
-  };
+    return createElement(AuthContext.Provider, { value }, children)
+  }
 }
 
-describe("useRoles", () => {
+describe('useRoles', () => {
   beforeEach(() => {
-    vi.mocked((window as any).authStore.get).mockResolvedValue("token");
+    vi.mocked((window as any).authStore.get).mockResolvedValue('token')
     vi.mocked((window as any).rbacAPI.roles.list).mockResolvedValue({
       success: true,
-      data: [createMockRole({ id: "r1", name: "admin" })],
-    });
-  });
+      data: [createMockRole({ id: 'r1', name: 'admin' })],
+    })
+  })
 
-  it("fetches roles for authenticated user businessId", async () => {
+  it('fetches roles for authenticated user businessId', async () => {
     const { result } = renderHook(() => useRoles(), {
       wrapper: createWrapper(mockUser),
-    });
+    })
 
     await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
+      expect(result.current.isLoading).toBe(false)
+    })
 
-    expect((window as any).rbacAPI.roles.list).toHaveBeenCalledWith(
-      "token",
-      "business-1"
-    );
-    expect(result.current.data).toHaveLength(1);
-    expect(result.current.data[0].name).toBe("admin");
-  });
+    expect((window as any).rbacAPI.roles.list).toHaveBeenCalledWith('token', 'business-1')
+    expect(result.current.data).toHaveLength(1)
+    expect(result.current.data[0].name).toBe('admin')
+  })
 
-  it("sets error on API failure", async () => {
+  it('sets error on API failure', async () => {
     vi.mocked((window as any).rbacAPI.roles.list).mockResolvedValue({
       success: false,
-      message: "Forbidden",
-    });
+      message: 'Forbidden',
+    })
 
     const { result } = renderHook(() => useRoles(), {
       wrapper: createWrapper(mockUser),
-    });
+    })
 
     await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
+      expect(result.current.isLoading).toBe(false)
+    })
 
-    expect(result.current.error).toBe("Forbidden");
-  });
+    expect(result.current.error).toBe('Forbidden')
+  })
 
-  it("does not fetch when businessId is undefined", async () => {
+  it('does not fetch when businessId is undefined', async () => {
     const { result } = renderHook(() => useRoles(), {
       wrapper: createWrapper(null),
-    });
+    })
 
     await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
+      expect(result.current.isLoading).toBe(false)
+    })
 
-    expect((window as any).rbacAPI.roles.list).not.toHaveBeenCalled();
-    expect(result.current.data).toEqual([]);
-  });
+    expect((window as any).rbacAPI.roles.list).not.toHaveBeenCalled()
+    expect(result.current.data).toEqual([])
+  })
 
-  it("refetch re-triggers fetch", async () => {
+  it('refetch re-triggers fetch', async () => {
     const { result } = renderHook(() => useRoles(), {
       wrapper: createWrapper(mockUser),
-    });
+    })
 
     await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
+      expect(result.current.isLoading).toBe(false)
+    })
 
     vi.mocked((window as any).rbacAPI.roles.list).mockResolvedValue({
       success: true,
-      data: [createMockRole({ id: "r2" })],
-    });
+      data: [createMockRole({ id: 'r2' })],
+    })
 
-    result.current.refetch();
+    await act(async () => {
+      await result.current.refetch()
+    })
 
     await waitFor(() => {
-      expect((window as any).rbacAPI.roles.list).toHaveBeenCalledTimes(2);
-    });
-  });
-});
+      expect((window as any).rbacAPI.roles.list).toHaveBeenCalledTimes(2)
+    })
+  })
+})
 
-describe("useCreateRole", () => {
+describe('useCreateRole', () => {
   beforeEach(() => {
-    vi.mocked((window as any).authStore.get).mockResolvedValue("token");
+    vi.mocked((window as any).authStore.get).mockResolvedValue('token')
     vi.mocked((window as any).rbacAPI.roles.create).mockResolvedValue({
       success: true,
-      data: createMockRole({ id: "new-1" }),
-    });
-  });
+      data: createMockRole({ id: 'new-1' }),
+    })
+  })
 
-  it("calls API with session token and merged data", async () => {
+  it('calls API with session token and merged data', async () => {
     const { result } = renderHook(() => useCreateRole(), {
       wrapper: createWrapper(mockUser),
-    });
+    })
 
-    await result.current.mutate({
-      name: "custom_role",
-      displayName: "Custom Role",
-      permissions: ["manage:users"],
-    });
+    await act(async () => {
+      await result.current.mutate({
+        name: 'custom_role',
+        displayName: 'Custom Role',
+        permissions: ['manage:users'],
+      })
+    })
 
     expect((window as any).rbacAPI.roles.create).toHaveBeenCalledWith(
-      "token",
+      'token',
       expect.objectContaining({
-        name: "custom_role",
-        displayName: "Custom Role",
-        permissions: ["manage:users"],
-        businessId: "business-1",
+        name: 'custom_role',
+        displayName: 'Custom Role',
+        permissions: ['manage:users'],
+        businessId: 'business-1',
         isSystemRole: false,
         isActive: true,
       })
-    );
-  });
+    )
+  })
 
-  it("calls onSuccess callback on success", async () => {
-    const onSuccess = vi.fn();
+  it('calls onSuccess callback on success', async () => {
+    const onSuccess = vi.fn()
     const { result } = renderHook(() => useCreateRole(), {
       wrapper: createWrapper(mockUser),
-    });
+    })
 
-    await result.current.mutate(
-      {
-        name: "r",
-        displayName: "R",
-        permissions: ["p"],
-      },
-      { onSuccess }
-    );
+    await act(async () => {
+      await result.current.mutate(
+        {
+          name: 'r',
+          displayName: 'R',
+          permissions: ['p'],
+        },
+        { onSuccess }
+      )
+    })
 
-    expect(onSuccess).toHaveBeenCalled();
-  });
+    expect(onSuccess).toHaveBeenCalled()
+  })
 
-  it("calls onError and throws when API fails", async () => {
+  it('calls onError and throws when API fails', async () => {
     vi.mocked((window as any).rbacAPI.roles.create).mockResolvedValue({
       success: false,
-      message: "Duplicate role",
-    });
+      message: 'Duplicate role',
+    })
 
-    const onError = vi.fn();
+    const onError = vi.fn()
     const { result } = renderHook(() => useCreateRole(), {
       wrapper: createWrapper(mockUser),
-    });
+    })
 
-    await expect(
-      result.current.mutate(
-        {
-          name: "r",
-          displayName: "R",
-          permissions: ["p"],
-        },
-        { onError }
-      )
-    ).rejects.toThrow();
+    let thrownError: unknown
+    await act(async () => {
+      try {
+        await result.current.mutate(
+          {
+            name: 'r',
+            displayName: 'R',
+            permissions: ['p'],
+          },
+          { onError }
+        )
+      } catch (error) {
+        thrownError = error
+      }
+    })
 
-    expect(onError).toHaveBeenCalled();
-  });
+    expect(thrownError).toBeInstanceOf(Error)
+    expect(onError).toHaveBeenCalled()
+  })
 
-  it("throws when not authenticated", async () => {
-    vi.mocked((window as any).authStore.get).mockResolvedValue(null);
+  it('throws when not authenticated', async () => {
+    vi.mocked((window as any).authStore.get).mockResolvedValue(null)
     const { result } = renderHook(() => useCreateRole(), {
       wrapper: createWrapper(mockUser),
-    });
+    })
 
-    await expect(
-      result.current.mutate({
-        name: "r",
-        displayName: "R",
-        permissions: ["p"],
-      })
-    ).rejects.toThrow("Not authenticated");
-  });
-});
+    let thrownError: unknown
+    await act(async () => {
+      try {
+        await result.current.mutate({
+          name: 'r',
+          displayName: 'R',
+          permissions: ['p'],
+        })
+      } catch (error) {
+        thrownError = error
+      }
+    })
 
-describe("useUpdateRole", () => {
+    expect((thrownError as Error).message).toBe('Not authenticated')
+  })
+})
+
+describe('useUpdateRole', () => {
   beforeEach(() => {
-    vi.mocked((window as any).authStore.get).mockResolvedValue("token");
+    vi.mocked((window as any).authStore.get).mockResolvedValue('token')
     vi.mocked((window as any).rbacAPI.roles.update).mockResolvedValue({
       success: true,
       data: {},
-    });
-  });
+    })
+  })
 
-  it("calls API with roleId and data", async () => {
+  it('calls API with roleId and data', async () => {
     const { result } = renderHook(() => useUpdateRole(), {
       wrapper: createWrapper(mockUser),
-    });
+    })
 
-    await result.current.mutate({
-      roleId: "role-1",
-      data: { displayName: "Updated Name" },
-    });
+    await act(async () => {
+      await result.current.mutate({
+        roleId: 'role-1',
+        data: { displayName: 'Updated Name' },
+      })
+    })
 
-    expect((window as any).rbacAPI.roles.update).toHaveBeenCalledWith(
-      "token",
-      "role-1",
-      { displayName: "Updated Name" }
-    );
-  });
+    expect((window as any).rbacAPI.roles.update).toHaveBeenCalledWith('token', 'role-1', {
+      displayName: 'Updated Name',
+    })
+  })
 
-  it("calls onSuccess on success", async () => {
-    const onSuccess = vi.fn();
+  it('calls onSuccess on success', async () => {
+    const onSuccess = vi.fn()
     const { result } = renderHook(() => useUpdateRole(), {
       wrapper: createWrapper(mockUser),
-    });
+    })
 
-    await result.current.mutate(
-      { roleId: "r1", data: {} },
-      { onSuccess }
-    );
-    expect(onSuccess).toHaveBeenCalled();
-  });
-});
+    await act(async () => {
+      await result.current.mutate({ roleId: 'r1', data: {} }, { onSuccess })
+    })
+    expect(onSuccess).toHaveBeenCalled()
+  })
+})
 
-describe("useDeleteRole", () => {
+describe('useDeleteRole', () => {
   beforeEach(() => {
-    vi.mocked((window as any).authStore.get).mockResolvedValue("token");
+    vi.mocked((window as any).authStore.get).mockResolvedValue('token')
     vi.mocked((window as any).rbacAPI.roles.delete).mockResolvedValue({
       success: true,
       data: {},
-    });
-  });
+    })
+  })
 
-  it("calls API with roleId", async () => {
+  it('calls API with roleId', async () => {
     const { result } = renderHook(() => useDeleteRole(), {
       wrapper: createWrapper(mockUser),
-    });
+    })
 
-    await result.current.mutate("role-1");
+    await act(async () => {
+      await result.current.mutate('role-1')
+    })
 
-    expect((window as any).rbacAPI.roles.delete).toHaveBeenCalledWith(
-      "token",
-      "role-1"
-    );
-  });
+    expect((window as any).rbacAPI.roles.delete).toHaveBeenCalledWith('token', 'role-1')
+  })
 
-  it("calls onSuccess on success", async () => {
-    const onSuccess = vi.fn();
+  it('calls onSuccess on success', async () => {
+    const onSuccess = vi.fn()
     const { result } = renderHook(() => useDeleteRole(), {
       wrapper: createWrapper(mockUser),
-    });
+    })
 
-    await result.current.mutate("role-1", { onSuccess });
-    expect(onSuccess).toHaveBeenCalled();
-  });
-});
+    await act(async () => {
+      await result.current.mutate('role-1', { onSuccess })
+    })
+    expect(onSuccess).toHaveBeenCalled()
+  })
+})
 
-describe("useUsersByRole", () => {
+describe('useUsersByRole', () => {
   beforeEach(() => {
-    vi.mocked((window as any).authStore.get).mockResolvedValue("token");
+    vi.mocked((window as any).authStore.get).mockResolvedValue('token')
     vi.mocked((window as any).rbacAPI.roles.getUsersByRole).mockResolvedValue({
       success: true,
-      data: [{ user: { id: "u1" }, userRole: {} }],
-    });
-  });
+      data: [{ user: { id: 'u1' }, userRole: {} }],
+    })
+  })
 
-  it("returns users when API succeeds", async () => {
+  it('returns users when API succeeds', async () => {
     const { result } = renderHook(() => useUsersByRole(), {
       wrapper: createWrapper(mockUser),
-    });
+    })
 
-    const users = await result.current.getUsersByRole("role-1");
+    let users: Awaited<ReturnType<typeof result.current.getUsersByRole>> = null
+    await act(async () => {
+      users = await result.current.getUsersByRole('role-1')
+    })
 
-    expect(users).toHaveLength(1);
-    expect((window as any).rbacAPI.roles.getUsersByRole).toHaveBeenCalledWith(
-      "token",
-      "role-1"
-    );
-  });
+    expect(users).toHaveLength(1)
+    expect((window as any).rbacAPI.roles.getUsersByRole).toHaveBeenCalledWith('token', 'role-1')
+  })
 
-  it("returns null and sets error on failure", async () => {
-    vi.mocked(
-      (window as any).rbacAPI.roles.getUsersByRole
-    ).mockResolvedValue({ success: false, message: "Not found" });
+  it('returns null and sets error on failure', async () => {
+    vi.mocked((window as any).rbacAPI.roles.getUsersByRole).mockResolvedValue({
+      success: false,
+      message: 'Not found',
+    })
 
     const { result } = renderHook(() => useUsersByRole(), {
       wrapper: createWrapper(mockUser),
-    });
+    })
 
-    const users = await result.current.getUsersByRole("role-1");
+    let users: Awaited<ReturnType<typeof result.current.getUsersByRole>> = null
+    await act(async () => {
+      users = await result.current.getUsersByRole('role-1')
+    })
 
-    expect(users).toBeNull();
+    expect(users).toBeNull()
     await waitFor(() => {
-      expect(result.current.error).toBe("Not found");
-    });
-  });
-});
+      expect(result.current.error).toBe('Not found')
+    })
+  })
+})

@@ -4,13 +4,7 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
 export default defineConfig([
-  globalIgnores([
-    '**/dist/**',
-    '**/node_modules/**',
-    'coverage/**',
-    'test-results/**',
-    'packages/renderer/**',
-  ]),
+  globalIgnores(['**/dist/**', '**/node_modules/**', 'test-outputs/**', 'packages/renderer/**']),
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -18,6 +12,9 @@ export default defineConfig([
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
+      parserOptions: {
+        tsconfigRootDir: process.cwd(),
+      },
       globals: {
         ...globals.node,
       },
@@ -41,6 +38,7 @@ export default defineConfig([
       },
     },
     rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
       'no-console': 'off',
     },
   },

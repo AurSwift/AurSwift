@@ -2,82 +2,74 @@
  * Global test setup file
  * This file runs before all tests
  */
-
-import { expect, afterEach, vi, beforeAll } from "vitest";
-import { cleanup } from "@testing-library/react";
-import "@testing-library/jest-dom";
+import '@testing-library/jest-dom'
+import { cleanup } from '@testing-library/react'
+import { afterEach, vi } from 'vitest'
 
 // Polyfill for Radix UI / jsdom
-if (typeof window !== "undefined") {
+if (typeof window !== 'undefined') {
   if (!window.ResizeObserver) {
     window.ResizeObserver = class ResizeObserver {
       observe() {}
       unobserve() {}
       disconnect() {}
-    } as any;
+    } as any
   }
 }
 
 // Mock Electron APIs
-if (typeof window !== "undefined") {
-  (window as any).electron = {
+if (typeof window !== 'undefined') {
+  ;(window as any).electron = {
     ipcRenderer: {
       invoke: vi.fn(),
       on: vi.fn(),
       removeListener: vi.fn(),
       send: vi.fn(),
     },
-  };
+  }
 
   // Mock contextBridge APIs
-  (window as any).authAPI = {
+  ;(window as any).authAPI = {
     login: vi.fn(),
     register: vi.fn(),
     logout: vi.fn(),
     validateSession: vi.fn(),
     verifyPin: vi.fn().mockResolvedValue({ success: true }),
-  };
-
-  (window as any).productAPI = {
+  }
+  ;(window as any).productAPI = {
     getAll: vi.fn(),
     getById: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
-  };
-
-  (window as any).transactionAPI = {
+  }
+  ;(window as any).transactionAPI = {
     create: vi.fn(),
     getById: vi.fn(),
     getAll: vi.fn(),
     refund: vi.fn(),
-  };
-
-  (window as any).paymentAPI = {
+  }
+  ;(window as any).paymentAPI = {
     initializeReader: vi.fn(),
     getReaderStatus: vi.fn(),
     processCardPayment: vi.fn(),
     cancelPayment: vi.fn(),
-  };
-
-  (window as any).printerAPI = {
+  }
+  ;(window as any).printerAPI = {
     getStatus: vi.fn(),
     connect: vi.fn(),
     printReceipt: vi.fn(),
-  };
-
-  (window as any).scaleAPI = {
+  }
+  ;(window as any).scaleAPI = {
     connect: vi.fn(),
     getWeight: vi.fn(),
     disconnect: vi.fn(),
-  };
-
-  (window as any).databaseAPI = {
+  }
+  ;(window as any).databaseAPI = {
     backup: vi.fn(),
     restore: vi.fn(),
-  };
-
-  (window as any).rbacAPI = {
+  }
+  ;(window as any).rbacAPI = {
     roles: {
       list: vi.fn(),
       create: vi.fn(),
@@ -92,31 +84,33 @@ if (typeof window !== "undefined") {
       setPrimaryRole: vi.fn(),
     },
     userPermissions: { getUserPermissions: vi.fn() },
-  };
-
-  (window as any).authStore = {
+  }
+  ;(window as any).authStore = {
     get: vi.fn(),
     set: vi.fn(),
     delete: vi.fn(),
-  };
+  }
 }
 
 // Set test environment variables
-process.env.NODE_ENV = "test";
-process.env.HARDWARE_SIMULATION_MODE = "true";
+process.env.NODE_ENV = 'test'
+process.env.HARDWARE_SIMULATION_MODE = 'true'
 
 // Mock Electron app for logger (needed for main process tests)
-vi.mock("electron", () => {
+vi.mock('electron', () => {
   return {
+    contextBridge: {
+      exposeInMainWorld: vi.fn(),
+    },
     app: {
       getPath: vi.fn((name: string) => {
-        if (name === "userData") {
-          return "/tmp/test-user-data";
+        if (name === 'userData') {
+          return '/tmp/test-user-data'
         }
-        return "/tmp/test-path";
+        return '/tmp/test-path'
       }),
-      getName: vi.fn(() => "aurswift"),
-      getVersion: vi.fn(() => "1.8.0"),
+      getName: vi.fn(() => 'aurswift'),
+      getVersion: vi.fn(() => '1.8.0'),
     },
     ipcMain: {
       handle: vi.fn(),
@@ -128,17 +122,18 @@ vi.mock("electron", () => {
       on: vi.fn(),
       removeListener: vi.fn(),
       send: vi.fn(),
+      removeAllListeners: vi.fn(),
     },
-  };
-});
+  }
+})
 
 // Cleanup after each test
 afterEach(() => {
-  cleanup();
-  vi.clearAllMocks();
-});
+  cleanup()
+  vi.clearAllMocks()
+})
 
 // Global test timeout
 vi.setConfig({
   testTimeout: 10000,
-});
+})
