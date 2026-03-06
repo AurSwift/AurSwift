@@ -7,22 +7,24 @@ on:
     # Can be manually triggered
   pull_request:
     paths:
-      - "packages/**"
-      - "tests/**"
-      - "package.json"
-      - "package-lock.json"
-      - "vitest.config.ts"
-      - "playwright.config.ts"
+      - 'packages/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vitest.config.ts'
+      - 'vitest.workspace.ts'
+      - 'playwright.config.ts'
   push:
     branches:
       - main
     paths:
-      - "packages/**"
-      - "tests/**"
-      - "package.json"
-      - "package-lock.json"
-      - "vitest.config.ts"
-      - "playwright.config.ts"
+      - 'packages/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vitest.config.ts'
+      - 'vitest.workspace.ts'
+      - 'playwright.config.ts'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -47,8 +49,9 @@ jobs:
       fail-fast: false
       matrix:
         test-path:
-          - "tests/unit/main"
-          - "tests/unit/renderer"
+          - 'tests/unit/main'
+          - 'tests/unit/preload'
+          - 'tests/unit/renderer'
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -56,9 +59,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "22.x"
+          node-version: '22.x'
           # Disable cache to avoid stale packages after org migration
-          cache: ""
+          cache: ''
 
       - name: Clean npm cache
         run: npm cache clean --force
@@ -80,8 +83,8 @@ jobs:
         run: npm run build
         continue-on-error: true
 
-      - name: Create test-results directory
-        run: mkdir -p test-results
+      - name: Create test output directories
+        run: mkdir -p test-outputs/test-results
 
       - name: Set test path slug
         id: test-path-slug
@@ -100,14 +103,14 @@ jobs:
 
       - name: Run unit tests
         if: steps.check-tests.outputs.exists == 'true'
-        run: npx vitest run ${{ matrix.test-path }} --reporter=verbose --reporter=junit --outputFile=test-results/unit-${{ steps.test-path-slug.outputs.slug }}.xml
+        run: npx vitest run ${{ matrix.test-path }} --reporter=verbose --reporter=junit --outputFile=test-outputs/test-results/unit-${{ steps.test-path-slug.outputs.slug }}.xml
 
       - name: Upload unit test results
         if: always()
         uses: actions/upload-artifact@v6
         with:
           name: unit-test-results-${{ steps.test-path-slug.outputs.slug }}
-          path: test-results/unit-*.xml
+          path: test-outputs/test-results/unit-*.xml
           retention-days: 7
           if-no-files-found: ignore
 
@@ -123,9 +126,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "22.x"
+          node-version: '22.x'
           # Disable cache to avoid stale packages after org migration
-          cache: ""
+          cache: ''
 
       - name: Clean npm cache
         run: npm cache clean --force
@@ -147,13 +150,13 @@ jobs:
         run: npm run build
         continue-on-error: true
 
-      - name: Create test-results directory
-        run: mkdir -p test-results
+      - name: Create test output directories
+        run: mkdir -p test-outputs/test-results
 
       - name: Check if component test files exist
         id: check-tests
         run: |
-          if [ -d "tests/components" ] && [ -n "$(find tests/components -name '*.test.ts' -o -name '*.test.tsx' | head -1)" ]; then
+          if [ -d "tests/component" ] && [ -n "$(find tests/component -name '*.test.ts' -o -name '*.test.tsx' | head -1)" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
             echo "✓ Component test files found"
           else
@@ -163,14 +166,14 @@ jobs:
 
       - name: Run component tests
         if: steps.check-tests.outputs.exists == 'true'
-        run: npx vitest run tests/components --reporter=verbose --reporter=junit --outputFile=test-results/component-tests.xml
+        run: npx vitest run tests/component --reporter=verbose --reporter=junit --outputFile=test-outputs/test-results/component-tests.xml
 
       - name: Upload component test results
         if: always()
         uses: actions/upload-artifact@v6
         with:
           name: component-test-results
-          path: test-results/component-tests.xml
+          path: test-outputs/test-results/component-tests.xml
           retention-days: 7
           if-no-files-found: ignore
 
@@ -183,8 +186,9 @@ jobs:
       fail-fast: false
       matrix:
         test-path:
-          - "tests/integration/main"
-          - "tests/integration/renderer"
+          - 'tests/integration/main'
+          - 'tests/integration/preload'
+          - 'tests/integration/renderer'
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -192,9 +196,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "22.x"
+          node-version: '22.x'
           # Disable cache to avoid stale packages after org migration
-          cache: ""
+          cache: ''
 
       - name: Clean npm cache
         run: npm cache clean --force
@@ -216,8 +220,8 @@ jobs:
         run: npm run build
         continue-on-error: true
 
-      - name: Create test-results directory
-        run: mkdir -p test-results
+      - name: Create test output directories
+        run: mkdir -p test-outputs/test-results
 
       - name: Set test path slug
         id: test-path-slug
@@ -236,14 +240,14 @@ jobs:
 
       - name: Run integration tests
         if: steps.check-tests.outputs.exists == 'true'
-        run: npx vitest run ${{ matrix.test-path }} --reporter=verbose --reporter=junit --outputFile=test-results/integration-${{ steps.test-path-slug.outputs.slug }}.xml
+        run: npx vitest run ${{ matrix.test-path }} --reporter=verbose --reporter=junit --outputFile=test-outputs/test-results/integration-${{ steps.test-path-slug.outputs.slug }}.xml
 
       - name: Upload integration test results
         if: always()
         uses: actions/upload-artifact@v6
         with:
           name: integration-test-results-${{ steps.test-path-slug.outputs.slug }}
-          path: test-results/integration-*.xml
+          path: test-outputs/test-results/integration-*.xml
           retention-days: 7
           if-no-files-found: ignore
 
@@ -261,9 +265,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "22.x"
+          node-version: '22.x'
           # Disable cache to avoid stale packages after org migration
-          cache: ""
+          cache: ''
 
       - name: Clean npm cache
         run: npm cache clean --force
@@ -294,15 +298,15 @@ jobs:
         with:
           name: coverage-report
           path: |
-            coverage/
-            coverage/lcov.info
+            test-outputs/coverage/
+            test-outputs/coverage/lcov.info
           retention-days: 30
 
       - name: Publish coverage to PR
         if: github.event_name == 'pull_request' && always()
         run: |
           echo "## Coverage Report" >> $GITHUB_STEP_SUMMARY
-          if [ -f coverage/lcov.info ]; then
+          if [ -f test-outputs/coverage/lcov.info ]; then
             echo "Coverage report generated successfully." >> $GITHUB_STEP_SUMMARY
             echo "View detailed coverage in the artifacts." >> $GITHUB_STEP_SUMMARY
           else
@@ -334,9 +338,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "22.x"
+          node-version: '22.x'
           # Disable cache to avoid stale packages after org migration
-          cache: ""
+          cache: ''
 
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
@@ -344,7 +348,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.x"
+          python-version: '3.x'
 
       - name: Clean npm cache
         run: npm cache clean --force
@@ -400,8 +404,8 @@ jobs:
       - name: Check if E2E test files exist
         id: check-e2e-tests
         run: |
-          if (Test-Path "tests/e2e") {
-            $testFiles = Get-ChildItem -Path tests/e2e -Filter "*.spec.ts" -Recurse
+          if (Test-Path "tests/e2e/specs") {
+            $testFiles = Get-ChildItem -Path tests/e2e/specs -Filter "*.e2e.spec.ts" -Recurse
             if ($testFiles.Count -gt 0) {
               echo "exists=true" >> $env:GITHUB_OUTPUT
               Write-Host "\u2713 E2E test files found: $($testFiles.Count)"
@@ -411,7 +415,7 @@ jobs:
             }
           } else {
             echo "exists=false" >> $env:GITHUB_OUTPUT
-            Write-Host "\u26a0 tests/e2e directory not found"
+            Write-Host "\u26a0 tests/e2e/specs directory not found"
           }
         shell: powershell
 
@@ -426,8 +430,7 @@ jobs:
         with:
           name: e2e-test-results
           path: |
-            test-results/
-            playwright-report/
+            test-outputs/e2e/
           retention-days: 7
 
       - name: Upload E2E screenshots
@@ -435,7 +438,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: e2e-screenshots
-          path: test-results/**/*.png
+          path: test-outputs/e2e/artifacts/**/*.png
           retention-days: 7
 
       - name: Upload E2E videos
@@ -443,7 +446,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: e2e-videos
-          path: test-results/**/*.webm
+          path: test-outputs/e2e/artifacts/**/*.webm
           retention-days: 7
 
   # Job 7: Test Summary (aggregates all test results)
@@ -461,7 +464,7 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           path: all-test-results
-          pattern: "*test-results*"
+          pattern: '*test-results*'
           merge-multiple: true
 
       - name: Generate test summary
